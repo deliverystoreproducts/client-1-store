@@ -2703,11 +2703,15 @@ body::after {
   flex: none;
 }
 
-.topbar-text {
-  /* flex items refuse to shrink below content without min-width: 0 — this was
-     the phone's horizontal scroll */
-  /* Citrus motion: the line strolls instead of truncating. */
+.topbar-track {
+  flex: 1;
   min-width: 0;
+  overflow: hidden;
+}
+
+.topbar-text {
+  /* Citrus motion: the line strolls inside its own window; badge and arrow
+     never move. */
   white-space: nowrap;
   display: inline-block;
   padding-left: 100%;
