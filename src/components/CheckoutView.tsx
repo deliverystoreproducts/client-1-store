@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { BasketComplianceNotices } from "@/components/ComplianceNotices";
 import { useCart } from "@/components/CartProvider";
+import { AddressField } from "@/components/AddressField";
 import { DailyLimitReadout } from "@/components/DailyLimitReadout";
 import { SignInFlow } from "@/components/SignInFlow";
 import { apiGet, apiPost, ClientApiError } from "@/lib/client-api";
@@ -334,17 +335,14 @@ export function CheckoutView({
             <label className="label" htmlFor="address">
               Delivery address
             </label>
-            <input
+            <AddressField
               id="address"
-              className="input"
-              autoComplete="street-address"
               placeholder="123 Main St, Apt 4, City, State ZIP"
               value={address}
-              onChange={(e) => {
+              onChange={(v) => {
                 setAddressTouched(true);
-                setAddress(e.target.value);
+                setAddress(v);
               }}
-              required
             />
           </div>
 

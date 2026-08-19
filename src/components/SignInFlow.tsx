@@ -1,3 +1,4 @@
+import { AddressField } from "@/components/AddressField";
 "use client";
 
 import { useState } from "react";
@@ -269,12 +270,10 @@ export function SignInFlow({ onSignedIn, requireIdPhoto, initialStep = "phone" }
             <label className="label" htmlFor="address">
               Delivery address <span className="faint">(optional now)</span>
             </label>
-            <input
+            <AddressField
               id="address"
-              className="input"
-              autoComplete="street-address"
               value={address}
-              onChange={(e) => setAddress(e.target.value)}
+              onChange={setAddress}
             />
           </div>
           {requireIdPhoto ? (

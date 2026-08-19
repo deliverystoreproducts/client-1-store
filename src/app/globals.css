@@ -2798,3 +2798,36 @@ body::after {
   from { transform: scale(1); }
   to { transform: scale(1.07) translateX(-1.5%); }
 }
+
+/* ═══════════════════════ ADDRESS SUGGESTIONS ═══════════════════════ */
+.addr {
+  position: relative;
+}
+
+.addr-pop {
+  position: absolute;
+  z-index: 30;
+  inset-inline: 0;
+  top: calc(100% + 4px);
+  background: var(--ground-raise);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  box-shadow: var(--lift);
+  max-height: 260px;
+  overflow-y: auto;
+  padding: 0.3rem;
+}
+
+.addr-opt {
+  padding: 0.65rem 0.7rem;
+  border-radius: 7px;
+  font-size: var(--t--1);
+  color: var(--pine-2);
+  cursor: pointer;
+  line-height: 1.35;
+}
+
+.addr-opt[aria-selected="true"] {
+  background: var(--ground-deep);
+  color: var(--pine);
+}
