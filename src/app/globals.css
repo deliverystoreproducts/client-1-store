@@ -58,37 +58,37 @@
 :root {
   /* Ground — warm porcelain, cream-cast. --ground-deep is the footer's shade;
      --ground-raise is panels and cards, a half-step off white. */
-  --ground: #f3f8f1;
-  --ground-deep: #e9f1e5;
+  --ground: #f6fbf2;
+  --ground-deep: #ecf5e4;
   --ground-raise: #ffffff;
   --field: #ffffff;
 
   /* Rules. Decorative only — never load-bearing for text contrast. */
-  --rule: #dbe8d6;
-  --rule-hi: #b7cfb1;
+  --rule: #e0ecd5;
+  --rule-hi: #bdd3ac;
 
   /* Type — pine-green inks. Measured on --ground: 13.3 : 1, 7.4 : 1, 5.3 : 1
      (and pine-3 holds 4.9 : 1 on the deeper footer ground). */
-  --pine: #152418;
-  --pine-2: #3d5443;
-  --pine-3: #526b55;
+  --pine: #182415;
+  --pine-2: #3e5138;
+  --pine-3: #54694c;
 
   /* Chromatic accents. On a light ground the text-safe direction INVERTS:
      dark theme lightened a colour to make it readable, daylight darkens it.
      All measured on --ground. */
-  --clay: #c2186f; /* fired terracotta — fills, borders, seals (5.5 : 1) */
-  --clay-lit: #a01159; /* the deeper clay for hover fills and edges */
-  --amber: #c2186f; /* honey — primary action, focus, price (5.1 : 1; cream
+  --clay: #c14608; /* fired terracotta — fills, borders, seals (5.5 : 1) */
+  --clay-lit: #a03a06; /* the deeper clay for hover fills and edges */
+  --amber: #c14608; /* honey — primary action, focus, price (5.1 : 1; cream
                        text ON an amber fill measures the same 5.1 : 1) */
-  --amber-deep: #a01159;
+  --amber-deep: #a03a06;
   --sage: #2f7d46; /* open / delivered / affirmative (5.9 : 1) */
-  --fern: #107538; /* THE action green — brighter per theme "Sunset
+  --fern: #0e7d3b; /* THE action green — brighter per theme "Sunset
                       Apothecary" (4.6 : 1 both directions; measured) */
-  --marigold: #f0a428; /* tint fills only — dark text rides on it */
-  --coral: #c2186f; /* non-text accent: active-tab rule, seals (3.4 : 1 UI) */
+  --marigold: #ffb054; /* tint fills only — dark text rides on it */
+  --coral: #c14608; /* non-text accent: active-tab rule, seals (3.4 : 1 UI) */
   /* Ceramic plate gradient stops, so the product plates re-glaze per theme. */
-  --plate-a: #e7f0e3;
-  --plate-b: #f7faf5;
+  --plate-a: #eaf3e0;
+  --plate-b: #f8fbf3;
   --alarm: #b3261e; /* errors and unset-value placeholders (5.7 : 1) */
 
   /* Type families. The webfonts load from this origin; the fallbacks are
@@ -760,8 +760,30 @@ body::after {
   letter-spacing: 0.04em;
   text-transform: uppercase;
   cursor: pointer;
+  position: relative;
+  overflow: hidden;
   transition: background 0.18s var(--ease), transform 0.18s var(--ease),
     border-color 0.18s var(--ease), color 0.18s var(--ease);
+}
+
+/* Citrus motion: a light sweep strolls across primary CTAs. Checkout stays
+   plain, so it is switched off there. */
+.btn:not(.btn-ghost):not(.btn-link)::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 32%, rgb(255 255 255 / 0.32) 50%, transparent 68%);
+  transform: translateX(-110%);
+  animation: btn-shine 3.4s var(--ease) infinite;
+  pointer-events: none;
+}
+
+.plain .btn::after {
+  display: none;
+}
+
+@keyframes btn-shine {
+  55%, 100% { transform: translateX(110%); }
 }
 
 .btn:hover:not(:disabled) {
@@ -1089,10 +1111,11 @@ body::after {
   z-index: -1;
   background-size: cover;
   background-position: center;
-  opacity: 0.85;
-  filter: saturate(0.82) contrast(1.02);
+  opacity: 0.9;
+  filter: saturate(0.92) contrast(1.02);
   mask-image: none;
   -webkit-mask-image: none;
+  animation: ken 22s ease-in-out infinite alternate;
   mask-image: linear-gradient(180deg, #000 0%, #000 42%, transparent 96%);
   -webkit-mask-image: linear-gradient(
     180deg,
@@ -2646,15 +2669,23 @@ body::after {
   justify-content: center;
   gap: 0.6rem;
   min-height: 40px;
+  overflow: hidden;
   padding: 0.35rem 1rem;
-  background: linear-gradient(90deg, #107538, #1fae57 55%, #107538);
-  color: var(--ground);
+  background: linear-gradient(90deg, #18a24c, #7ccb1f);
+  color: var(--pine);
   font-size: var(--t--2);
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: 0.09em;
   text-transform: uppercase;
   text-align: center;
   transition: filter 0.18s var(--ease);
+}
+
+/* In dark (Neon Jungle) the lime bar needs its jungle ink explicitly — the
+   token flips to cream there, which would fail on lime. */
+:root[data-theme="dark"] .topbar { color: #12210f; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .topbar { color: #12210f; }
 }
 
 .topbar:hover {
@@ -2662,8 +2693,10 @@ body::after {
 }
 
 .topbar-badge {
-  background: var(--ground);
-  color: var(--fern);
+  background: var(--pine);
+  color: var(--ground-raise);
+  position: relative;
+  z-index: 1;
   border-radius: 4px;
   padding: 0.08rem 0.4rem;
   font-weight: 800;
@@ -2673,10 +2706,16 @@ body::after {
 .topbar-text {
   /* flex items refuse to shrink below content without min-width: 0 — this was
      the phone's horizontal scroll */
+  /* Citrus motion: the line strolls instead of truncating. */
   min-width: 0;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  display: inline-block;
+  padding-left: 100%;
+  animation: marquee 16s linear infinite;
+}
+
+@keyframes marquee {
+  to { transform: translateX(-100%); }
 }
 
 /* Gate licence: its own centred line instead of a wrapped run-on. */
@@ -2735,4 +2774,10 @@ body::after {
 .theme-toggle:hover {
   color: var(--pine);
   border-color: var(--fern);
+}
+
+
+@keyframes ken {
+  from { transform: scale(1); }
+  to { transform: scale(1.07) translateX(-1.5%); }
 }
