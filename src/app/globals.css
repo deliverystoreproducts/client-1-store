@@ -1174,6 +1174,18 @@ body::after {
   margin-inline: 0.65rem;
 }
 
+/* The phone gets an icon, not a separator — a dot orphaned at a wrap point
+   read as a typo (owner's screenshot). */
+.fact-tel::before {
+  content: none !important;
+}
+
+.fact-tel svg {
+  width: 0.95em;
+  height: 0.95em;
+  flex: none;
+}
+
 
 /* ═══════════════════════════ HOME — FILTER RAIL ═══════════════════════════ */
 
