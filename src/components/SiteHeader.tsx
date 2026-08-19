@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { useCart } from "@/components/CartProvider";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import type { SessionState } from "@/lib/public-types";
@@ -20,6 +21,10 @@ export function SiteHeader({
   logo?: string | null;
 }) {
   const { count, ready } = useCart();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const pathname = usePathname();
+  // route change closes the menu
+  useEffect(() => setMenuOpen(false), [pathname]);
   const [session, setSession] = useState<SessionState | null>(null);
 
   useEffect(() => {
@@ -52,16 +57,29 @@ export function SiteHeader({
         </Link>
 
         <nav className="nav" aria-label="Main">
-          <Link href="/" className="nav-wide">
-            Shop
-          </Link>
-          <Link href="/track">Track</Link>
-          {session?.authenticated ? (
-            <Link href="/account">Account</Link>
-          ) : (
-            <Link href="/signin">Sign in</Link>
-          )}
-          <ThemeToggle />
+          {/* Text links live in a wrapper the phone hides; the burger replaces
+              them. Cart and the burger always stay reachable. */}
+          <span className="nav-links">
+            <Link href="/" className="nav-wide">
+              Shop
+            </Link>
+            <Link href="/track">Track</Link>
+            {session?.authenticated ? (
+              <Link href="/account">Account</Link>
+            ) : (
+              <Link href="/signin">Sign in</Link>
+            )}
+            <ThemeToggle />
+          </span>
+          <button
+            className="burger"
+            aria-expanded={menuOpen}
+            aria-controls="mobile-menu"
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            onClick={() => setMenuOpen((v) => !v)}
+          >
+            <i /><i /><i />
+          </button>
           <Link href="/cart" className="cart-link">
             Cart
             {showCount ? (
@@ -73,6 +91,24 @@ export function SiteHeader({
           </Link>
         </nav>
       </div>
+
+      {menuOpen ? (
+        <div id="mobile-menu" className="mobile-menu">
+          <Link href="/">Shop</Link>
+          <Link href="/track">Track an order</Link>
+          {session?.authenticated ? (
+            <Link href="/account">Your account</Link>
+          ) : (
+            <Link href="/signin">Sign in</Link>
+          )}
+          <Link href="/faq">FAQ</Link>
+          <Link href="/contact">Contact</Link>
+          <div className="mobile-menu-row">
+            <span className="eyebrow">Theme</span>
+            <ThemeToggle />
+          </div>
+        </div>
+      ) : null}
     </header>
   );
 }

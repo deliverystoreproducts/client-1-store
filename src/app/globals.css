@@ -590,28 +590,87 @@ body::after {
   font-variant-numeric: tabular-nums;
 }
 
-/* On the narrowest phones "Shop" goes — the wordmark already links home. */
-@media (max-width: 560px) {
-  .nav-wide {
+/* ── the burger — phones get a menu, not a squeeze ── */
+.nav-links {
+  display: contents;
+}
+
+.burger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  width: 40px;
+  height: 40px;
+  padding: 9px;
+  border: 1px solid var(--rule-hi);
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  flex: none;
+}
+
+.burger i {
+  display: block;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--pine);
+  transition: transform 0.2s var(--ease), opacity 0.2s var(--ease);
+}
+
+.burger[aria-expanded="true"] i:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+.burger[aria-expanded="true"] i:nth-child(2) {
+  opacity: 0;
+}
+.burger[aria-expanded="true"] i:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+.mobile-menu {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .nav-links {
     display: none;
+  }
+  .burger {
+    display: flex;
   }
   .site-header .wrap {
     gap: 0.6rem;
   }
-  .nav {
-    gap: 0.8rem;
-  }
   .brand {
-    font-size: 1.05rem;
+    font-size: 1.02rem;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
-}
-
-@media (max-width: 390px) {
-  .brand {
-    font-size: 0.98rem;
+  .mobile-menu {
+    display: grid;
+    gap: 0;
+    border-top: 1px solid var(--rule);
+    background: var(--ground-raise);
+    box-shadow: var(--lift);
+    animation: rise 0.25s var(--ease) both;
   }
-  .nav {
-    gap: 0.6rem;
+  .mobile-menu a {
+    padding: 0.95rem var(--gutter);
+    border-bottom: 1px solid var(--rule);
+    font-size: var(--t-0);
+    font-weight: 500;
+    color: var(--pine);
+  }
+  .mobile-menu a:active {
+    background: var(--ground-deep);
+  }
+  .mobile-menu-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.7rem var(--gutter);
   }
 }
 
@@ -1002,6 +1061,11 @@ body::after {
    bounded: the shelf must still arrive by the second screen. Text sits on a
    porcelain scrim, never raw on the photo. */
 .hero[data-media="true"] {
+  /* Clip the -50vw full-bleed media: on phones it was 170px of page beyond
+     the viewport (iOS pans there even with body overflow hidden). Clipped,
+     the photo becomes a rounded band inside the column — better anyway. */
+  overflow: hidden;
+  border-radius: 14px;
   min-height: clamp(300px, 44vh, 430px);
   display: flex;
   align-items: flex-end;
@@ -2606,6 +2670,9 @@ body::after {
 }
 
 .topbar-text {
+  /* flex items refuse to shrink below content without min-width: 0 — this was
+     the phone's horizontal scroll */
+  min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
