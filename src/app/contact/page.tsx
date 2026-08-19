@@ -4,11 +4,8 @@ import Link from "next/link";
 import { DELIVERY_WINDOW_LABEL } from "@/lib/hours";
 import { getStoreProfile } from "@/lib/store";
 import {
-  LEGAL_ENTITY_NAME,
-  LICENSE_NUMBER,
   LICENSE_PLACEHOLDER,
   MISSING,
-  PRIVACY_CONTACT_EMAIL,
   SITE_NAME,
 } from "@/lib/site";
 
@@ -42,7 +39,9 @@ export const metadata: Metadata = {
 export default async function ContactPage() {
   const profile = await getStoreProfile();
   const phone = profile.contactPhone?.trim() || null;
-  const email = profile.contactEmail?.trim() || PRIVACY_CONTACT_EMAIL || null;
+  const email = profile.contactEmail?.trim() || profile.privacyContactEmail || null;
+  const LICENSE_NUMBER = profile.licenseNumber ?? "";
+  const LEGAL_ENTITY_NAME = profile.legalEntityName ?? "";
   const hasAnyChannel = Boolean(phone || email);
 
   return (
@@ -69,7 +68,7 @@ export default async function ContactPage() {
           ) : (
             <p>
               <span className="license" data-missing="true">
-                {MISSING("NEXT_PUBLIC_PRIVACY_CONTACT_EMAIL")}
+                {MISSING("Contact email")}
               </span>
             </p>
           )}
@@ -126,7 +125,7 @@ export default async function ContactPage() {
               <strong>{LEGAL_ENTITY_NAME}</strong>
             ) : (
               <span className="license" data-missing="true">
-                {MISSING("NEXT_PUBLIC_LEGAL_ENTITY_NAME")}
+                {MISSING("Legal entity name")}
               </span>
             )}
             <br />

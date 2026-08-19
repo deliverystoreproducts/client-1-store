@@ -1,15 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
-  LEGAL_ENTITY_NAME,
-  LICENSE_NUMBER,
   LICENSE_PLACEHOLDER,
   MISSING,
-  POLICY_EFFECTIVE_DATE,
-  PRIVACY_CONTACT_ADDRESS,
-  PRIVACY_CONTACT_EMAIL,
   SITE_NAME,
 } from "@/lib/site";
+import { getStoreProfile } from "@/lib/store";
 
 /**
  * ══════════════════════════════════════════════════════════════════════════
@@ -72,7 +68,18 @@ function Missing({ env }: { env: string }) {
   );
 }
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  // Business identity resolved server-side: dashboard value first, env
+  // fallback (merged in lib/kamui/map.ts). Same names the render code always
+  // used — only the source moved.
+  const profile = await getStoreProfile();
+  const LICENSE_NUMBER = profile.licenseNumber ?? "";
+  const LEGAL_ENTITY_NAME = profile.legalEntityName ?? "";
+  const POLICY_EFFECTIVE_DATE = profile.policyEffectiveDate ?? "";
+  const PRIVACY_CONTACT_EMAIL = profile.privacyContactEmail ?? profile.contactEmail ?? "";
+  const PRIVACY_CONTACT_ADDRESS = profile.privacyContactAddress ?? "";
+  const LOCAL_PERMIT_NUMBER = profile.localPermitNumber ?? "";
+
   return (
     <article className="legal">
       <h1 className="display">Privacy policy</h1>
@@ -83,7 +90,7 @@ export default function PrivacyPage() {
           {POLICY_EFFECTIVE_DATE ? (
             <strong>{POLICY_EFFECTIVE_DATE}</strong>
           ) : (
-            <Missing env="NEXT_PUBLIC_POLICY_EFFECTIVE_DATE" />
+            <Missing env="Policy effective date" />
           )}
         </span>
         <span>
@@ -107,7 +114,7 @@ export default function PrivacyPage() {
         {LEGAL_ENTITY_NAME ? (
           <strong>{LEGAL_ENTITY_NAME}</strong>
         ) : (
-          <Missing env="NEXT_PUBLIC_LEGAL_ENTITY_NAME" />
+          <Missing env="Legal entity name" />
         )}
         , a cannabis retailer licensed by the California Department of Cannabis Control under
         licence{" "}
@@ -263,13 +270,13 @@ export default function PrivacyPage() {
         {PRIVACY_CONTACT_EMAIL ? (
           <a href={`mailto:${PRIVACY_CONTACT_EMAIL}`}>{PRIVACY_CONTACT_EMAIL}</a>
         ) : (
-          <Missing env="NEXT_PUBLIC_PRIVACY_CONTACT_EMAIL" />
+          <Missing env="Privacy contact email" />
         )}
         <br />
         {PRIVACY_CONTACT_ADDRESS ? (
           PRIVACY_CONTACT_ADDRESS
         ) : (
-          <Missing env="NEXT_PUBLIC_PRIVACY_CONTACT_ADDRESS" />
+          <Missing env="Privacy contact address" />
         )}
       </p>
 

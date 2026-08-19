@@ -17,7 +17,8 @@ export const DEFAULT_MIN_AGE = Number(process.env.NEXT_PUBLIC_MIN_AGE || "21") |
 /**
  * The retailer's state cannabis licence number.
  *
- * REQUIRED BEFORE LAUNCH. California B&P § 26151(a) requires all advertising
+ * REQUIRED BEFORE LAUNCH — set it in the dashboard (Settings → Business); this
+ * env var is the fallback. California B&P § 26151(a) requires all advertising
  * and marketing to "accurately and legibly identify the licensee responsible
  * for its content, by adding, at a minimum, the licensee's license number" — a
  * retailer's own webstore is marketing, so this belongs in the footer and on the
@@ -30,11 +31,14 @@ export const DEFAULT_MIN_AGE = Number(process.env.NEXT_PUBLIC_MIN_AGE || "21") |
 export const LICENSE_NUMBER = (process.env.NEXT_PUBLIC_LICENSE_NUMBER || "").trim();
 
 /** What the UI shows when the operator has not supplied a number yet. */
-export const LICENSE_PLACEHOLDER = "SET NEXT_PUBLIC_LICENSE_NUMBER";
+export const LICENSE_PLACEHOLDER = "Licence number NOT SET — Settings → Business";
 
 /**
  * ══════════════════════════════════════════════════════════════════════════
- *  OPERATOR-SUPPLIED FACTS. A developer cannot invent any of these.
+ *  OPERATOR-SUPPLIED FACTS — FALLBACKS. A developer cannot invent any of
+ *  these, and since the dashboard's Settings → Business page exists they are
+ *  edited THERE; a dashboard value wins over every env var below. Env remains
+ *  for bootstrap and for running with the backend unreachable.
  * ══════════════════════════════════════════════════════════════════════════
  *
  * Same discipline as the licence number above: no defaults, and a loud
@@ -88,7 +92,13 @@ export const SAFER_USE_BROCHURE_URL = (
   process.env.NEXT_PUBLIC_SAFER_USE_BROCHURE_URL || ""
 ).trim();
 
-export const MISSING = (envVar: string) => `SET ${envVar}`;
+/**
+ * Operator-facing placeholder for an unset business fact. Points at the
+ * dashboard page (the primary way to set these now); the env vars documented in
+ * .env.example remain as fallback. Deliberately loud — an unfinished legal page
+ * must not ship looking finished.
+ */
+export const MISSING = (label: string) => `${label} NOT SET — Settings → Business`;
 
 /** localStorage key for the browser-side cart. Namespaced to this store. */
 export const CART_STORAGE_KEY = "ybs.cart.v1";

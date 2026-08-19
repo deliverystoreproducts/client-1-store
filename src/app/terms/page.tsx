@@ -1,18 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { DELIVERY_WINDOW_LABEL } from "@/lib/hours";
+import { getStoreProfile } from "@/lib/store";
 import {
   DAILY_LIMIT_CONCENTRATE_GRAMS,
   DAILY_LIMIT_IMMATURE_PLANTS,
   DAILY_LIMIT_NON_CONCENTRATED_GRAMS,
 } from "@/lib/compliance/limits";
 import {
-  LEGAL_ENTITY_NAME,
-  LICENSE_NUMBER,
   LICENSE_PLACEHOLDER,
   MISSING,
-  POLICY_EFFECTIVE_DATE,
-  PRIVACY_CONTACT_EMAIL,
   SITE_NAME,
 } from "@/lib/site";
 
@@ -56,7 +53,18 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default function TermsPage() {
+export default async function TermsPage() {
+  // Business identity resolved server-side: dashboard value first, env
+  // fallback (merged in lib/kamui/map.ts). Same names the render code always
+  // used — only the source moved.
+  const profile = await getStoreProfile();
+  const LICENSE_NUMBER = profile.licenseNumber ?? "";
+  const LEGAL_ENTITY_NAME = profile.legalEntityName ?? "";
+  const POLICY_EFFECTIVE_DATE = profile.policyEffectiveDate ?? "";
+  const PRIVACY_CONTACT_EMAIL = profile.privacyContactEmail ?? profile.contactEmail ?? "";
+  const PRIVACY_CONTACT_ADDRESS = profile.privacyContactAddress ?? "";
+  const LOCAL_PERMIT_NUMBER = profile.localPermitNumber ?? "";
+
   return (
     <article className="legal">
       <h1 className="display">Terms of service</h1>
@@ -68,7 +76,7 @@ export default function TermsPage() {
             <strong>{POLICY_EFFECTIVE_DATE}</strong>
           ) : (
             <span className="license" data-missing="true">
-              {MISSING("NEXT_PUBLIC_POLICY_EFFECTIVE_DATE")}
+              {MISSING("Policy effective date")}
             </span>
           )}
         </span>
@@ -86,7 +94,7 @@ export default function TermsPage() {
           <strong>{LEGAL_ENTITY_NAME}</strong>
         ) : (
           <span className="license" data-missing="true">
-            {MISSING("NEXT_PUBLIC_LEGAL_ENTITY_NAME")}
+            {MISSING("Legal entity name")}
           </span>
         )}
         , a retailer licensed by the California Department of Cannabis Control. Placing an order
@@ -191,7 +199,7 @@ export default function TermsPage() {
           <a href={`mailto:${PRIVACY_CONTACT_EMAIL}`}>{PRIVACY_CONTACT_EMAIL}</a>
         ) : (
           <span className="license" data-missing="true">
-            {MISSING("NEXT_PUBLIC_PRIVACY_CONTACT_EMAIL")}
+            {MISSING("Privacy contact email")}
           </span>
         )}
         .

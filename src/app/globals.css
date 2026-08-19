@@ -438,6 +438,15 @@ body::after {
   color: var(--bone);
 }
 
+.brand-logo {
+  height: 28px;
+  width: auto;
+  max-width: 140px;
+  object-fit: contain;
+  align-self: center;
+  flex: none;
+}
+
 .brand-seal {
   width: 9px;
   height: 9px;

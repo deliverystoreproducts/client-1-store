@@ -1,13 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
-  LEGAL_ENTITY_NAME,
-  LICENSE_NUMBER,
   LICENSE_PLACEHOLDER,
-  LOCAL_PERMIT_NUMBER,
   MISSING,
 } from "@/lib/site";
 import { deliveryWindowNotice } from "@/lib/hours";
+import { getStoreProfile } from "@/lib/store";
 
 /**
  * Order confirmation.
@@ -47,6 +45,16 @@ export default async function ConfirmationPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  // Business identity resolved server-side: dashboard value first, env
+  // fallback (merged in lib/kamui/map.ts). Same names the render code always
+  // used — only the source moved.
+  const profile = await getStoreProfile();
+  const LICENSE_NUMBER = profile.licenseNumber ?? "";
+  const LEGAL_ENTITY_NAME = profile.legalEntityName ?? "";
+  const POLICY_EFFECTIVE_DATE = profile.policyEffectiveDate ?? "";
+  const PRIVACY_CONTACT_EMAIL = profile.privacyContactEmail ?? profile.contactEmail ?? "";
+  const PRIVACY_CONTACT_ADDRESS = profile.privacyContactAddress ?? "";
+  const LOCAL_PERMIT_NUMBER = profile.localPermitNumber ?? "";
   const sp = await searchParams;
   const pick = (key: string) => {
     const v = sp[key];
@@ -110,7 +118,7 @@ export default async function ConfirmationPage({
       <p className="faint mb-0">
         Sold by{" "}
         <span className="license" data-missing={!LEGAL_ENTITY_NAME}>
-          {LEGAL_ENTITY_NAME || MISSING("NEXT_PUBLIC_LEGAL_ENTITY_NAME")}
+          {LEGAL_ENTITY_NAME || MISSING("Legal entity name")}
         </span>{" "}
         · DCC Licence{" "}
         <span className="license" data-missing={!LICENSE_NUMBER}>

@@ -11,6 +11,15 @@ import {
 import { computeTaxes, toCents } from "@/lib/money";
 import { pacificDateKey } from "@/lib/hours";
 import {
+  LEGAL_ENTITY_NAME,
+  LICENSE_NUMBER,
+  LOCAL_PERMIT_NUMBER,
+  POLICY_EFFECTIVE_DATE,
+  PRIVACY_CONTACT_ADDRESS,
+  PRIVACY_CONTACT_EMAIL,
+  SAFER_USE_BROCHURE_URL,
+} from "@/lib/site";
+import {
   assessDailyLimits,
   EMPTY_DAILY_LIMIT_ASSESSMENT,
   type AssessableLine,
@@ -51,6 +60,16 @@ export const FALLBACK_PROFILE: PublicStoreProfile = {
   showCannabinoids: false,
   requireIdVerification: false,
   couponsEnabled: false,
+  logo: null,
+  // Even with the backend unreachable, the legal pages must not go blank: the
+  // env-var fallbacks (the pre-dashboard way of configuring these) still apply.
+  licenseNumber: LICENSE_NUMBER || null,
+  legalEntityName: LEGAL_ENTITY_NAME || null,
+  localPermitNumber: LOCAL_PERMIT_NUMBER || null,
+  privacyContactEmail: PRIVACY_CONTACT_EMAIL || null,
+  privacyContactAddress: PRIVACY_CONTACT_ADDRESS || null,
+  policyEffectiveDate: POLICY_EFFECTIVE_DATE || null,
+  saferUseBrochureUrl: SAFER_USE_BROCHURE_URL || null,
 };
 
 /** Store profile, or safe defaults. Never throws — the shell must always render. */

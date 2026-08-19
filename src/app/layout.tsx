@@ -10,14 +10,7 @@ import { isUpstreamConfigured } from "@/lib/kamui/env";
 import { OPEN_ROUTE_HEADER } from "@/lib/open-routes";
 import { hasPassedAgeGate } from "@/lib/session";
 import { getStoreProfile } from "@/lib/store";
-import {
-  LEGAL_ENTITY_NAME,
-  LICENSE_NUMBER,
-  LICENSE_PLACEHOLDER,
-  LOCAL_PERMIT_NUMBER,
-  MISSING,
-  SITE_TAGLINE,
-} from "@/lib/site";
+import { LICENSE_PLACEHOLDER, MISSING, SITE_TAGLINE } from "@/lib/site";
 import { DELIVERY_WINDOW_LABEL } from "@/lib/hours";
 
 export const metadata: Metadata = {
@@ -102,11 +95,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           // The store is not rendered at all until the visitor answers. This is a
           // server-side decision, so there is no frame in which the catalog is
           // in the DOM for someone who has not passed the gate.
-          <AgeGate minAge={profile.minAge} storeName={storeName} />
+          <AgeGate minAge={profile.minAge} storeName={storeName} licenseNumber={profile.licenseNumber} />
         ) : (
           <CartProvider>
             <div className="shell">
-              <SiteHeader storeName={storeName} />
+              <SiteHeader storeName={storeName} logo={profile.logo} />
               <main className="main">
                 <div className="wrap">{children}</div>
               </main>
@@ -183,17 +176,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                       is where it is. Do not "helpfully" add one here. */}
                   <div className="footer-legal">
                     <p>
-                      <span className="license" data-missing={!LEGAL_ENTITY_NAME}>
-                        {LEGAL_ENTITY_NAME || MISSING("NEXT_PUBLIC_LEGAL_ENTITY_NAME")}
+                      <span className="license" data-missing={!profile.legalEntityName}>
+                        {profile.legalEntityName || MISSING("Legal entity name")}
                       </span>{" "}
                       · Licensed cannabis retailer · DCC Licence{" "}
-                      <span className="license" data-missing={!LICENSE_NUMBER}>
-                        {LICENSE_NUMBER || LICENSE_PLACEHOLDER}
+                      <span className="license" data-missing={!profile.licenseNumber}>
+                        {profile.licenseNumber || LICENSE_PLACEHOLDER}
                       </span>
-                      {LOCAL_PERMIT_NUMBER ? (
+                      {profile.localPermitNumber ? (
                         <>
                           {" "}
-                          · Local permit <span className="license">{LOCAL_PERMIT_NUMBER}</span>
+                          · Local permit <span className="license">{profile.localPermitNumber}</span>
                         </>
                       ) : null}
                       <br />

@@ -85,6 +85,29 @@ export interface PublicStoreProfile {
   showCannabinoids: boolean;
   requireIdVerification: boolean;
   couponsEnabled: boolean;
+
+  /** Shop logo, ALREADY proxied through /api/img — safe to put in an <img>. */
+  logo: string | null;
+
+  // ── Business identity ─────────────────────────────────────────────────────
+  //
+  // Edited by the operator in their dashboard settings; env vars remain as the
+  // fallback so the legal pages still render when nothing is configured
+  // upstream, or the upstream is unreachable (FALLBACK_PROFILE carries the env
+  // values too).
+  //
+  // Dashboard wins over env: the point is that a licence-number typo is fixed
+  // in a settings form, not with a redeploy.
+  //
+  // All nullable; null means "not set anywhere", and the UI renders its loud
+  // not-set placeholder rather than nothing.
+  licenseNumber: string | null;
+  legalEntityName: string | null;
+  localPermitNumber: string | null;
+  privacyContactEmail: string | null;
+  privacyContactAddress: string | null;
+  policyEffectiveDate: string | null;
+  saferUseBrochureUrl: string | null;
 }
 
 export interface PublicCustomer {

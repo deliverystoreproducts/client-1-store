@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { LICENSE_NUMBER, LICENSE_PLACEHOLDER } from "@/lib/site";
+import { LICENSE_PLACEHOLDER } from "@/lib/site";
 
 /**
  * Legal-age confirmation.
@@ -27,7 +27,7 @@ import { LICENSE_NUMBER, LICENSE_PLACEHOLDER } from "@/lib/site";
  * Self-attestation is what the law asks a delivery storefront for at browse
  * time; real identity checks happen at signup and at the door.
  */
-export function AgeGate({ minAge, storeName }: { minAge: number; storeName: string }) {
+export function AgeGate({ minAge, storeName, licenseNumber }: { minAge: number; storeName: string; licenseNumber: string | null }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [declined, setDeclined] = useState(false);
@@ -132,8 +132,8 @@ export function AgeGate({ minAge, storeName }: { minAge: number; storeName: stri
             somewhere instead of back to the gate. */}
         <p className="gate-fine" data-reveal style={{ "--i": 6 } as React.CSSProperties}>
           Licensed California cannabis retailer · Licence{" "}
-          <span className="license" data-missing={!LICENSE_NUMBER}>
-            {LICENSE_NUMBER || LICENSE_PLACEHOLDER}
+          <span className="license" data-missing={!licenseNumber}>
+            {licenseNumber || LICENSE_PLACEHOLDER}
           </span>
           <br />
           <Link className="link" href="/privacy">

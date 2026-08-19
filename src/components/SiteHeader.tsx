@@ -10,7 +10,14 @@ import type { SessionState } from "@/lib/public-types";
  * session badge is fetched from our own /api/auth/me (never from a token the
  * page can read — there isn't one).
  */
-export function SiteHeader({ storeName }: { storeName: string }) {
+export function SiteHeader({
+  storeName,
+  logo,
+}: {
+  storeName: string;
+  /** Already proxied through /api/img by the profile mapper — same-origin. */
+  logo?: string | null;
+}) {
   const { count, ready } = useCart();
   const [session, setSession] = useState<SessionState | null>(null);
 
@@ -33,7 +40,13 @@ export function SiteHeader({ storeName }: { storeName: string }) {
     <header className="site-header">
       <div className="wrap">
         <Link href="/" className="brand">
-          <span className="brand-seal" aria-hidden />
+          {logo ? (
+            // eslint-disable-next-line @next/next/no-img-element -- same-origin
+            // proxied asset; next/image's optimizer would round-trip it again.
+            <img className="brand-logo" src={logo} alt="" height={28} />
+          ) : (
+            <span className="brand-seal" aria-hidden />
+          )}
           {storeName}
         </Link>
 

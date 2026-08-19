@@ -1,6 +1,15 @@
 import "server-only";
 
 import { toPublicImageUrl } from "./images";
+import {
+  LEGAL_ENTITY_NAME,
+  LICENSE_NUMBER,
+  LOCAL_PERMIT_NUMBER,
+  POLICY_EFFECTIVE_DATE,
+  PRIVACY_CONTACT_ADDRESS,
+  PRIVACY_CONTACT_EMAIL,
+  SAFER_USE_BROCHURE_URL,
+} from "@/lib/site";
 import type {
   StoreBrandV1,
   StoreCategoryV1,
@@ -77,6 +86,22 @@ export function toPublicStoreProfile(t: TenantProfileV1): PublicStoreProfile {
     showCannabinoids: !!t.cannabinoidDisplay,
     requireIdVerification: !!t.requireIdVerification,
     couponsEnabled: !!t.couponsDeals,
+
+    // The logo is an image reference in the upstream's URL space; the proxy
+    // mint is what keeps that host out of our HTML.
+    logo: toPublicImageUrl(t.shopLogo),
+
+    // Business identity: the dashboard value wins, env is the fallback. A
+    // licence-number typo gets fixed in a settings form, not with a redeploy —
+    // but a tenant that has configured nothing keeps working exactly as before.
+    // (Upstream sends null for "not set", never "".)
+    licenseNumber: t.licenseNumber ?? (LICENSE_NUMBER || null),
+    legalEntityName: t.legalEntityName ?? (LEGAL_ENTITY_NAME || null),
+    localPermitNumber: t.localPermitNumber ?? (LOCAL_PERMIT_NUMBER || null),
+    privacyContactEmail: t.privacyContactEmail ?? (PRIVACY_CONTACT_EMAIL || null),
+    privacyContactAddress: t.contactAddress ?? (PRIVACY_CONTACT_ADDRESS || null),
+    policyEffectiveDate: t.policyEffectiveDate ?? (POLICY_EFFECTIVE_DATE || null),
+    saferUseBrochureUrl: t.saferUseBrochureUrl ?? (SAFER_USE_BROCHURE_URL || null),
   };
 }
 

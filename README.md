@@ -272,10 +272,11 @@ adding, at a minimum, the licensee's license number." A retailer's own webstore
 is marketing, so the number is printed in the site footer and on the order
 confirmation (the customer's receipt).
 
-**The operator must supply it.** Set `NEXT_PUBLIC_LICENSE_NUMBER` to the
+**The operator must supply it.** Enter it in the dashboard (Settings →
+Business) — or set `NEXT_PUBLIC_LICENSE_NUMBER` as the env fallback — to the
 retailer's real number. There is no default and there must never be one — a
 fabricated licence number on a cannabis storefront is worse than a missing one.
-Left unset, the footer and receipt print a red `SET NEXT_PUBLIC_LICENSE_NUMBER`
+Left unset in both places, the footer and receipt print a red `Licence number NOT SET`
 placeholder so the omission cannot ship unnoticed.
 
 ### 3.3 Delivery hours
@@ -353,6 +354,14 @@ Where the mandated warnings appear:
    later sends. **Any marketing-SMS feature needs that field first.**
 
 ## Operator checklist before launch
+
+> **Where to set these:** the store's dashboard, **Settings → Business**, is the
+> primary place — values save there and appear on the site within about five
+> minutes (the profile is cached server-side), no redeploy. The `NEXT_PUBLIC_*`
+> env vars below still work as FALLBACKS: a dashboard value always wins, and env
+> covers first boot or the backend being unreachable. The browser never talks to
+> the dashboard either way — this site's own backend reads the profile
+> server-side and serves everything from its own origin.
 
 None of this can be invented by a developer, and the site prints a red
 `SET NEXT_PUBLIC_…` placeholder wherever one is missing — on purpose, so an

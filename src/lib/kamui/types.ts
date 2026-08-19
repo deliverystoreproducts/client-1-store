@@ -114,6 +114,26 @@ export interface TenantProfileV1 {
   cannabinoidDisplay: boolean;
   requireIdVerification: boolean;
   couponsDeals: boolean;
+
+  // Business identity, edited in the upstream dashboard (Settings → Business).
+  // All optional/nullable: null means "the operator has not set this yet",
+  // never "set to empty" — the UI needs that distinction to render its loud
+  // not-set placeholders. Optional (`?`) so an older upstream that predates
+  // these fields still parses.
+  //
+  // The upstream key behind legalEntityName is the SAME one its register prints
+  // on receipts — there is deliberately no second "entity name" field anywhere,
+  // so a receipt and this site can never disagree about who the business is.
+  licenseNumber?: string | null;
+  legalEntityName?: string | null;
+  localPermitNumber?: string | null;
+  privacyContactEmail?: string | null;
+  contactAddress?: string | null;
+  policyEffectiveDate?: string | null;
+  saferUseBrochureUrl?: string | null;
+  /** Raw upstream value — may be a relative upload path on the upstream host.
+   *  NEVER emit as-is; it must go through toPublicImageUrl like every image. */
+  shopLogo?: string | null;
 }
 
 export interface TaxRatesV1 {
