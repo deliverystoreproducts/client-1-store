@@ -1,0 +1,27 @@
+# Railway service configuration.
+#
+# Railway injects PORT; .next/standalone/server.js reads it, so there is no
+# start command to configure. HOSTNAME=0.0.0.0 is pinned in the Dockerfile —
+# see the comment there, it is the one setting that silently breaks the deploy.
+#
+# Secrets are NOT in this file and never should be. Set KAMUI_API_BASE_URL and
+# KAMUI_STORE_API_KEY as service variables in the Railway dashboard.
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+# Answers 200 from this app alone — no upstream call — so a commerce-API outage
+# degrades the storefront to its "temporarily closed" page instead of putting
+# Railway into a restart loop.
+healthcheckPath = "/api/health"
+healthcheckTimeout = 60
+
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+
+# One instance, deliberately. The SMS/verify-code rate limiter in
+# src/lib/rate-limit.ts is per-process, so N replicas means N× the budget.
+# Raise this only after moving that limiter to a shared store.
+numReplicas = 1
