@@ -82,8 +82,13 @@
                        text ON an amber fill measures the same 5.1 : 1) */
   --amber-deep: #7a4e09;
   --sage: #48653a; /* open / delivered / affirmative (5.9 : 1) */
-  --fern: #2f5f38; /* THE action green — buttons, focus, seal (6.6 : 1 both
-                      as text on ground and as cream-on-fill; measured) */
+  --fern: #2e7d3f; /* THE action green — brighter per theme "Sunset
+                      Apothecary" (4.6 : 1 both directions; measured) */
+  --marigold: #f0a428; /* tint fills only — dark text rides on it */
+  --coral: #e2542c; /* non-text accent: active-tab rule, seals (3.4 : 1 UI) */
+  /* Ceramic plate gradient stops, so the product plates re-glaze per theme. */
+  --plate-a: #ece3cf;
+  --plate-b: #f8f4e9;
   --alarm: #b0301f; /* errors and unset-value placeholders (5.7 : 1) */
 
   /* Type families. The webfonts load from this origin; the fallbacks are
@@ -117,6 +122,60 @@
      lifts: hovered tiles, panels, the sticky buy bar. Depth in daylight is a
      seasoning, not a system. */
   --lift: 0 14px 34px -14px rgb(96 76 44 / 0.28), 0 2px 8px -2px rgb(96 76 44 / 0.14);
+}
+
+/* ── NEON JUNGLE — the dark theme. Deep jungle ground, acid-lime actions, a
+   magenta flash. System preference first; the header toggle stamps data-theme
+   and wins in both directions. Statutory colors (Prop 65 yellow, alarm reds)
+   stay statutory. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+  --ground: #0d1710;
+  --ground-deep: #0a120c;
+  --ground-raise: #13241a;
+  --field: #13241a;
+  --rule: #25402c;
+  --rule-hi: #3a5c42;
+  --pine: #eef7e9;
+  --pine-2: #c2d6bd;
+  --pine-3: #7e9b7c;
+  --clay: #ff4fa3; /* the magenta flash — fills get dark ink text via --ground */
+  --clay-lit: #e03a8c;
+  --amber: #b7f34a; /* acid lime carries price + action highlights (14 : 1) */
+  --amber-deep: #9dd63c;
+  --sage: #7ee08a;
+  --alarm: #ff7a66;
+  --fern: #b7f34a; /* actions go lime; dark ink text rides the fill */
+  --marigold: #d8e94a;
+  --coral: #ff4fa3;
+  --plate-a: #1c3a24;
+  --plate-b: #0f1f14;
+  --lift: 0 14px 34px -14px rgb(0 0 0 / 0.55), 0 2px 8px -2px rgb(0 0 0 / 0.4);
+  }
+}
+
+:root[data-theme="dark"] {
+  --ground: #0d1710;
+  --ground-deep: #0a120c;
+  --ground-raise: #13241a;
+  --field: #13241a;
+  --rule: #25402c;
+  --rule-hi: #3a5c42;
+  --pine: #eef7e9;
+  --pine-2: #c2d6bd;
+  --pine-3: #7e9b7c;
+  --clay: #ff4fa3; /* the magenta flash — fills get dark ink text via --ground */
+  --clay-lit: #e03a8c;
+  --amber: #b7f34a; /* acid lime carries price + action highlights (14 : 1) */
+  --amber-deep: #9dd63c;
+  --sage: #7ee08a;
+  --alarm: #ff7a66;
+  --fern: #b7f34a; /* actions go lime; dark ink text rides the fill */
+  --marigold: #d8e94a;
+  --coral: #ff4fa3;
+  --plate-a: #1c3a24;
+  --plate-b: #0f1f14;
+  --lift: 0 14px 34px -14px rgb(0 0 0 / 0.55), 0 2px 8px -2px rgb(0 0 0 / 0.4);
 }
 
 /* ═══════════════════════════════ RESET ═══════════════════════════════ */
@@ -1218,7 +1277,7 @@ body::after {
   overflow: hidden;
   border-radius: 8px;
   transition: border-color 0.3s var(--ease), box-shadow 0.3s var(--ease);
-  background: linear-gradient(160deg, #ece3cf, #f8f4e9 70%);
+  background: linear-gradient(160deg, var(--plate-a), var(--plate-b) 70%);
   border: 1px solid var(--rule);
   transition: border-color 0.3s var(--ease);
 }
@@ -1406,7 +1465,7 @@ body::after {
   border-radius: 12px;
   overflow: hidden;
   border: 1px solid var(--rule);
-  background: linear-gradient(160deg, #ece3cf, #f8f4e9 70%);
+  background: linear-gradient(160deg, var(--plate-a), var(--plate-b) 70%);
 }
 
 .detail-media img {
@@ -1572,7 +1631,7 @@ body::after {
   height: 76px;
   border-radius: 6px;
   overflow: hidden;
-  background: linear-gradient(160deg, #ece3cf, #f8f4e9 70%);
+  background: linear-gradient(160deg, var(--plate-a), var(--plate-b) 70%);
   border: 1px solid var(--rule);
   display: grid;
   place-items: center;
@@ -2556,4 +2615,56 @@ body::after {
 .gate-licence {
   display: block;
   margin: 0.45rem auto 0.3rem;
+}
+
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .tile-frame img,
+  :root:not([data-theme="light"]) .detail-media img,
+  :root:not([data-theme="light"]) .ledger-thumb img {
+    mix-blend-mode: normal;
+    border-radius: 6px;
+  }
+  :root:not([data-theme="light"]) body::after {
+    mix-blend-mode: overlay;
+  }
+}
+
+:root[data-theme="dark"] .tile-frame img,
+:root[data-theme="dark"] .detail-media img,
+:root[data-theme="dark"] .ledger-thumb img {
+  mix-blend-mode: normal;
+  border-radius: 6px;
+}
+
+:root[data-theme="dark"] body::after {
+  mix-blend-mode: overlay;
+}
+
+/* Sunset Apothecary's second voice: the active tab signs in coral by day.
+   (In dark it inherits --coral = magenta — same rule, new voltage.) */
+.chip[data-active="true"] {
+  border-bottom-color: var(--coral);
+}
+
+/* ── theme toggle ── */
+.theme-toggle {
+  border: 1px solid var(--rule-hi);
+  background: transparent;
+  color: var(--pine-2);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: inline-grid;
+  place-items: center;
+  cursor: pointer;
+  font-size: 0.95rem;
+  line-height: 1;
+  transition: color 0.18s var(--ease), border-color 0.18s var(--ease);
+  flex: none;
+}
+
+.theme-toggle:hover {
+  color: var(--pine);
+  border-color: var(--fern);
 }

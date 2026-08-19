@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useCart } from "@/components/CartProvider";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import type { SessionState } from "@/lib/public-types";
 
 /**
@@ -60,6 +61,7 @@ export function SiteHeader({
           ) : (
             <Link href="/signin">Sign in</Link>
           )}
+          <ThemeToggle />
           <Link href="/cart" className="cart-link">
             Cart
             {showCount ? (

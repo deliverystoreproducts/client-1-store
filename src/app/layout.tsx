@@ -74,6 +74,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en">
       <body>
+        {/* Applies the saved theme before first paint — no flash. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              'try{var t=localStorage.getItem("ybs.theme");if(t)document.documentElement.setAttribute("data-theme",t)}catch(e){}',
+          }}
+        />
         {/* Self-hosted, same-origin. Fonts are always fetched in CORS mode, so
             the preload must be anonymous or the browser fetches them twice. */}
         <link
