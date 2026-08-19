@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ProductCard } from "@/components/ProductCard";
 import { getCatalogPage, getCategories, getStoreProfile } from "@/lib/store";
+import { toPublicImageUrl } from "@/lib/kamui/images";
 import { DELIVERY_WINDOW_SHORT, deliveryWindowNotice, isWithinDeliveryWindow } from "@/lib/hours";
 
 /**
@@ -12,6 +13,13 @@ import { DELIVERY_WINDOW_SHORT, deliveryWindowNotice, isWithinDeliveryWindow } f
 export const dynamic = "force-dynamic";
 
 const PAGE_SIZE = 24;
+
+// Demo hero. The dashboard's hero image (Settings → Branding) wins the moment
+// the operator sets one; this is only the out-of-box look. Served through OUR
+// image proxy like every other picture — the browser never touches the CDN.
+// ⚠ Swap the ID after eyeballing it; it was verified to EXIST (HTTP 200), not
+// to be art-directed.
+const DEFAULT_HERO_IMAGE = "https://images.unsplash.com/photo-1605117882932-f9e32b03fea9?w=1920&q=80";
 
 // The default is HONEST: it says Newest and it IS newest. It used to say
 // "Featured" while upstream defaulted to name-ASC, which made the shop window
@@ -80,12 +88,12 @@ export default async function HomePage({
   return (
     <>
       {!browsing ? (
-        <section className="hero">
-          {profile.heroImage ? (
+        <section className="hero" data-media="true">
+          {(profile.heroImage ?? toPublicImageUrl(DEFAULT_HERO_IMAGE)) ? (
             <div
               className="hero-media"
               aria-hidden
-              style={{ backgroundImage: `url(${profile.heroImage})` }}
+              style={{ backgroundImage: `url(${profile.heroImage ?? toPublicImageUrl(DEFAULT_HERO_IMAGE)})` }}
             />
           ) : null}
 

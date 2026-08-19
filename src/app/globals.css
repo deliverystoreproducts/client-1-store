@@ -82,6 +82,8 @@
                        text ON an amber fill measures the same 5.1 : 1) */
   --amber-deep: #7a4e09;
   --sage: #48653a; /* open / delivered / affirmative (5.9 : 1) */
+  --fern: #2f5f38; /* THE action green — buttons, focus, seal (6.6 : 1 both
+                      as text on ground and as cream-on-fill; measured) */
   --alarm: #b0301f; /* errors and unset-value placeholders (5.7 : 1) */
 
   /* Type families. The webfonts load from this origin; the fallbacks are
@@ -194,13 +196,13 @@ a {
    One visible ring everywhere, on the sun colour, always with an offset so it
    survives on top of dark fills as well as on the page ground. */
 :focus-visible {
-  outline: 2px solid var(--amber);
+  outline: 2px solid var(--fern);
   outline-offset: 3px;
   border-radius: 2px;
 }
 
 ::selection {
-  background: var(--amber);
+  background: var(--fern);
   color: var(--ground);
 }
 
@@ -469,10 +471,10 @@ body::after {
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background: var(--amber);
+  background: var(--fern);
   flex: none;
   align-self: center;
-  box-shadow: 0 0 0 4px color-mix(in oklab, var(--amber) 18%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--fern) 18%, transparent);
 }
 
 .nav {
@@ -522,7 +524,7 @@ body::after {
   height: 1.35rem;
   padding-inline: 0.3rem;
   border-radius: 999px;
-  background: var(--amber);
+  background: var(--fern);
   color: var(--ground);
   font-size: 0.72rem;
   font-weight: 700;
@@ -633,7 +635,7 @@ body::after {
   padding: 0.7rem 1.35rem;
   border: 1px solid transparent;
   border-radius: 999px;
-  background: var(--amber);
+  background: var(--fern);
   color: var(--ground);
   font-size: var(--t--1);
   font-weight: 600;
@@ -824,8 +826,8 @@ body::after {
 }
 
 .check input:checked {
-  background: var(--amber);
-  border-color: var(--amber);
+  background: var(--fern);
+  border-color: var(--fern);
 }
 
 .check input:checked::after {
@@ -935,6 +937,16 @@ body::after {
 .hero {
   position: relative;
   padding-block: clamp(1.4rem, 2.6vw, 2.4rem) clamp(1.2rem, 2.2vw, 2rem);
+}
+
+/* With a photograph the hero becomes the store's one big image moment — but
+   bounded: the shelf must still arrive by the second screen. Text sits on a
+   porcelain scrim, never raw on the photo. */
+.hero[data-media="true"] {
+  min-height: clamp(300px, 44vh, 430px);
+  display: flex;
+  align-items: flex-end;
+  padding-block: clamp(1.8rem, 4vw, 3rem) clamp(1.4rem, 2.6vw, 2.2rem);
   margin-bottom: clamp(1.4rem, 2.6vw, 2.2rem);
   border-bottom: 1px solid var(--rule);
   isolation: isolate;
@@ -948,8 +960,10 @@ body::after {
   z-index: -1;
   background-size: cover;
   background-position: center;
-  opacity: 0.5;
-  filter: saturate(0.72) contrast(1.02);
+  opacity: 0.85;
+  filter: saturate(0.82) contrast(1.02);
+  mask-image: none;
+  -webkit-mask-image: none;
   mask-image: linear-gradient(180deg, #000 0%, #000 42%, transparent 96%);
   -webkit-mask-image: linear-gradient(
     180deg,
@@ -971,6 +985,16 @@ body::after {
    on wide screens, and the plaque's left rule cuts across it. */
 .hero-body {
   display: block;
+}
+
+.hero[data-media="true"] .hero-body {
+  background: color-mix(in srgb, var(--ground) 88%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  padding: clamp(0.9rem, 2vw, 1.4rem) clamp(1rem, 2.4vw, 1.6rem);
+  max-width: 640px;
 }
 
 /* The fact strip — what remains of the old five-row plaque: the same facts,
@@ -1824,7 +1848,7 @@ body::after {
   line-height: 0.8;
   letter-spacing: -0.05em;
   font-variation-settings: "SOFT" 44, "WONK" 1, "opsz" 144;
-  color: var(--amber);
+  color: var(--fern);
   margin: clamp(1.6rem, 5vw, 2.8rem) 0 0.4rem;
   display: block;
 }
