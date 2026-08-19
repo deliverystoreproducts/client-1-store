@@ -1134,29 +1134,45 @@ body::after {
   display: none;
 }
 
+/* Taxonomy is an INDEX, not a row of buttons (commerce-toolbar rule 3):
+   text tabs on the shared baseline, the active section marked by ink plus a
+   fern rule — the printed-catalogue register the rest of the page speaks.
+   Counts ride along faintly (rule 4): "SNEAKERS · 24" sells depth before the
+   click. */
 .chip {
-  border: 1px solid var(--rule);
-  border-radius: 999px;
-  padding: 0.36rem 0.85rem;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  /* rule 6: real tap target — the type is small, the target is not */
+  padding: 0.85rem 0.15rem 0.8rem;
   font-size: var(--t--2);
   font-weight: 600;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--pine-3);
   white-space: nowrap;
-  transition: color 0.18s var(--ease), border-color 0.18s var(--ease),
-    background 0.18s var(--ease);
+  transition: color 0.18s var(--ease), border-color 0.18s var(--ease);
+}
+
+.chips {
+  gap: 1.15rem;
 }
 
 .chip:hover {
   color: var(--pine);
-  border-color: var(--rule-hi);
+  border-bottom-color: var(--rule-hi);
 }
 
 .chip[data-active="true"] {
-  background: var(--pine);
-  border-color: var(--pine);
-  color: var(--ground);
+  color: var(--pine);
+  border-bottom-color: var(--fern);
+}
+
+.chip-n {
+  font-style: normal;
+  font-weight: 500;
+  color: var(--pine-3);
+  margin-left: 0.3rem;
+  font-size: 0.92em;
 }
 
 /* ═══════════════════════════ CATALOGUE GRID ═══════════════════════════

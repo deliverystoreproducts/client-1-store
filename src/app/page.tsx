@@ -204,6 +204,7 @@ export default async function HomePage({
                 data-active={categoryId === c.id}
               >
                 {c.name}
+                <i className="chip-n num">{c.productCount}</i>
               </Link>
             ))}
           </div>
