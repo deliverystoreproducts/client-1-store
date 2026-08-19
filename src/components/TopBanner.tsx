@@ -1,29 +1,46 @@
+"use client";
+
 import Link from "next/link";
 
 /**
- * The announcement bar. One line, one link, above the header.
+ * The announcement bar. One line, one action.
  *
- * The DEFAULT copy advertises the only promotion that verifiably exists (the
- * spin wheel). It deliberately does NOT ship a "N% off every order" default:
- * an untrue discount claim is a § 26154 misleading-statement problem, so a
- * real campaign line is the operator's to set (env now; a dashboard setting
- * when upstream grows one) and to keep true.
+ * DEFAULT: advertises the wheel and OPENS it on click (owner's call): if the
+ * visitor hasn't spun today the modal appears; if they have, it shows today's
+ * code and the once-per-day rule. A custom campaign (NEXT_PUBLIC_ANNOUNCEMENT
+ * + _HREF) stays a plain link, and its truth stays the operator's job -
+ * an untrue discount claim is a § 26154 problem. "off" hides the bar.
  */
 export function TopBanner() {
-  const text =
-    (process.env.NEXT_PUBLIC_ANNOUNCEMENT || "").trim() ||
-    "Spin the wheel — every spin takes a percentage off your order";
-  const href = (process.env.NEXT_PUBLIC_ANNOUNCEMENT_HREF || "").trim() || "/#catalogue";
+  const text = (process.env.NEXT_PUBLIC_ANNOUNCEMENT || "").trim();
+  const href = (process.env.NEXT_PUBLIC_ANNOUNCEMENT_HREF || "").trim();
   if (text === "off") return null;
+
+  if (text) {
+    return (
+      <Link href={href || "/#catalogue"} className="topbar">
+        <span className="topbar-badge">YB</span>
+        <span className="topbar-track">
+          <span className="topbar-text">{text}</span>
+        </span>
+        <span aria-hidden>→</span>
+      </Link>
+    );
+  }
+
   return (
-    <Link href={href} className="topbar">
+    <button
+      type="button"
+      className="topbar"
+      onClick={() => window.dispatchEvent(new CustomEvent("ybs:open-spin"))}
+    >
       <span className="topbar-badge">YB</span>
-      {/* The marquee slides INSIDE this window; without it the 100%-padded
-          text becomes a full-bar flex item and shoves the badge off-screen. */}
       <span className="topbar-track">
-        <span className="topbar-text">{text}</span>
+        <span className="topbar-text">
+          Spin the wheel — every spin takes a percentage off · one spin per day
+        </span>
       </span>
       <span aria-hidden>→</span>
-    </Link>
+    </button>
   );
 }

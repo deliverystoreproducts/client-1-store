@@ -28,9 +28,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
  */
 
 const SHOW_AFTER_MS = 10_000;
-const DONE_KEY = "ybs.spin.done.v1";
+/** The shop's day is Pacific — same calendar the backend keys the spin on. */
+const dayKey = () =>
+  new Date().toLocaleDateString("en-CA", { timeZone: "America/Los_Angeles" });
+const DONE_KEY = () => `ybs.spin.done.${dayKey()}`;
+const RESULT_KEY = () => `ybs.spin.result.${dayKey()}`;
 const SNOOZE_KEY = "ybs.spin.snooze.v1";
-const SNOOZE_MS = 3 * 24 * 60 * 60 * 1000;
+const SNOOZE_MS = 24 * 60 * 60 * 1000;
 
 const TURNS = 5; // full revolutions before settling — theatre, not math
 
@@ -40,7 +44,7 @@ type Step =
   | { at: "ready" } // signed-in: no phone needed
   | { at: "spinning" }
   | { at: "result"; label: string; couponCode: string }
-  | { at: "already" };
+  | { at: "already"; saved?: { label: string; couponCode: string } };
 
 interface Status {
   spun: boolean;
@@ -50,7 +54,7 @@ interface Status {
 
 function snoozed(): boolean {
   try {
-    if (localStorage.getItem(DONE_KEY)) return true;
+    if (localStorage.getItem(DONE_KEY())) return true;
     const until = Number(localStorage.getItem(SNOOZE_KEY) || 0);
     return until > Date.now();
   } catch {
@@ -86,7 +90,7 @@ export function SpinWheel() {
         const s = (await res.json()) as Status;
         if (s.spun) {
           try {
-            localStorage.setItem(DONE_KEY, "1");
+            localStorage.setItem(DONE_KEY(), "1");
           } catch {}
           return;
         }
@@ -100,6 +104,32 @@ export function SpinWheel() {
     }, SHOW_AFTER_MS);
     return () => window.clearTimeout(fuse);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- fuse is arm-once by design
+  }, []);
+
+  // The green banner opens the wheel on demand: fresh visitors get the wheel,
+  // players get today's code and the once-per-day rule. Bypasses snooze/done -
+  // this is an explicit ask, not an interruption.
+  useEffect(() => {
+    const onOpen = async () => {
+      try {
+        const res = await fetch("/api/spin");
+        if (!res.ok) return;
+        const s = (await res.json()) as Status;
+        setStatus(s.segments?.length ? s : { ...s, segments: [{ label: "% OFF" }] });
+        if (s.spun) {
+          let saved: { label: string; couponCode: string } | undefined;
+          try {
+            saved = JSON.parse(localStorage.getItem(RESULT_KEY()) || "null") ?? undefined;
+          } catch {}
+          setStep({ at: "already", saved });
+        } else {
+          setStep(s.signedIn ? { at: "ready" } : { at: "phone" });
+        }
+        setOpen(true);
+      } catch {}
+    };
+    window.addEventListener("ybs:open-spin", onOpen);
+    return () => window.removeEventListener("ybs:open-spin", onOpen);
   }, []);
 
   const dismiss = useCallback(() => {
@@ -166,7 +196,7 @@ export function SpinWheel() {
       if (res.status === 409) {
         setStep({ at: "already" });
         try {
-          localStorage.setItem(DONE_KEY, "1");
+          localStorage.setItem(DONE_KEY(), "1");
         } catch {}
         return;
       }
@@ -182,7 +212,11 @@ export function SpinWheel() {
       window.setTimeout(() => {
         setStep({ at: "result", label: data.label, couponCode: data.couponCode });
         try {
-          localStorage.setItem(DONE_KEY, "1");
+          localStorage.setItem(DONE_KEY(), "1");
+          localStorage.setItem(
+            RESULT_KEY(),
+            JSON.stringify({ label: data.label, couponCode: data.couponCode }),
+          );
         } catch {}
       }, settle);
     } finally {
@@ -348,10 +382,41 @@ export function SpinWheel() {
 
         {step.at === "already" ? (
           <div className="spin-result" role="status">
-            <p>
-              This number already has its discount — check your texts for the code, and the promo
-              box at <Link className="link" href="/checkout">checkout</Link> is where it goes.
-            </p>
+            {step.saved ? (
+              <>
+                <p className="eyebrow">{step.saved.label} — today&apos;s spin</p>
+                <p className="spin-code-value num">{step.saved.couponCode}</p>
+                <div className="row">
+                  <button
+                    className="btn btn-sm"
+                    onClick={() => {
+                      void navigator.clipboard?.writeText(step.saved!.couponCode).then(() => {
+                        setCopied(true);
+                        window.setTimeout(() => setCopied(false), 1500);
+                      });
+                    }}
+                  >
+                    {copied ? "Copied ✓" : "Copy code"}
+                  </button>
+                  <Link
+                    className="btn btn-ghost btn-sm"
+                    href="/checkout"
+                    onClick={() => setOpen(false)}
+                  >
+                    Apply it at checkout
+                  </Link>
+                </div>
+                <p className="spin-fine">
+                  One spin per day — tomorrow&apos;s wheel brings a new bonus.
+                </p>
+              </>
+            ) : (
+              <p>
+                Today&apos;s spin is used for this number — the code is in your texts, and the
+                promo box at <Link className="link" href="/checkout">checkout</Link> is where it
+                goes. One spin per day — tomorrow brings a new bonus.
+              </p>
+            )}
           </div>
         ) : null}
       </div>
