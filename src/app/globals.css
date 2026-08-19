@@ -84,6 +84,7 @@
   --sage: #2f7d46; /* open / delivered / affirmative (5.9 : 1) */
   --fern: #0e7d3b; /* THE action green — brighter per theme "Sunset
                       Apothecary" (4.6 : 1 both directions; measured) */
+  --fern-lit: #0a6b32; /* hover fill — deeper green (6.2 : 1 with porcelain) */
   --marigold: #ffb054; /* tint fills only — dark text rides on it */
   --coral: #c14608; /* non-text accent: active-tab rule, seals (3.4 : 1 UI) */
   /* Ceramic plate gradient stops, so the product plates re-glaze per theme. */
@@ -147,6 +148,7 @@
   --sage: #66d98a;
   --alarm: #ff7a66;
   --fern: #22b558; /* the act stays GREEN in every theme (7.2 : 1 with ink) */
+  --fern-lit: #2fce6a; /* hover fill — brighter green (9.3 : 1 with ink) */
   --marigold: #c4a6ff; /* lavender tint (9.4 : 1 as text) */
   --coral: #ff4fa3;
   --plate-a: #221743;
@@ -172,6 +174,7 @@
   --sage: #66d98a;
   --alarm: #ff7a66;
   --fern: #22b558; /* the act stays GREEN in every theme (7.2 : 1 with ink) */
+  --fern-lit: #2fce6a; /* hover fill — brighter green (9.3 : 1 with ink) */
   --marigold: #c4a6ff; /* lavender tint (9.4 : 1 as text) */
   --coral: #ff4fa3;
   --plate-a: #221743;
@@ -789,7 +792,7 @@ body::after {
 }
 
 .btn:hover:not(:disabled) {
-  background: var(--pine);
+  background: var(--fern-lit);
   transform: translateY(-1px);
 }
 
@@ -817,9 +820,9 @@ body::after {
 }
 
 .btn-ghost:hover:not(:disabled) {
-  background: transparent;
-  border-color: var(--amber);
-  color: var(--amber);
+  background: var(--fern);
+  border-color: var(--fern);
+  color: var(--ground);
 }
 
 .btn-clay {
@@ -828,7 +831,7 @@ body::after {
 }
 
 .btn-clay:hover:not(:disabled) {
-  background: var(--clay-lit);
+  background: var(--fern);
   color: var(--ground);
 }
 
@@ -860,7 +863,7 @@ body::after {
 }
 
 .btn-link:hover {
-  color: var(--amber);
+  color: var(--fern);
 }
 
 /* ═══════════════════════════ FIELDS ═══════════════════════════ */
@@ -1386,7 +1389,6 @@ body::after {
   transition: border-color 0.3s var(--ease), box-shadow 0.3s var(--ease);
   background: linear-gradient(160deg, var(--plate-a), var(--plate-b) 70%);
   border: 1px solid var(--rule);
-  transition: border-color 0.3s var(--ease);
 }
 
 .tile-frame img {
@@ -1406,8 +1408,9 @@ body::after {
 
 .tile:hover .tile-frame,
 .tile:focus-within .tile-frame {
-  border-color: var(--rule-hi);
-  box-shadow: var(--lift);
+  border-color: var(--fern);
+  box-shadow: 0 0 22px color-mix(in srgb, var(--fern) 20%, transparent),
+    0 14px 30px -14px color-mix(in srgb, var(--fern) 45%, transparent);
 }
 
 .tile-empty {
@@ -2879,15 +2882,15 @@ body::after {
   }
 }
 
-/* Hovered plates glow blacklight in the dark. */
+/* Hovered plates glow green in the dark (stronger halo + black drop). */
 :root[data-theme="dark"] .tile:hover .tile-frame,
 :root[data-theme="dark"] .tile:focus-within .tile-frame {
-  box-shadow: 0 0 26px rgb(139 92 246 / 0.35), 0 14px 34px -14px rgb(0 0 0 / 0.6);
+  box-shadow: 0 0 26px rgb(34 181 88 / 0.4), 0 14px 34px -14px rgb(0 0 0 / 0.6);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) .tile:hover .tile-frame,
   :root:not([data-theme="light"]) .tile:focus-within .tile-frame {
-    box-shadow: 0 0 26px rgb(139 92 246 / 0.35), 0 14px 34px -14px rgb(0 0 0 / 0.6);
+    box-shadow: 0 0 26px rgb(34 181 88 / 0.4), 0 14px 34px -14px rgb(0 0 0 / 0.6);
   }
 }
 
