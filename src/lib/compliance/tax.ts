@@ -94,6 +94,14 @@ export interface ExciseRateCheck {
 const RATE_TOLERANCE = 0.25;
 
 export function checkExciseRate(upstreamRate: number, day: string): ExciseRateCheck {
+  // A rate of exactly 0 is the admin's OFF SWITCH (dashboard → Settings →
+  // Taxes), not a misconfiguration: a non-cannabis catalog, or a shop that
+  // prices tax-inclusive, legitimately charges no separate excise line. The
+  // drift check exists to catch a WRONG rate, not a disabled one — warning on
+  // 0 would train operators to ignore it.
+  if (upstreamRate === 0) {
+    return { upstreamRate, statutory: null, agrees: true, warning: null };
+  }
   const statutory = statutoryExciseRate(day);
   if (statutory == null) {
     return {

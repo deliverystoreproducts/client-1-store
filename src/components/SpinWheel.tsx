@@ -368,7 +368,7 @@ export function SpinWheel() {
               </button>
               <Link
                 className="btn btn-ghost btn-sm"
-                href="/checkout"
+                href={`/checkout?promo=${encodeURIComponent(step.couponCode)}`}
                 onClick={() => setOpen(false)}
               >
                 Apply it at checkout
@@ -400,7 +400,7 @@ export function SpinWheel() {
                   </button>
                   <Link
                     className="btn btn-ghost btn-sm"
-                    href="/checkout"
+                    href={`/checkout?promo=${encodeURIComponent(step.saved.couponCode)}`}
                     onClick={() => setOpen(false)}
                   >
                     Apply it at checkout
