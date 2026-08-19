@@ -105,24 +105,22 @@ export function SignInFlow({ onSignedIn, requireIdPhoto, initialStep = "phone" }
   }
 
   return (
-    <div className="card" style={{ maxWidth: 460 }}>
+    <div className="panel auth">
       <div className="steps">
-        <span>
-          {step === "phone" ? <b>1. Your number</b> : "1. Your number"}
-        </span>
-        <span>·</span>
-        <span>{step === "code" ? <b>2. Code</b> : "2. Code"}</span>
-        <span>·</span>
-        <span>{step === "profile" ? <b>3. Details</b> : "3. Details"}</span>
+        <span data-on={step === "phone"}>01 Number</span>
+        <i aria-hidden />
+        <span data-on={step === "code"}>02 Code</span>
+        <i aria-hidden />
+        <span data-on={step === "profile"}>03 Details</span>
       </div>
 
       {error ? (
-        <div className="notice notice-error" style={{ marginBottom: 14 }}>
+        <div className="notice notice-error mb-2" role="alert">
           {error}
         </div>
       ) : null}
       {note ? (
-        <div className="notice notice-ok" style={{ marginBottom: 14 }}>
+        <div className="notice notice-ok mb-2" role="status">
           {note}
         </div>
       ) : null}
@@ -153,7 +151,7 @@ export function SignInFlow({ onSignedIn, requireIdPhoto, initialStep = "phone" }
           <button className="btn btn-block" disabled={busy || phone.replace(/\D/g, "").length < 10}>
             {busy ? "Sending…" : "Send me a code"}
           </button>
-          <p className="faint" style={{ marginTop: 12, marginBottom: 0 }}>
+          <p className="faint mt-2 mb-0">
             We use your number to confirm the order and to let the driver reach you. Message and
             data rates may apply.
           </p>
@@ -188,7 +186,7 @@ export function SignInFlow({ onSignedIn, requireIdPhoto, initialStep = "phone" }
           <button className="btn btn-block" disabled={busy || code.trim().length < 4}>
             {busy ? "Checking…" : "Verify"}
           </button>
-          <div className="row" style={{ marginTop: 12, justifyContent: "space-between" }}>
+          <div className="row mt-2" style={{ justifyContent: "space-between" }}>
             <button type="button" className="btn-link" onClick={() => setStep("phone")}>
               Change number
             </button>
@@ -245,7 +243,7 @@ export function SignInFlow({ onSignedIn, requireIdPhoto, initialStep = "phone" }
                 onChange={(e) => setIdPhoto(e.target.files?.[0] ?? null)}
                 required
               />
-              <p className="faint" style={{ marginTop: 6, marginBottom: 0 }}>
+              <p className="faint mt-1 mb-0">
                 Required by law before your first delivery. Stored securely by the store.
               </p>
             </div>

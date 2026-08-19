@@ -70,7 +70,9 @@ export function toPublicStoreProfile(t: TenantProfileV1): PublicStoreProfile {
     heroSubtitle: t.heroSubtitle,
     heroImage: toPublicImageUrl(t.heroBgImage),
     open: t.storeEnabled !== false,
-    ageGate: t.ageGate !== false,
+    // `t.ageGate` is INTENTIONALLY NOT MAPPED. The age gate is a legal control
+    // and is unconditional in the layout; letting a dashboard toggle reach the
+    // browser is how it silently stopped showing. Only the threshold crosses.
     minAge: Number.isFinite(t.minAge) && t.minAge > 0 ? t.minAge : 21,
     showCannabinoids: !!t.cannabinoidDisplay,
     requireIdVerification: !!t.requireIdVerification,

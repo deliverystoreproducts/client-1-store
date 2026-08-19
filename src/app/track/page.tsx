@@ -19,10 +19,21 @@ async function goToTracking(formData: FormData) {
 
 export default function TrackLandingPage() {
   return (
-    <div className="card" style={{ maxWidth: 480, margin: "30px auto" }}>
-      <h1 style={{ fontSize: "1.4rem" }}>Track your order</h1>
-      <p className="muted">Paste the tracking link or code from your confirmation text.</p>
-      <form action={goToTracking}>
+    <div className="track-card" data-reveal>
+      <div className="section-head">
+        <span className="eyebrow">Tracking</span>
+        <hr />
+      </div>
+
+      <h1 className="display" style={{ fontSize: "var(--t-3)", maxWidth: "12ch" }}>
+        Where&apos;s my order?
+      </h1>
+
+      <p className="lede mt-2 mb-3">
+        Paste the tracking link or code from your confirmation text.
+      </p>
+
+      <form action={goToTracking} className="panel">
         <div className="field">
           <label className="label" htmlFor="token">
             Tracking code

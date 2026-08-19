@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useCart } from "@/components/CartProvider";
 
 export function AddToCartButton({
@@ -16,22 +16,35 @@ export function AddToCartButton({
 }) {
   const { add } = useCart();
   const [added, setAdded] = useState(false);
+  const timer = useRef<number | null>(null);
+
+  useEffect(
+    () => () => {
+      if (timer.current) window.clearTimeout(timer.current);
+    },
+    [],
+  );
 
   if (disabled) {
     return (
       <button className={`btn btn-ghost btn-block${small ? " btn-sm" : ""}`} disabled>
-        Unavailable
+        Sold out
       </button>
     );
   }
 
+  // On a tile the button is quiet (ghost) so twenty-four of them do not shout at
+  // once; on the product page it is the primary action and reads as one.
+  const tone = small ? "btn btn-ghost btn-block btn-sm" : "btn btn-block";
+
   return (
     <button
-      className={`btn btn-block${small ? " btn-sm" : ""}`}
+      className={tone}
       onClick={() => {
         add(productId, quantity);
         setAdded(true);
-        window.setTimeout(() => setAdded(false), 1400);
+        if (timer.current) window.clearTimeout(timer.current);
+        timer.current = window.setTimeout(() => setAdded(false), 1600);
       }}
     >
       {added ? "Added ✓" : "Add to cart"}

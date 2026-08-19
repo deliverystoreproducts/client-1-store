@@ -27,23 +27,34 @@ export function SiteHeader({ storeName }: { storeName: string }) {
     };
   }, []);
 
+  const showCount = ready && count > 0;
+
   return (
     <header className="site-header">
       <div className="wrap">
-        <Link href="/" className="brand brand-mark">
-          <span className="brand-dot" aria-hidden />
+        <Link href="/" className="brand">
+          <span className="brand-seal" aria-hidden />
           {storeName}
         </Link>
-        <nav className="nav">
-          <Link href="/">Shop</Link>
-          <Link href="/track">Track order</Link>
+
+        <nav className="nav" aria-label="Main">
+          <Link href="/" className="nav-wide">
+            Shop
+          </Link>
+          <Link href="/track">Track</Link>
           {session?.authenticated ? (
             <Link href="/account">Account</Link>
           ) : (
             <Link href="/signin">Sign in</Link>
           )}
-          <Link href="/cart" className="btn btn-ghost btn-sm">
-            Cart{ready && count > 0 ? ` · ${count}` : ""}
+          <Link href="/cart" className="cart-link">
+            Cart
+            {showCount ? (
+              <span className="cart-count" aria-hidden>
+                {count}
+              </span>
+            ) : null}
+            {showCount ? <span className="sr-only">{count} items in cart</span> : null}
           </Link>
         </nav>
       </div>

@@ -178,7 +178,8 @@ Full annotations live in `.env.example`. The short version:
 | `SITE_ORIGIN` | server only | Optional. The public origin of this site, needed for the CSRF check only when a reverse proxy rewrites `Host`. |
 | `NEXT_PUBLIC_SITE_NAME` | **public** | Store name in the header, titles, age gate. Falls back to the name configured upstream. |
 | `NEXT_PUBLIC_SITE_TAGLINE` | **public** | Hero subheading. |
-| `NEXT_PUBLIC_MIN_AGE` | **public** | Age shown before the upstream setting loads. |
+| `NEXT_PUBLIC_MIN_AGE` | **public** | Age *threshold*. The gate itself is unconditional — see § 3.1. |
+| `NEXT_PUBLIC_LICENSE_NUMBER` | **public** | ⚠️ **Required before launch.** The retailer's CA cannabis licence number. See § 3.2. |
 
 > ### ⚠️ Never put the API key in a `NEXT_PUBLIC_*` variable
 >
@@ -219,6 +220,54 @@ Notes:
 - To rotate: mint the new key, deploy the new value, then revoke the old one.
 
 ---
+
+### 3.1 The age gate is unconditional
+
+The gate is a legal control, not a feature flag, and it is enforced in
+`src/proxy.ts` **before any page code runs**: without the confirmation cookie
+every navigable URL is rewritten to `/age`, so the catalog page function is never
+invoked.
+
+That placement is load-bearing. A layout that merely renders the gate *instead
+of* the store hides it visually while the App Router still serialises the page
+segment into the RSC flight payload inlined in the HTML — measured on this app,
+an un-gated request returned the gate on screen and all 24 products, with names,
+prices and URLs, inside `<script>self.__next_f.push(...)</script>` (62 KB vs the
+11 KB it returns now). View-source defeated the gate completely.
+
+The upstream tenant profile carries an `ageGate` boolean. It is deliberately
+**not mapped** into `PublicStoreProfile` (`src/lib/kamui/map.ts`), so a dashboard
+toggle cannot reach this code. Only `minAge` crosses, defaulting to 21 in the
+mapper and in the fail-safe fallback profile.
+
+### 3.2 The licence number (required before launch)
+
+California **B&P § 26151(a)** requires all advertising and marketing to
+"accurately and legibly identify the licensee responsible for its content, by
+adding, at a minimum, the licensee's license number." A retailer's own webstore
+is marketing, so the number is printed in the site footer and on the order
+confirmation (the customer's receipt).
+
+**The operator must supply it.** Set `NEXT_PUBLIC_LICENSE_NUMBER` to the
+retailer's real number. There is no default and there must never be one — a
+fabricated licence number on a cannabis storefront is worse than a missing one.
+Left unset, the footer and receipt print a red `SET NEXT_PUBLIC_LICENSE_NUMBER`
+placeholder so the omission cannot ship unnoticed.
+
+### 3.3 Delivery hours
+
+**4 CCR § 15403** restricts sale and delivery of cannabis goods to
+**06:00–22:00 Pacific**. `src/lib/hours.ts` computes the window against
+`America/Los_Angeles`, never the visitor's clock.
+
+Ordering is **not** blocked outside the window: whether an order may lawfully be
+*placed* outside it for fulfilment inside it is genuinely unresolved, and that
+call belongs to the operator's counsel, not to this code. What the storefront
+does is refuse to take an order silently — the window is stated in the hero
+plaque and the footer, and both the home page and checkout say plainly that an
+out-of-hours order goes out from 6:00 AM. If the operator's counsel decides
+placement must be blocked, `isWithinDeliveryWindow()` is the one function to gate
+on.
 
 ## 4. What this app asks the commerce API for
 
@@ -365,7 +414,8 @@ bundle. Changing any of them requires a **rebuild and redeploy**:
 | `NEXT_PUBLIC_SITE_NAME` | Header, titles, age gate. Unset → falls back to the upstream store name. |
 | `NEXT_PUBLIC_SITE_SHORT_NAME` | Defaults to `NEXT_PUBLIC_SITE_NAME`. |
 | `NEXT_PUBLIC_SITE_TAGLINE` | Hero subheading. |
-| `NEXT_PUBLIC_MIN_AGE` | Age shown before the upstream setting loads. Default 21. |
+| `NEXT_PUBLIC_MIN_AGE` | Age *threshold* only. Default 21. The gate cannot be switched off. |
+| `NEXT_PUBLIC_LICENSE_NUMBER` | ⚠️ Required before launch. Printed in the footer and on every receipt. |
 
 They are exposed as Docker build args, so:
 

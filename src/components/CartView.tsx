@@ -8,7 +8,7 @@ import { formatUsd } from "@/lib/money";
 import type { PricedCart } from "@/lib/public-types";
 
 /**
- * The cart.
+ * The cart, laid out as a ledger.
  *
  * Every number on this screen comes from the server. The browser sends ids and
  * quantities to /api/cart/price and renders what comes back; it never multiplies
@@ -58,9 +58,9 @@ export function CartView() {
 
   if (items.length === 0) {
     return (
-      <div className="empty">
+      <div className="empty" data-reveal>
         <h1>Your cart is empty</h1>
-        <p>Browse the shop and add something you like.</p>
+        <p className="muted mb-2">Browse the shelf and add something you like.</p>
         <Link className="btn" href="/">
           Start shopping
         </Link>
@@ -68,35 +68,50 @@ export function CartView() {
     );
   }
 
+  const count = (cart?.lines ?? []).reduce((n, l) => n + l.quantity, 0);
+
   return (
     <>
-      <h1>Your cart</h1>
+      <div className="section-head" data-reveal style={{ "--i": 0 } as React.CSSProperties}>
+        <span className="eyebrow">Your cart</span>
+        <hr />
+        <span className="faint num">
+          {count} item{count === 1 ? "" : "s"}
+        </span>
+      </div>
+
+      <h1 className="display" style={{ fontSize: "var(--t-3)", marginBottom: "1.6rem" }} data-reveal>
+        Ready when you are.
+      </h1>
+
       {error ? (
-        <div className="notice notice-error" style={{ marginBottom: 18 }}>
+        <div className="notice notice-error mb-2" role="alert">
           {error}
         </div>
       ) : null}
 
       <div className="two-col">
-        <div>
+        <div className="ledger" data-reveal style={{ "--i": 1 } as React.CSSProperties}>
           {(cart?.lines ?? []).map((line) => (
-            <div className="line" key={line.productId}>
-              <Link href={`/product/${line.productId}`} className="thumb">
+            <div className="ledger-row" key={line.productId}>
+              <Link href={`/product/${line.productId}`} className="ledger-thumb">
                 {line.image ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={line.image} alt={line.name} />
                 ) : (
-                  <span className="thumb-placeholder" style={{ fontSize: "0.6rem" }}>
-                    —
-                  </span>
+                  <span aria-hidden>—</span>
                 )}
               </Link>
-              <div className="stack" style={{ gap: 6 }}>
-                <Link href={`/product/${line.productId}`}>{line.name}</Link>
-                <span className="faint">{formatUsd(line.unitPrice)} each</span>
-                <div className="row" style={{ gap: 10 }}>
+
+              <div className="stack" style={{ gap: "0.55rem" }}>
+                <Link href={`/product/${line.productId}`} className="ledger-name">
+                  {line.name}
+                </Link>
+                <span className="faint num">{formatUsd(line.unitPrice)} each</span>
+                <div className="row" style={{ gap: "0.9rem" }}>
                   <span className="qty">
                     <button
+                      type="button"
                       onClick={() => setQuantity(line.productId, line.quantity - 1)}
                       aria-label={`Decrease quantity of ${line.name}`}
                     >
@@ -104,6 +119,7 @@ export function CartView() {
                     </button>
                     <span>{line.quantity}</span>
                     <button
+                      type="button"
                       onClick={() => setQuantity(line.productId, line.quantity + 1)}
                       aria-label={`Increase quantity of ${line.name}`}
                     >
@@ -115,13 +131,22 @@ export function CartView() {
                   </button>
                 </div>
               </div>
-              <strong>{formatUsd(line.lineTotal)}</strong>
+
+              <strong className="ledger-total">{formatUsd(line.lineTotal)}</strong>
             </div>
           ))}
-          {loading && !cart ? <p className="muted">Checking today&apos;s prices…</p> : null}
+          {loading && !cart ? (
+            <p className="muted" style={{ paddingTop: "1.2rem" }}>
+              Checking today&apos;s prices…
+            </p>
+          ) : null}
         </div>
 
-        <aside className="card">
+        <aside className="panel" data-reveal style={{ "--i": 2 } as React.CSSProperties}>
+          <span className="eyebrow mb-2" style={{ display: "block" }}>
+            Summary
+          </span>
+
           <div className="totals">
             <div>
               <span>Subtotal</span>
@@ -145,16 +170,13 @@ export function CartView() {
             </div>
           </div>
 
-          <p className="faint" style={{ marginTop: 14 }}>
-            Final total is confirmed at checkout. Store-wide deals and delivery minimums are
-            applied there.
-          </p>
-
-          <Link className="btn btn-block" href="/checkout" style={{ marginTop: 8 }}>
+          <Link className="btn btn-block mt-2" href="/checkout">
             Checkout
           </Link>
-          <p className="faint center" style={{ marginTop: 12, marginBottom: 0 }}>
-            Pay cash when your order arrives.
+
+          <p className="faint mt-2 mb-0">
+            Final total is confirmed at checkout — store-wide deals and delivery minimums are
+            applied there. Pay cash when your order arrives.
           </p>
         </aside>
       </div>

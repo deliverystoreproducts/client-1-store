@@ -7,27 +7,54 @@ import { useCart } from "@/components/CartProvider";
 import { SignInFlow } from "@/components/SignInFlow";
 import { apiGet, apiPost, ClientApiError } from "@/lib/client-api";
 import { formatUsd } from "@/lib/money";
-import { formatPhone } from "@/lib/phone";
-import type { PricedCart, PublicCustomer, SessionState } from "@/lib/public-types";
+import type {
+  PricedCart,
+  PublicCustomer,
+  PublicOrderSummary,
+  PublicTracking,
+  SessionState,
+} from "@/lib/public-types";
 
 /**
- * Checkout.
+ * Checkout. DELIBERATELY PLAIN — see the `.plain` block in globals.css.
  *
- * There is no payment step: this store is cash on delivery and the driver app
- * settles at the door. So checkout's only jobs are (a) make sure we know who is
- * ordering and where it goes, and (b) hand a clean order to the backend.
+ * Same type, same palette, none of the art direction. This screen is a form, and
+ * a form's job is to be unambiguous on a phone, one-handed, in a hurry: big
+ * targets, high contrast, one column of thought, nothing decorative competing
+ * for attention next to the fields. That is the owner's explicit call. Do not
+ * dress it up.
  *
- * Note that the customer's NAME and PHONE are not sent. The backend reads them
- * from the record behind the session and ignores anything a body claims, so
- * there is nothing to be gained by putting them on the wire.
+ * There is no payment step: this store is cash on delivery and the driver
+ * settles at the door. So checkout's only jobs are (a) make sure we know where
+ * it goes, and (b) hand a clean order to the backend.
+ *
+ * Note what is NOT sent and NOT shown. The customer's name and phone are never
+ * put on the wire (the backend reads them from the record behind the session and
+ * ignores anything a body claims) and the NAME IS NEVER RENDERED. This screen
+ * gets opened in public — on a bus, at a counter, over someone's shoulder — and
+ * the useful confirmation is "is this going to the right place", not "who am I".
+ * The readout is an ADDRESS, never a person. See `resolveLastAddress`.
  */
-export function CheckoutView({ requireIdPhoto }: { requireIdPhoto: boolean }) {
+export function CheckoutView({
+  requireIdPhoto,
+  deliveryNotice,
+  withinDeliveryWindow,
+}: {
+  requireIdPhoto: boolean;
+  /** One plain sentence about 4 CCR § 15403 delivery hours, computed server-side. */
+  deliveryNotice: string;
+  withinDeliveryWindow: boolean;
+}) {
   const router = useRouter();
   const { items, ready, clear } = useCart();
 
   const [session, setSession] = useState<SessionState | null>(null);
   const [cart, setCart] = useState<PricedCart | null>(null);
   const [address, setAddress] = useState("");
+  const [addressTouched, setAddressTouched] = useState(false);
+  const [lastAddress, setLastAddress] = useState<string | null>(null);
+  const [lastAddressSource, setLastAddressSource] = useState<"order" | "saved" | null>(null);
+  const [lookingUp, setLookingUp] = useState(true);
   const [notes, setNotes] = useState("");
   const [coupon, setCoupon] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState("");
@@ -37,9 +64,7 @@ export function CheckoutView({ requireIdPhoto }: { requireIdPhoto: boolean }) {
 
   const loadSession = useCallback(async () => {
     try {
-      const s = await apiGet<SessionState>("/api/auth/me");
-      setSession(s);
-      if (s.customer?.address) setAddress((prev) => prev || s.customer!.address!);
+      setSession(await apiGet<SessionState>("/api/auth/me"));
     } catch {
       setSession({ authenticated: false, pendingRegistration: false, customer: null });
     }
@@ -48,6 +73,69 @@ export function CheckoutView({ requireIdPhoto }: { requireIdPhoto: boolean }) {
   useEffect(() => {
     void loadSession();
   }, [loadSession]);
+
+  // ── where did this customer's last order actually go? ──────────────────
+  //
+  // Both halves of this come from BFF routes that already exist. The order-list
+  // payload deliberately carries no address (upstream's /orders handler selects
+  // id/sNo/status/price/... and nothing else), but every order carries its own
+  // tracking capability and THAT payload does carry the delivery address. So the
+  // most recent order that has a token is where "last delivered to" lives.
+  //
+  // Failure is not an error state here: no history, an unreadable history and a
+  // token that no longer resolves all land on the same neutral prompt.
+  const savedAddress = session?.customer?.address ?? null;
+  useEffect(() => {
+    if (!session?.authenticated) return;
+    let cancelled = false;
+
+    (async () => {
+      setLookingUp(true);
+      try {
+        const { orders } = await apiGet<{ orders: PublicOrderSummary[] }>("/api/orders?limit=5");
+        // Newest first, upstream-ordered by createdAt desc.
+        for (const order of orders.slice(0, 3)) {
+          if (cancelled) return;
+          if (!order.trackingToken) continue;
+          try {
+            const tracking = await apiGet<PublicTracking>(
+              `/api/orders/track/${encodeURIComponent(order.trackingToken)}`,
+            );
+            const found = tracking.address?.trim();
+            if (found) {
+              if (cancelled) return;
+              setLastAddress(found);
+              setLastAddressSource("order");
+              setLookingUp(false);
+              return;
+            }
+          } catch {
+            /* that token no longer resolves — try the one before it */
+          }
+        }
+      } catch {
+        /* no readable history; the saved address or the prompt covers it */
+      }
+
+      if (cancelled) return;
+      const saved = savedAddress?.trim();
+      if (saved) {
+        setLastAddress(saved);
+        setLastAddressSource("saved");
+      }
+      setLookingUp(false);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [session?.authenticated, savedAddress]);
+
+  // Prefill from whatever we resolved, but never fight someone who is typing.
+  useEffect(() => {
+    if (!lastAddress || addressTouched) return;
+    setAddress(lastAddress);
+  }, [lastAddress, addressTouched]);
 
   const priceCart = useCallback(
     async (code: string) => {
@@ -74,8 +162,7 @@ export function CheckoutView({ requireIdPhoto }: { requireIdPhoto: boolean }) {
     void priceCart(appliedCoupon);
   }, [ready, priceCart, appliedCoupon, session?.authenticated]);
 
-  function onSignedIn(customer: PublicCustomer | null) {
-    if (customer?.address) setAddress((prev) => prev || customer.address!);
+  function onSignedIn(_customer: PublicCustomer | null) {
     void loadSession();
   }
 
@@ -100,7 +187,10 @@ export function CheckoutView({ requireIdPhoto }: { requireIdPhoto: boolean }) {
       if (res.trackingToken) qs.set("token", res.trackingToken);
       router.push(`/checkout/confirmation?${qs.toString()}`);
     } catch (e) {
-      if (e instanceof ClientApiError && (e.code === "not_authenticated" || e.code === "profile_required")) {
+      if (
+        e instanceof ClientApiError &&
+        (e.code === "not_authenticated" || e.code === "profile_required")
+      ) {
         void loadSession();
       }
       setError(e instanceof ClientApiError ? e.message : "We couldn't place your order.");
@@ -114,7 +204,7 @@ export function CheckoutView({ requireIdPhoto }: { requireIdPhoto: boolean }) {
     return (
       <div className="empty">
         <h1>Nothing to check out</h1>
-        <p>Your cart is empty.</p>
+        <p className="muted mb-2">Your cart is empty.</p>
         <Link className="btn" href="/">
           Browse the shop
         </Link>
@@ -124,49 +214,70 @@ export function CheckoutView({ requireIdPhoto }: { requireIdPhoto: boolean }) {
 
   if (!session.authenticated) {
     return (
-      <>
+      <div className="plain">
         <h1>Sign in to check out</h1>
         <p className="muted" style={{ maxWidth: "52ch" }}>
           We verify your number by text so the driver can reach you. Payment is cash on delivery —
           nothing is charged online.
         </p>
-        <SignInFlow
-          onSignedIn={onSignedIn}
-          requireIdPhoto={requireIdPhoto}
-          initialStep={session.pendingRegistration ? "profile" : "phone"}
-        />
-      </>
+        <div className="mt-2">
+          <SignInFlow
+            onSignedIn={onSignedIn}
+            requireIdPhoto={requireIdPhoto}
+            initialStep={session.pendingRegistration ? "profile" : "phone"}
+          />
+        </div>
+      </div>
     );
   }
 
   const canSubmit = address.trim().length >= 6 && !submitting && (cart?.lines.length ?? 0) > 0;
 
   return (
-    <>
+    <div className="plain">
       <h1>Checkout</h1>
+      <p className="faint mb-0">Cash on delivery — nothing is charged online.</p>
 
       {error ? (
-        <div className="notice notice-error" style={{ marginBottom: 18 }}>
+        <div className="notice notice-error mt-2" role="alert">
           {error}
         </div>
       ) : null}
 
-      <div className="two-col">
+      <div className="plain-grid">
         <form
-          className="card"
+          className="plain-box"
           onSubmit={(e) => {
             e.preventDefault();
             if (canSubmit) void placeOrder();
           }}
         >
-          <h2 style={{ fontSize: "1.1rem" }}>Delivery details</h2>
+          <h2>Delivery</h2>
 
+          {/* Where this is going — never who is ordering. */}
           <div className="field">
-            <span className="label">Ordering as</span>
-            <p style={{ margin: 0 }}>
-              {session.customer?.name || "You"}{" "}
-              <span className="faint">{formatPhone(session.customer?.phone)}</span>
-            </p>
+            <span className="label" id="deliver-to-label">
+              Deliver to
+            </span>
+            <div className="plain-address" aria-labelledby="deliver-to-label">
+              {lastAddress ? (
+                <>
+                  <span className="faint">
+                    {lastAddressSource === "order"
+                      ? "Your last order went here."
+                      : "Your saved address."}{" "}
+                    Change it below if it has moved.
+                  </span>
+                  <p>{lastAddress}</p>
+                </>
+              ) : lookingUp ? (
+                <span className="faint">Checking for a previous delivery address…</span>
+              ) : (
+                <p className="muted" style={{ fontSize: "1rem" }}>
+                  Enter the address you&apos;d like this delivered to.
+                </p>
+              )}
+            </div>
           </div>
 
           <div className="field">
@@ -179,14 +290,17 @@ export function CheckoutView({ requireIdPhoto }: { requireIdPhoto: boolean }) {
               autoComplete="street-address"
               placeholder="123 Main St, Apt 4, City, State ZIP"
               value={address}
-              onChange={(e) => setAddress(e.target.value)}
+              onChange={(e) => {
+                setAddressTouched(true);
+                setAddress(e.target.value);
+              }}
               required
             />
           </div>
 
           <div className="field">
             <label className="label" htmlFor="notes">
-              Delivery notes <span className="faint">(optional)</span>
+              Delivery notes (optional)
             </label>
             <textarea
               id="notes"
@@ -197,7 +311,7 @@ export function CheckoutView({ requireIdPhoto }: { requireIdPhoto: boolean }) {
             />
           </div>
 
-          <label className="row small" style={{ gap: 8, marginBottom: 18 }}>
+          <label className="check mb-2">
             <input
               type="checkbox"
               checked={saveAddress}
@@ -206,22 +320,39 @@ export function CheckoutView({ requireIdPhoto }: { requireIdPhoto: boolean }) {
             Save this address for next time
           </label>
 
-          <div className="notice" style={{ marginBottom: 18 }}>
+          <div className="notice mb-2">
             <strong>Cash on delivery.</strong> Nothing is charged now — pay the driver when your
             order arrives. Please have a valid ID ready.
+          </div>
+
+          {/* Delivery hours are a fact the customer needs before they commit, not a
+              block on the button: 4 CCR § 15403 caps DELIVERY at 06:00–22:00
+              Pacific, and whether an order may be PLACED outside it is unsettled.
+              So we state it, and state it louder when it currently bites. */}
+          <div
+            className={`notice mb-2${withinDeliveryWindow ? "" : " notice-error"}`}
+            role={withinDeliveryWindow ? undefined : "status"}
+          >
+            {withinDeliveryWindow ? null : <strong>Outside delivery hours. </strong>}
+            {deliveryNotice}
           </div>
 
           <button className="btn btn-block" disabled={!canSubmit}>
             {submitting ? "Placing your order…" : "Place order"}
           </button>
+
+          <p className="faint mt-2 mb-0">
+            We&apos;ll text order updates to the mobile number you verified.
+          </p>
         </form>
 
-        <aside className="card">
-          <h2 style={{ fontSize: "1.1rem" }}>Order summary</h2>
-          <div className="stack" style={{ gap: 8, marginBottom: 16 }}>
+        <aside className="plain-box">
+          <h2>Order summary</h2>
+
+          <div className="mb-2">
             {(cart?.lines ?? []).map((l) => (
-              <div className="spread small" key={l.productId} style={{ gap: 8 }}>
-                <span className="muted">
+              <div className="plain-summary-line" key={l.productId}>
+                <span>
                   {l.quantity} × {l.name}
                 </span>
                 <span>{formatUsd(l.lineTotal)}</span>
@@ -233,7 +364,7 @@ export function CheckoutView({ requireIdPhoto }: { requireIdPhoto: boolean }) {
             <label className="label" htmlFor="coupon">
               Promo code
             </label>
-            <div className="row" style={{ gap: 8, flexWrap: "nowrap" }}>
+            <div className="row" style={{ gap: "0.5rem", flexWrap: "nowrap" }}>
               <input
                 id="coupon"
                 className="input"
@@ -250,9 +381,7 @@ export function CheckoutView({ requireIdPhoto }: { requireIdPhoto: boolean }) {
               </button>
             </div>
             {cart?.couponMessage ? (
-              <p className="faint" style={{ marginTop: 6, marginBottom: 0 }}>
-                {cart.couponMessage}
-              </p>
+              <p className="faint mt-1 mb-0">{cart.couponMessage}</p>
             ) : null}
           </div>
 
@@ -278,12 +407,13 @@ export function CheckoutView({ requireIdPhoto }: { requireIdPhoto: boolean }) {
               <span>{formatUsd(cart?.estimatedTotal ?? 0)}</span>
             </div>
           </div>
-          <p className="faint" style={{ marginTop: 12, marginBottom: 0 }}>
+
+          <p className="faint mt-2 mb-0">
             Store-wide deals and any delivery minimum are applied when the order is confirmed, so
             the final amount can be lower than this estimate.
           </p>
         </aside>
       </div>
-    </>
+    </div>
   );
 }

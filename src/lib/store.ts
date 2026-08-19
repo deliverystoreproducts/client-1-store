@@ -34,10 +34,9 @@ export const FALLBACK_PROFILE: PublicStoreProfile = {
   heroSubtitle: null,
   heroImage: null,
   open: true,
-  // Fail SAFE, not open: if we cannot read the store's configuration we still
-  // gate age. This is a cannabis storefront; the gate is the default, not a
-  // feature we switch on when a config call happens to succeed.
-  ageGate: true,
+  // Fail SAFE on the threshold too: if we cannot read the store's configuration
+  // we still ask for 21+. The gate itself is unconditional (see app/layout.tsx),
+  // so there is no "gate off" state to fall back into.
   minAge: 21,
   showCannabinoids: false,
   requireIdVerification: false,

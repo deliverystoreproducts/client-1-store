@@ -23,12 +23,13 @@ export function SignInPanel({ requireIdPhoto }: { requireIdPhoto: boolean }) {
   if (session === null) return <p className="muted">One moment…</p>;
 
   if (session.authenticated) {
+    // No name here either: "signed in as <person>" is exactly the readout this
+    // storefront keeps off a screen someone else can read over your shoulder.
+    // The number was verified; that is all the confirmation this needs.
     return (
-      <div className="card" style={{ maxWidth: 460 }}>
-        <p>
-          You&apos;re signed in as <strong>{session.customer?.name || "a customer"}</strong>.
-        </p>
-        <button className="btn" onClick={() => router.push("/account")}>
+      <div className="panel auth">
+        <p className="muted">You&apos;re signed in.</p>
+        <button className="btn mt-1" onClick={() => router.push("/account")}>
           Go to your account
         </button>
       </div>

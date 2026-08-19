@@ -2,11 +2,14 @@ import Link from "next/link";
 
 export default function NotFound() {
   return (
-    <div className="card center" style={{ maxWidth: 520, margin: "60px auto" }}>
-      <h1 style={{ fontSize: "1.4rem" }}>Not found</h1>
-      <p className="muted">That page or product doesn&apos;t exist.</p>
+    <div className="empty" data-reveal>
+      <span className="eyebrow mb-2" style={{ display: "block" }}>
+        404
+      </span>
+      <h1>That shelf is empty</h1>
+      <p className="muted mb-2">The page or product you were after doesn&apos;t exist.</p>
       <Link className="btn" href="/">
-        Back to shop
+        Back to the shop
       </Link>
     </div>
   );

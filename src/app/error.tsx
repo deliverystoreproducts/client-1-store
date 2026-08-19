@@ -23,9 +23,9 @@ export default function RouteError({
   }, [error]);
 
   return (
-    <div className="card center" style={{ maxWidth: 520, margin: "60px auto" }}>
-      <h1 style={{ fontSize: "1.4rem" }}>Something went wrong</h1>
-      <p className="muted">We hit a problem loading this page.</p>
+    <div className="empty" data-reveal>
+      <h1>Something went wrong</h1>
+      <p className="muted mb-2">We hit a problem loading this page.</p>
       <div className="row" style={{ justifyContent: "center" }}>
         <button className="btn" onClick={reset}>
           Try again
@@ -34,11 +34,7 @@ export default function RouteError({
           Back to shop
         </a>
       </div>
-      {error.digest ? (
-        <p className="faint" style={{ marginTop: 18, marginBottom: 0 }}>
-          Reference: {error.digest}
-        </p>
-      ) : null}
+      {error.digest ? <p className="faint mt-3 mb-0">Reference: {error.digest}</p> : null}
     </div>
   );
 }

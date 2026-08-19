@@ -69,7 +69,12 @@ export interface PublicStoreProfile {
   heroSubtitle: string | null;
   heroImage: string | null;
   open: boolean;
-  ageGate: boolean;
+  /**
+   * The legal-age THRESHOLD. There is deliberately no `ageGate` boolean here:
+   * the gate is unconditional in `app/layout.tsx` and must not be switchable
+   * from a dashboard toggle. Upstream still sends one (`TenantProfileV1.ageGate`)
+   * and `toPublicStoreProfile` deliberately drops it on the floor.
+   */
   minAge: number;
   showCannabinoids: boolean;
   requireIdVerification: boolean;

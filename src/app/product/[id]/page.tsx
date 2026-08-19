@@ -37,72 +37,81 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
 
   return (
     <>
-      <p className="faint" style={{ marginBottom: 18 }}>
-        <Link href="/">← Back to shop</Link>
-      </p>
+      <Link className="crumb" href="/" data-reveal style={{ "--i": 0 } as React.CSSProperties}>
+        ← Back to the shelf
+      </Link>
+
+      {/* Masthead: the name gets the full measure of the page before the layout
+          splits. Product photography rarely survives type sitting on top of it,
+          so the composition breaks the column instead of overlapping it. */}
+      <header className="detail-masthead">
+        <span className="eyebrow" data-reveal style={{ "--i": 1 } as React.CSSProperties}>
+          {product.brand?.name ?? (product.category?.name || "Catalogue")}
+        </span>
+        <h1
+          className="display detail-title"
+          data-reveal
+          style={{ "--i": 2 } as React.CSSProperties}
+        >
+          {product.name}
+        </h1>
+      </header>
 
       <div className="detail">
-        <div className="thumb">
+        <div className="detail-media" data-reveal style={{ "--i": 3 } as React.CSSProperties}>
           {product.image ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={product.image} alt={product.name} />
           ) : (
-            <span className="thumb-placeholder">No photo</span>
+            <span className="tile-empty">No photo</span>
           )}
         </div>
 
-        <div>
-          {product.brand ? <p className="faint">{product.brand.name}</p> : null}
-          <h1>{product.name}</h1>
-
-          <div className="row" style={{ marginBottom: 18 }}>
-            <span className="price" style={{ fontSize: "1.5rem" }}>
-              {formatUsd(product.unitPrice)}
-            </span>
+        <div data-reveal style={{ "--i": 4 } as React.CSSProperties}>
+          <div className="detail-price">
+            <span className="price">{formatUsd(product.unitPrice)}</span>
             {onSale ? (
               <>
-                <span className="price-was" style={{ fontSize: "1rem" }}>
-                  {formatUsd(product.price)}
-                </span>
+                <span className="price-was">{formatUsd(product.price)}</span>
                 <span className="tag tag-sale">On sale</span>
               </>
             ) : null}
+            {!product.available ? <span className="tag">Sold out</span> : null}
           </div>
 
-          <div style={{ maxWidth: 320, marginBottom: 22 }}>
+          <div className="detail-buy">
             <AddToCartButton productId={product.id} disabled={!product.available} />
           </div>
 
           {product.description ? (
-            <p className="muted" style={{ whiteSpace: "pre-line" }}>
-              {product.description}
-            </p>
+            <p className="detail-copy">{product.description}</p>
           ) : null}
 
           {showCannabinoids ? (
-            <table className="spec-table">
+            <table className="spec">
+              <caption className="sr-only">Product specification</caption>
               <tbody>
                 {product.genetics ? (
                   <tr>
-                    <td>Genetics</td>
+                    <th scope="row">Genetics</th>
                     <td>{product.genetics}</td>
                   </tr>
                 ) : null}
                 {product.thcPercentage != null ? (
                   <tr>
-                    <td>THC</td>
+                    <th scope="row">THC</th>
                     <td>{product.thcPercentage}%</td>
                   </tr>
                 ) : null}
                 {product.cbdPercentage != null ? (
                   <tr>
-                    <td>CBD</td>
+                    <th scope="row">CBD</th>
                     <td>{product.cbdPercentage}%</td>
                   </tr>
                 ) : null}
                 {product.category ? (
                   <tr>
-                    <td>Category</td>
+                    <th scope="row">Category</th>
                     <td>{product.category.name}</td>
                   </tr>
                 ) : null}
@@ -111,7 +120,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
           ) : null}
 
           {product.tags.length > 0 ? (
-            <div className="row" style={{ marginTop: 18 }}>
+            <div className="row mt-2">
               {product.tags.slice(0, 8).map((t) => (
                 <span key={t} className="tag">
                   {t}
@@ -120,18 +129,21 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
             </div>
           ) : null}
 
-          <p className="faint" style={{ marginTop: 24 }}>
+          <p className="faint mt-3">
             Pay cash when your order arrives. Valid {profile.minAge}+ ID required at the door.
           </p>
         </div>
       </div>
 
       {related.length > 0 ? (
-        <section style={{ marginTop: 54 }}>
-          <h2>You might also like</h2>
-          <div className="grid">
-            {related.slice(0, 8).map((p) => (
-              <ProductCard key={p.id} product={p} />
+        <section className="mt-4">
+          <div className="section-head">
+            <span className="eyebrow">Also on the shelf</span>
+            <hr />
+          </div>
+          <div className="catalogue">
+            {related.slice(0, 8).map((p, i) => (
+              <ProductCard key={p.id} product={p} index={i + 1} />
             ))}
           </div>
         </section>

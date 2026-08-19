@@ -11,18 +11,20 @@ export default function GlobalError({ error }: { error: Error & { digest?: strin
           minHeight: "100dvh",
           display: "grid",
           placeItems: "center",
-          background: "#0e100f",
-          color: "#f2f5f2",
-          fontFamily: "ui-sans-serif, system-ui, sans-serif",
+          background: "#14100c",
+          color: "#f4ebdc",
+          // This boundary replaces the whole document, stylesheet included, so
+          // it cannot rely on the self-hosted webfonts — fallback chain only.
+          fontFamily: '"Avenir Next", "Helvetica Neue", sans-serif',
           textAlign: "center",
           padding: 24,
         }}
       >
         <div>
           <h1 style={{ fontSize: "1.4rem" }}>Something went wrong</h1>
-          <p style={{ color: "#a8b1a9" }}>Please reload the page.</p>
+          <p style={{ color: "#cdbca2" }}>Please reload the page.</p>
           {error.digest ? (
-            <p style={{ color: "#6f7a71", fontSize: "0.85rem" }}>Reference: {error.digest}</p>
+            <p style={{ color: "#a29076", fontSize: "0.85rem" }}>Reference: {error.digest}</p>
           ) : null}
         </div>
       </body>

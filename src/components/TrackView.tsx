@@ -8,10 +8,11 @@ import type { PublicTracking } from "@/lib/public-types";
 /**
  * Delivery status, polled.
  *
- * This page answers WHERE IS MY ORDER and nothing else — no items, no prices.
- * The tracking link arrives by SMS and gets forwarded, screenshotted and pasted
- * into support chats, so anyone holding it can see this page. It must not be an
- * itemised receipt.
+ * This page answers WHERE IS MY ORDER and nothing else — no items, no prices,
+ * and no customer name (the payload carries one; it is deliberately never
+ * rendered). The tracking link arrives by SMS and gets forwarded, screenshotted
+ * and pasted into support chats, so anyone holding it can see this page. It must
+ * not be an itemised receipt, and it must not identify the buyer.
  */
 
 const POLL_MS = 20_000;
@@ -20,11 +21,26 @@ const FRIENDLY: Record<string, string> = {
   pending: "Order received",
   confirmed: "Confirmed",
   preparing: "Being prepared",
-  ready: "Ready for pickup by driver",
+  ready: "Ready for the driver",
   assigned: "Driver assigned",
   out_for_delivery: "On the way",
   delivered: "Delivered",
   cancelled: "Cancelled",
+};
+
+/** The four stages a customer actually cares about, and where each raw upstream
+ *  status sits on them. Unknown statuses fall back to stage 0 so the page still
+ *  reads sensibly if upstream adds one. */
+const STAGES = ["Order received", "Being prepared", "On the way", "Delivered"] as const;
+
+const STAGE_OF: Record<string, number> = {
+  pending: 0,
+  confirmed: 0,
+  preparing: 1,
+  ready: 1,
+  assigned: 2,
+  out_for_delivery: 2,
+  delivered: 3,
 };
 
 export function TrackView({ token }: { token: string }) {
@@ -53,9 +69,9 @@ export function TrackView({ token }: { token: string }) {
 
   if (missing) {
     return (
-      <div className="card center" style={{ maxWidth: 520, margin: "50px auto" }}>
-        <h1 style={{ fontSize: "1.4rem" }}>We couldn&apos;t find that order</h1>
-        <p className="muted">Check the link from your confirmation text and try again.</p>
+      <div className="empty" data-reveal>
+        <h1>We couldn&apos;t find that order</h1>
+        <p className="muted mb-2">Check the link from your confirmation text and try again.</p>
         <Link className="btn btn-ghost" href="/track">
           Try another code
         </Link>
@@ -65,49 +81,84 @@ export function TrackView({ token }: { token: string }) {
 
   if (!data) return <p className="muted">Looking up your order…</p>;
 
-  const status = FRIENDLY[data.status] ?? data.status.replace(/_/g, " ");
+  const raw = data.status.toLowerCase();
+  const cancelled = raw === "cancelled";
+  const label = FRIENDLY[raw] ?? data.status.replace(/_/g, " ");
+  const stage = cancelled ? -1 : (STAGE_OF[raw] ?? 0);
   const eta = data.eta ? new Date(data.eta) : null;
+  const tone = cancelled ? "off" : stage === 3 ? "done" : undefined;
 
   return (
-    <div className="card" style={{ maxWidth: 560, margin: "30px auto" }}>
+    <div className="track-card panel" data-reveal>
       <div className="spread">
-        <h1 style={{ fontSize: "1.4rem", margin: 0 }}>
+        <span className="eyebrow">
           {data.orderNumber ? `Order #${data.orderNumber}` : "Your order"}
-        </h1>
-        <span className="status-pill">{status}</span>
+        </span>
+        <span className="status-pill" data-tone={tone}>
+          <span className="dot" aria-hidden />
+          {label}
+        </span>
       </div>
 
-      <div className="stack" style={{ marginTop: 20 }}>
+      <p className="track-status display" data-tone={tone}>
+        {data.arrivedAt
+          ? "Delivered."
+          : cancelled
+            ? "Cancelled."
+            : eta
+              ? `Arriving ~${eta.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`
+              : "On its way to you."}
+      </p>
+
+      {!cancelled ? (
+        <ol className="timeline">
+          {STAGES.map((s, i) => (
+            <li key={s} data-state={i < stage ? "done" : i === stage ? "now" : undefined}>
+              <span className="timeline-node" aria-hidden />
+              <span className="timeline-label">
+                {s}
+                {i === stage && !data.arrivedAt ? " — now" : ""}
+              </span>
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <p className="muted mt-2">
+          This order was cancelled. If that&apos;s unexpected, call the store and we&apos;ll sort
+          it out.
+        </p>
+      )}
+
+      <div className="stack" style={{ gap: "0.6rem" }}>
         {data.arrivedAt ? (
-          <p style={{ margin: 0 }}>
-            Delivered at <strong>{new Date(data.arrivedAt).toLocaleTimeString()}</strong>.
+          <p className="muted mb-0">
+            Delivered at{" "}
+            <strong>
+              {new Date(data.arrivedAt).toLocaleTimeString([], {
+                hour: "numeric",
+                minute: "2-digit",
+              })}
+            </strong>
+            .
           </p>
-        ) : eta ? (
-          <p style={{ margin: 0 }}>
-            Estimated arrival <strong>{eta.toLocaleTimeString()}</strong>.
-          </p>
-        ) : (
-          <p className="muted" style={{ margin: 0 }}>
-            We&apos;ll update this page as your order moves.
-          </p>
-        )}
+        ) : null}
 
         {data.driverFirstName ? (
-          <p className="muted" style={{ margin: 0 }}>
+          <p className="muted mb-0">
             {data.driverFirstName} is handling your delivery
             {data.hasDriverLocation ? " and is on the road" : ""}.
           </p>
         ) : null}
 
-        {data.address ? <p className="faint" style={{ margin: 0 }}>Delivering to {data.address}</p> : null}
+        {data.address ? <p className="faint mb-0">Delivering to {data.address}</p> : null}
 
         {data.driverPhone ? (
-          <a className="btn btn-ghost" href={`tel:${data.driverPhone}`}>
+          <a className="btn btn-ghost mt-1" href={`tel:${data.driverPhone}`}>
             Call your driver
           </a>
         ) : null}
 
-        <p className="faint" style={{ marginTop: 10, marginBottom: 0 }}>
+        <p className="faint mb-0" style={{ marginTop: "0.6rem" }}>
           Placed {new Date(data.placedAt).toLocaleString()} · Payment is cash on delivery.
         </p>
       </div>

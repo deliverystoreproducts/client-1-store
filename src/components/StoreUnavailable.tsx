@@ -11,13 +11,15 @@
 export function StoreUnavailable({ storeName }: { storeName?: string }) {
   return (
     <main className="gate">
-      <div className="gate-card">
-        <div className="brand brand-mark" style={{ justifyContent: "center", marginBottom: 18 }}>
-          <span className="brand-dot" aria-hidden />
+      <div className="gate-inner" data-reveal>
+        <span className="gate-mark">
+          <span className="brand-seal" aria-hidden />
           {storeName || "Store"}
-        </div>
-        <h1 style={{ fontSize: "1.4rem" }}>We&apos;re temporarily closed</h1>
-        <p className="muted" style={{ marginBottom: 0 }}>
+        </span>
+        <h1 className="gate-q" style={{ marginTop: "2rem" }}>
+          We&apos;re temporarily closed.
+        </h1>
+        <p className="muted" style={{ maxWidth: "34ch", marginInline: "auto" }}>
           Our online store is unavailable right now. Please try again in a little while.
         </p>
       </div>
