@@ -17,9 +17,12 @@ const PAGE_SIZE = 24;
 // Demo hero. The dashboard's hero image (Settings → Branding) wins the moment
 // the operator sets one; this is only the out-of-box look. Served through OUR
 // image proxy like every other picture — the browser never touches the CDN.
-// ⚠ Swap the ID after eyeballing it; it was verified to EXIST (HTTP 200), not
-// to be art-directed.
-const DEFAULT_HERO_IMAGE = "https://images.unsplash.com/photo-1605117882932-f9e32b03fea9?w=1920&q=80";
+// ⚠ EYEBALL THIS. Verified to EXIST (HTTP 200), not to be art-directed — the
+// previous ID turned out to show a gardener with a lawnmower. Spare verified
+// IDs if this one is wrong too: photo-1603386329225-868f9b1ee6c9,
+// photo-1567016526105-22da7c13161a. Real brand photography replaces all of
+// this before launch.
+const DEFAULT_HERO_IMAGE = "https://images.unsplash.com/photo-1503262028195-93c528f03218?w=1920&q=80";
 
 // The default is HONEST: it says Newest and it IS newest. It used to say
 // "Featured" while upstream defaulted to name-ASC, which made the shop window

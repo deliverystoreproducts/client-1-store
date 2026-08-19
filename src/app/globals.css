@@ -58,38 +58,38 @@
 :root {
   /* Ground — warm porcelain, cream-cast. --ground-deep is the footer's shade;
      --ground-raise is panels and cards, a half-step off white. */
-  --ground: #f7f2e6;
-  --ground-deep: #efe8d6;
-  --ground-raise: #fffdf7;
-  --field: #fffdf7;
+  --ground: #f3f8f1;
+  --ground-deep: #e9f1e5;
+  --ground-raise: #ffffff;
+  --field: #ffffff;
 
   /* Rules. Decorative only — never load-bearing for text contrast. */
-  --rule: #e0d6c2;
-  --rule-hi: #c2b190;
+  --rule: #dbe8d6;
+  --rule-hi: #b7cfb1;
 
   /* Type — pine-green inks. Measured on --ground: 13.3 : 1, 7.4 : 1, 5.3 : 1
      (and pine-3 holds 4.9 : 1 on the deeper footer ground). */
-  --pine: #1f2a1e;
-  --pine-2: #44523f;
-  --pine-3: #5d6845;
+  --pine: #152418;
+  --pine-2: #3d5443;
+  --pine-3: #526b55;
 
   /* Chromatic accents. On a light ground the text-safe direction INVERTS:
      dark theme lightened a colour to make it readable, daylight darkens it.
      All measured on --ground. */
-  --clay: #a3441f; /* fired terracotta — fills, borders, seals (5.5 : 1) */
-  --clay-lit: #8a3717; /* the deeper clay for hover fills and edges */
-  --amber: #8f5c0c; /* honey — primary action, focus, price (5.1 : 1; cream
+  --clay: #c2186f; /* fired terracotta — fills, borders, seals (5.5 : 1) */
+  --clay-lit: #a01159; /* the deeper clay for hover fills and edges */
+  --amber: #c2186f; /* honey — primary action, focus, price (5.1 : 1; cream
                        text ON an amber fill measures the same 5.1 : 1) */
-  --amber-deep: #7a4e09;
-  --sage: #48653a; /* open / delivered / affirmative (5.9 : 1) */
-  --fern: #2e7d3f; /* THE action green — brighter per theme "Sunset
+  --amber-deep: #a01159;
+  --sage: #2f7d46; /* open / delivered / affirmative (5.9 : 1) */
+  --fern: #107538; /* THE action green — brighter per theme "Sunset
                       Apothecary" (4.6 : 1 both directions; measured) */
   --marigold: #f0a428; /* tint fills only — dark text rides on it */
-  --coral: #e2542c; /* non-text accent: active-tab rule, seals (3.4 : 1 UI) */
+  --coral: #c2186f; /* non-text accent: active-tab rule, seals (3.4 : 1 UI) */
   /* Ceramic plate gradient stops, so the product plates re-glaze per theme. */
-  --plate-a: #ece3cf;
-  --plate-b: #f8f4e9;
-  --alarm: #b0301f; /* errors and unset-value placeholders (5.7 : 1) */
+  --plate-a: #e7f0e3;
+  --plate-b: #f7faf5;
+  --alarm: #b3261e; /* errors and unset-value placeholders (5.7 : 1) */
 
   /* Type families. The webfonts load from this origin; the fallbacks are
      deliberately not Arial/Roboto — a fallback should still look like the
@@ -1057,16 +1057,19 @@ body::after {
   padding-block: clamp(1.4rem, 2.6vw, 2.4rem) clamp(1.2rem, 2.2vw, 2rem);
 }
 
-/* With a photograph the hero becomes the store's one big image moment — but
-   bounded: the shelf must still arrive by the second screen. Text sits on a
-   porcelain scrim, never raw on the photo. */
+/* With a photograph the hero is the store's one big image moment — now FULL
+   viewport width (owner's call): the section breaks out of the wrap with the
+   50%-50dvw trick and clips itself, so the media's old -50vw bleed lands
+   exactly at the viewport edge instead of 170px past it. The text card stays
+   aligned to the content grid via matched padding. */
 .hero[data-media="true"] {
-  /* Clip the -50vw full-bleed media: on phones it was 170px of page beyond
-     the viewport (iOS pans there even with body overflow hidden). Clipped,
-     the photo becomes a rounded band inside the column — better anyway. */
   overflow: hidden;
-  border-radius: 14px;
-  min-height: clamp(300px, 44vh, 430px);
+  width: 100dvw;
+  margin-inline: calc(50% - 50dvw);
+  padding-inline: max(var(--gutter), calc((100dvw - var(--maxw)) / 2 + var(--gutter)));
+  border-radius: 0;
+  border-bottom: 1px solid var(--rule);
+  min-height: clamp(300px, 46vh, 460px);
   display: flex;
   align-items: flex-end;
   padding-block: clamp(1.8rem, 4vw, 3rem) clamp(1.4rem, 2.6vw, 2.2rem);
@@ -2641,7 +2644,7 @@ body::after {
   gap: 0.6rem;
   min-height: 40px;
   padding: 0.35rem 1rem;
-  background: linear-gradient(90deg, var(--fern), #3f7a49 55%, var(--fern));
+  background: linear-gradient(90deg, #107538, #1fae57 55%, #107538);
   color: var(--ground);
   font-size: var(--t--2);
   font-weight: 700;
