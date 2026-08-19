@@ -124,57 +124,58 @@
   --lift: 0 14px 34px -14px rgb(96 76 44 / 0.28), 0 2px 8px -2px rgb(96 76 44 / 0.14);
 }
 
-/* ── GLACIER — the dark theme (owner's pick, round two). Ink-blue ground,
-   frost-cyan identity and money, and the Add act stays green — the act is the
-   brand, the mood is the theme. System preference first; the header toggle
-   stamps data-theme and wins both directions. Statutory colors stay statutory. */
+/* ── ULTRAVIOLET — the dark theme (owner's pick, round three). Violet-black
+   ground, purple identity, hot-pink money, twin neon glows in the atmosphere —
+   and the Add act stays green: the act is the brand, the mood is the theme.
+   System preference first; the toggle stamps data-theme and wins both
+   directions. Statutory colors stay statutory. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-  --ground: #0c1216;
-  --ground-deep: #090e12;
-  --ground-raise: #131e26;
-  --field: #131e26;
-  --rule: #22384a;
-  --rule-hi: #35516b;
-  --pine: #e9f4f8;
-  --pine-2: #bcd3de;
-  --pine-3: #7d95a3;
-  --clay: #7dd8ff; /* frost — fills read with the dark ground's ink (11.8 : 1) */
-  --clay-lit: #5ec4f5;
-  --amber: #7dd8ff; /* frost carries price + highlights (11.8 : 1) */
-  --amber-deep: #58b7e8;
-  --sage: #52c780;
+  --ground: #120b1e;
+  --ground-deep: #0d0817;
+  --ground-raise: #1b1230;
+  --field: #1b1230;
+  --rule: #332159;
+  --rule-hi: #4b3380;
+  --pine: #f0e9fb;
+  --pine-2: #cfc2e8;
+  --pine-3: #948aab;
+  --clay: #ff4fa3; /* hot pink — fills read with the ground's ink (6.3 : 1) */
+  --clay-lit: #e03a8c;
+  --amber: #ff4fa3; /* pink carries price + highlights (6.3 : 1) */
+  --amber-deep: #e03a8c;
+  --sage: #66d98a;
   --alarm: #ff7a66;
-  --fern: #22b558; /* the act stays GREEN in every theme (7.0 : 1 with ink) */
-  --marigold: #9fe2ff;
-  --coral: #7dd8ff;
-  --plate-a: #16232d;
-  --plate-b: #0e171e;
+  --fern: #22b558; /* the act stays GREEN in every theme (7.2 : 1 with ink) */
+  --marigold: #c4a6ff; /* lavender tint (9.4 : 1 as text) */
+  --coral: #ff4fa3;
+  --plate-a: #221743;
+  --plate-b: #150e2a;
   --lift: 0 14px 34px -14px rgb(0 0 0 / 0.55), 0 2px 8px -2px rgb(0 0 0 / 0.4);
   }
 }
 
 :root[data-theme="dark"] {
-  --ground: #0c1216;
-  --ground-deep: #090e12;
-  --ground-raise: #131e26;
-  --field: #131e26;
-  --rule: #22384a;
-  --rule-hi: #35516b;
-  --pine: #e9f4f8;
-  --pine-2: #bcd3de;
-  --pine-3: #7d95a3;
-  --clay: #7dd8ff; /* frost — fills read with the dark ground's ink (11.8 : 1) */
-  --clay-lit: #5ec4f5;
-  --amber: #7dd8ff; /* frost carries price + highlights (11.8 : 1) */
-  --amber-deep: #58b7e8;
-  --sage: #52c780;
+  --ground: #120b1e;
+  --ground-deep: #0d0817;
+  --ground-raise: #1b1230;
+  --field: #1b1230;
+  --rule: #332159;
+  --rule-hi: #4b3380;
+  --pine: #f0e9fb;
+  --pine-2: #cfc2e8;
+  --pine-3: #948aab;
+  --clay: #ff4fa3; /* hot pink — fills read with the ground's ink (6.3 : 1) */
+  --clay-lit: #e03a8c;
+  --amber: #ff4fa3; /* pink carries price + highlights (6.3 : 1) */
+  --amber-deep: #e03a8c;
+  --sage: #66d98a;
   --alarm: #ff7a66;
-  --fern: #22b558; /* the act stays GREEN in every theme (7.0 : 1 with ink) */
-  --marigold: #9fe2ff;
-  --coral: #7dd8ff;
-  --plate-a: #16232d;
-  --plate-b: #0e171e;
+  --fern: #22b558; /* the act stays GREEN in every theme (7.2 : 1 with ink) */
+  --marigold: #c4a6ff; /* lavender tint (9.4 : 1 as text) */
+  --coral: #ff4fa3;
+  --plate-a: #221743;
+  --plate-b: #150e2a;
   --lift: 0 14px 34px -14px rgb(0 0 0 / 0.55), 0 2px 8px -2px rgb(0 0 0 / 0.4);
 }
 
@@ -2697,13 +2698,13 @@ body::after {
 /* In dark (Neon Jungle) the lime bar needs its jungle ink explicitly — the
    token flips to cream there, which would fail on lime. */
 :root[data-theme="dark"] .topbar {
-  background: linear-gradient(90deg, #7dd8ff, #c9f0ff);
-  color: #082330;
+  background: linear-gradient(90deg, #6d28d9, #d81b7f);
+  color: #ffffff;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) .topbar {
-    background: linear-gradient(90deg, #7dd8ff, #c9f0ff);
-    color: #082330;
+    background: linear-gradient(90deg, #6d28d9, #d81b7f);
+    color: #ffffff;
   }
 }
 
@@ -2836,4 +2837,33 @@ body::after {
 .addr-opt[aria-selected="true"] {
   background: var(--ground-deep);
   color: var(--pine);
+}
+
+
+/* ULTRAVIOLET atmosphere: violet above, pink below — the blacklight room. */
+:root[data-theme="dark"] body::before {
+  background:
+    radial-gradient(55% 45% at 10% -10%, rgb(139 92 246 / 0.28), transparent 60%),
+    radial-gradient(70% 60% at 85% 108%, rgb(255 79 163 / 0.2), transparent 65%),
+    linear-gradient(180deg, var(--ground-raise), var(--ground) 46%);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) body::before {
+    background:
+      radial-gradient(55% 45% at 10% -10%, rgb(139 92 246 / 0.28), transparent 60%),
+      radial-gradient(70% 60% at 85% 108%, rgb(255 79 163 / 0.2), transparent 65%),
+      linear-gradient(180deg, var(--ground-raise), var(--ground) 46%);
+  }
+}
+
+/* The 21 glows violet after dark (7.1:1, large-text). */
+:root[data-theme="dark"] .gate-age {
+  color: #a78bfa;
+  text-shadow: 0 0 28px rgb(139 92 246 / 0.5);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .gate-age {
+    color: #a78bfa;
+    text-shadow: 0 0 28px rgb(139 92 246 / 0.5);
+  }
 }
