@@ -3,11 +3,18 @@
   GOLDEN STATE — the storefront's one stylesheet. Plain CSS, no framework.
   ═══════════════════════════════════════════════════════════════════════════
 
-  Direction: 1970s California ceramic modernism, after dark. A warm ink ground
-  (brown-black, never blue-black), bone-white type, terracotta and sun-amber as
-  the only chromatic events. Composition is a printed catalogue: hairline rules,
-  ordinal numbers, small-caps labels, one very large serif voice. Atmosphere
-  comes from grain and a low sunset bloom, not from drop shadows.
+  Direction: California apothecary, in daylight. A warm porcelain ground
+  (cream, never clinical white), deep pine-green ink, clay and honey-amber as
+  the only chromatic events — botanical without a single leaf cliché, which is
+  also what keeps it clear of the appeal-to-minors advertising rules.
+  Composition is unchanged from the night version this evolved from: a printed
+  catalogue — hairline rules, ordinal numbers, small-caps labels, one very
+  large serif voice. Atmosphere comes from paper grain and a soft morning
+  wash, plus (new in daylight) one shallow lift shadow, because a light theme
+  with no depth at all reads as a spreadsheet.
+
+  Every contrast figure in this file is MEASURED, not estimated. If you change
+  a colour, re-measure before you trust the comment.
 
   Two rules for anyone editing this file:
 
@@ -49,28 +56,33 @@
 /* ═══════════════════════════════ TOKENS ═══════════════════════════════ */
 
 :root {
-  /* Ground — warm, brown-cast blacks. */
-  --ink: #14100c;
-  --ink-deep: #0c0906;
-  --ink-raise: #1c1712;
-  --field: #241d16;
+  /* Ground — warm porcelain, cream-cast. --ground-deep is the footer's shade;
+     --ground-raise is panels and cards, a half-step off white. */
+  --ground: #f7f2e6;
+  --ground-deep: #efe8d6;
+  --ground-raise: #fffdf7;
+  --field: #fffdf7;
 
   /* Rules. Decorative only — never load-bearing for text contrast. */
-  --rule: #33291f;
-  --rule-hi: #55432f;
+  --rule: #e0d6c2;
+  --rule-hi: #c2b190;
 
-  /* Type. All three pass WCAG AA on --ink (16.0 : 1, 10.2 : 1, 6.1 : 1). */
-  --bone: #f4ebdc;
-  --bone-2: #cdbca2;
-  --bone-3: #a29076;
+  /* Type — pine-green inks. Measured on --ground: 13.3 : 1, 7.4 : 1, 5.3 : 1
+     (and pine-3 holds 4.9 : 1 on the deeper footer ground). */
+  --pine: #1f2a1e;
+  --pine-2: #44523f;
+  --pine-3: #5d6845;
 
-  /* Chromatic accents. */
-  --clay: #c2612e; /* terracotta — fills, borders, seals */
-  --clay-lit: #d97742; /* the text-safe clay (6.0 : 1) */
-  --amber: #e8a33c; /* the sun — primary action, focus, price (8.8 : 1) */
-  --amber-deep: #c9852a;
-  --sage: #93a46b; /* open / delivered / affirmative (7.0 : 1) */
-  --alarm: #ee7361; /* errors (6.6 : 1) */
+  /* Chromatic accents. On a light ground the text-safe direction INVERTS:
+     dark theme lightened a colour to make it readable, daylight darkens it.
+     All measured on --ground. */
+  --clay: #a3441f; /* fired terracotta — fills, borders, seals (5.5 : 1) */
+  --clay-lit: #8a3717; /* the deeper clay for hover fills and edges */
+  --amber: #8f5c0c; /* honey — primary action, focus, price (5.1 : 1; cream
+                       text ON an amber fill measures the same 5.1 : 1) */
+  --amber-deep: #7a4e09;
+  --sage: #48653a; /* open / delivered / affirmative (5.9 : 1) */
+  --alarm: #b0301f; /* errors and unset-value placeholders (5.7 : 1) */
 
   /* Type families. The webfonts load from this origin; the fallbacks are
      deliberately not Arial/Roboto — a fallback should still look like the
@@ -98,6 +110,11 @@
   --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.86' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
 
   --ease: cubic-bezier(0.22, 0.68, 0.32, 1);
+
+  /* The one shadow. Warm-cast, shallow, and only where a surface genuinely
+     lifts: hovered tiles, panels, the sticky buy bar. Depth in daylight is a
+     seasoning, not a system. */
+  --lift: 0 14px 34px -14px rgb(96 76 44 / 0.28), 0 2px 8px -2px rgb(96 76 44 / 0.14);
 }
 
 /* ═══════════════════════════════ RESET ═══════════════════════════════ */
@@ -119,8 +136,8 @@ body {
 }
 
 body {
-  background: var(--ink);
-  color: var(--bone);
+  background: var(--ground);
+  color: var(--pine);
   font-family: var(--font-body);
   font-size: var(--t-0);
   font-weight: 400;
@@ -184,7 +201,7 @@ a {
 
 ::selection {
   background: var(--amber);
-  color: var(--ink);
+  color: var(--ground);
 }
 
 /* ═══════════════════════════ ATMOSPHERE ═══════════════════════════ */
@@ -198,16 +215,16 @@ body::before {
   pointer-events: none;
   background:
     radial-gradient(
-      70% 48% at 78% -8%,
-      color-mix(in oklab, var(--clay) 26%, transparent),
-      transparent 72%
-    ),
-    radial-gradient(
-      58% 40% at 6% 4%,
-      color-mix(in oklab, var(--amber) 12%, transparent),
+      64% 42% at 82% -6%,
+      color-mix(in oklab, var(--amber) 10%, transparent),
       transparent 70%
     ),
-    linear-gradient(180deg, var(--ink-deep), var(--ink) 44%);
+    radial-gradient(
+      56% 38% at 4% 2%,
+      color-mix(in oklab, var(--sage) 9%, transparent),
+      transparent 68%
+    ),
+    linear-gradient(180deg, var(--ground-raise), var(--ground) 46%);
 }
 
 /* Film grain — fixed, above everything, inert to the pointer. */
@@ -219,8 +236,8 @@ body::after {
   pointer-events: none;
   background-image: var(--grain);
   background-size: 180px 180px;
-  opacity: 0.045;
-  mix-blend-mode: overlay;
+  opacity: 0.05;
+  mix-blend-mode: multiply;
 }
 
 /* ═══════════════════════════ MOTION ═══════════════════════════
@@ -298,23 +315,23 @@ body::after {
   font-weight: 600;
   letter-spacing: 0.19em;
   text-transform: uppercase;
-  color: var(--bone-3);
+  color: var(--pine-3);
   line-height: 1.4;
 }
 
 .lede {
   font-size: var(--t-1);
   line-height: 1.5;
-  color: var(--bone-2);
+  color: var(--pine-2);
   max-width: 46ch;
 }
 
 .muted {
-  color: var(--bone-2);
+  color: var(--pine-2);
 }
 
 .faint {
-  color: var(--bone-3);
+  color: var(--pine-3);
   font-size: var(--t--1);
 }
 
@@ -333,7 +350,7 @@ body::after {
 }
 
 .link {
-  color: var(--bone);
+  color: var(--pine);
   text-decoration: underline;
   text-decoration-color: var(--rule-hi);
   text-underline-offset: 0.28em;
@@ -412,10 +429,11 @@ body::after {
   position: sticky;
   top: 0;
   z-index: 60;
-  background: color-mix(in srgb, var(--ink) 84%, transparent);
-  backdrop-filter: blur(14px) saturate(1.3);
-  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  background: color-mix(in srgb, var(--ground-raise) 78%, transparent);
+  backdrop-filter: blur(14px) saturate(1.15);
+  -webkit-backdrop-filter: blur(14px) saturate(1.15);
   border-bottom: 1px solid var(--rule);
+  box-shadow: 0 1px 12px -6px rgb(96 76 44 / 0.18);
 }
 
 .site-header .wrap {
@@ -435,7 +453,7 @@ body::after {
   letter-spacing: -0.02em;
   font-variation-settings: "SOFT" 20, "WONK" 1, "opsz" 30;
   white-space: nowrap;
-  color: var(--bone);
+  color: var(--pine);
 }
 
 .brand-logo {
@@ -468,7 +486,7 @@ body::after {
   font-size: var(--t--1);
   font-weight: 500;
   letter-spacing: 0.02em;
-  color: var(--bone-2);
+  color: var(--pine-2);
   padding-block: 0.5rem;
   /* "Sign in" wrapping to two lines on a 375px phone drags the whole header
      taller and looks broken. It never wraps. */
@@ -477,7 +495,7 @@ body::after {
 }
 
 .nav a:hover {
-  color: var(--bone);
+  color: var(--pine);
 }
 
 /* Cart is a counter, not a link that looks like every other link. */
@@ -488,7 +506,7 @@ body::after {
   border: 1px solid var(--rule-hi);
   border-radius: 999px;
   padding: 0.42rem 0.85rem !important;
-  color: var(--bone) !important;
+  color: var(--pine) !important;
   transition: border-color 0.18s var(--ease), background 0.18s var(--ease);
 }
 
@@ -505,7 +523,7 @@ body::after {
   padding-inline: 0.3rem;
   border-radius: 999px;
   background: var(--amber);
-  color: var(--ink);
+  color: var(--ground);
   font-size: 0.72rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -540,7 +558,7 @@ body::after {
 
 .site-footer {
   border-top: 1px solid var(--rule);
-  background: var(--ink-deep);
+  background: var(--ground-deep);
   padding-block: clamp(2.4rem, 5vw, 4rem) 2.4rem;
   position: relative;
   z-index: 1;
@@ -560,7 +578,7 @@ body::after {
   line-height: 1;
   letter-spacing: -0.03em;
   font-variation-settings: "SOFT" 30, "WONK" 1, "opsz" 96;
-  color: var(--bone);
+  color: var(--pine);
   margin-bottom: 0.6rem;
   text-wrap: balance;
 }
@@ -568,7 +586,7 @@ body::after {
 .footer-col a {
   display: block;
   padding-block: 0.28rem;
-  color: var(--bone-2);
+  color: var(--pine-2);
   font-size: var(--t--1);
   transition: color 0.18s var(--ease);
 }
@@ -585,7 +603,7 @@ body::after {
   justify-content: space-between;
   gap: 1rem;
   flex-wrap: wrap;
-  color: var(--bone-3);
+  color: var(--pine-3);
   font-size: var(--t--2);
   line-height: 1.6;
 }
@@ -616,7 +634,7 @@ body::after {
   border: 1px solid transparent;
   border-radius: 999px;
   background: var(--amber);
-  color: var(--ink);
+  color: var(--ground);
   font-size: var(--t--1);
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -627,7 +645,7 @@ body::after {
 }
 
 .btn:hover:not(:disabled) {
-  background: var(--bone);
+  background: var(--pine);
   transform: translateY(-1px);
 }
 
@@ -651,7 +669,7 @@ body::after {
 .btn-ghost {
   background: transparent;
   border-color: var(--rule-hi);
-  color: var(--bone);
+  color: var(--pine);
 }
 
 .btn-ghost:hover:not(:disabled) {
@@ -662,12 +680,12 @@ body::after {
 
 .btn-clay {
   background: var(--clay);
-  color: var(--bone);
+  color: var(--ground);
 }
 
 .btn-clay:hover:not(:disabled) {
   background: var(--clay-lit);
-  color: var(--ink);
+  color: var(--ground);
 }
 
 .btn-sm {
@@ -685,7 +703,7 @@ body::after {
   border: 0;
   padding: 0;
   min-height: 0;
-  color: var(--bone-3);
+  color: var(--pine-3);
   font-size: var(--t--1);
   font-weight: 500;
   letter-spacing: 0.01em;
@@ -713,7 +731,7 @@ body::after {
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--bone-3);
+  color: var(--pine-3);
   margin-bottom: 0.5rem;
 }
 
@@ -723,7 +741,7 @@ body::after {
   width: 100%;
   min-height: 48px;
   background: var(--field);
-  color: var(--bone);
+  color: var(--pine);
   border: 1px solid var(--rule-hi);
   border-radius: 6px;
   padding: 0.65rem 0.9rem;
@@ -733,7 +751,7 @@ body::after {
 
 .input::placeholder,
 .textarea::placeholder {
-  color: var(--bone-3);
+  color: var(--pine-3);
   opacity: 1;
 }
 
@@ -761,8 +779,8 @@ body::after {
   appearance: none;
   -webkit-appearance: none;
   padding-right: 2.4rem;
-  background-image: linear-gradient(45deg, transparent 50%, var(--bone-3) 50%),
-    linear-gradient(135deg, var(--bone-3) 50%, transparent 50%);
+  background-image: linear-gradient(45deg, transparent 50%, var(--pine-3) 50%),
+    linear-gradient(135deg, var(--pine-3) 50%, transparent 50%);
   background-position: calc(100% - 1.05rem) 55%, calc(100% - 0.72rem) 55%;
   background-size: 6px 6px, 6px 6px;
   background-repeat: no-repeat;
@@ -774,7 +792,7 @@ body::after {
   align-items: flex-start;
   gap: 0.65rem;
   font-size: var(--t--1);
-  color: var(--bone-2);
+  color: var(--pine-2);
   cursor: pointer;
   line-height: 1.45;
 }
@@ -799,8 +817,8 @@ body::after {
   content: "";
   width: 10px;
   height: 6px;
-  border-left: 2px solid var(--ink);
-  border-bottom: 2px solid var(--ink);
+  border-left: 2px solid var(--ground);
+  border-bottom: 2px solid var(--ground);
   transform: rotate(-45deg) translate(1px, -1px) scale(0);
   transition: transform 0.15s var(--ease);
 }
@@ -817,24 +835,25 @@ body::after {
 /* ═══════════════════════════ SURFACES ═══════════════════════════ */
 
 .panel {
-  background: color-mix(in srgb, var(--ink-raise) 82%, transparent);
+  background: var(--ground-raise);
   border: 1px solid var(--rule);
   border-radius: 12px;
+  box-shadow: 0 1px 0 rgb(96 76 44 / 0.05), 0 8px 24px -18px rgb(96 76 44 / 0.25);
   padding: clamp(1.2rem, 2.6vw, 1.9rem);
 }
 
 .notice {
   border: 1px solid var(--rule-hi);
-  border-left: 3px solid var(--bone-3);
+  border-left: 3px solid var(--pine-3);
   border-radius: 4px;
   padding: 0.8rem 1rem;
   font-size: var(--t--1);
-  background: color-mix(in srgb, var(--ink-raise) 70%, transparent);
-  color: var(--bone-2);
+  background: color-mix(in srgb, var(--ground-raise) 70%, transparent);
+  color: var(--pine-2);
 }
 
 .notice strong {
-  color: var(--bone);
+  color: var(--pine);
   font-weight: 600;
 }
 
@@ -860,14 +879,14 @@ body::after {
   font-size: var(--t--2);
   letter-spacing: 0.09em;
   text-transform: uppercase;
-  color: var(--bone-2);
+  color: var(--pine-2);
   white-space: nowrap;
 }
 
 .tag-sale {
   border-color: var(--clay);
   background: var(--clay);
-  color: var(--bone);
+  color: var(--ground);
 }
 
 .tag-pick {
@@ -899,7 +918,7 @@ body::after {
 
 .status-pill[data-tone="off"] {
   background: transparent;
-  color: var(--bone-3);
+  color: var(--pine-3);
   border-color: var(--rule-hi);
 }
 
@@ -929,8 +948,8 @@ body::after {
   z-index: -1;
   background-size: cover;
   background-position: center;
-  opacity: 0.34;
-  filter: saturate(0.55) contrast(1.05);
+  opacity: 0.5;
+  filter: saturate(0.72) contrast(1.02);
   mask-image: linear-gradient(180deg, #000 0%, #000 42%, transparent 96%);
   -webkit-mask-image: linear-gradient(
     180deg,
@@ -987,7 +1006,7 @@ body::after {
 
 .plaque-value {
   font-size: var(--t--1);
-  color: var(--bone);
+  color: var(--pine);
   text-align: right;
   display: inline-flex;
   align-items: center;
@@ -1013,7 +1032,7 @@ body::after {
     border-top: 0;
     background: linear-gradient(
       90deg,
-      color-mix(in srgb, var(--ink) 78%, transparent),
+      color-mix(in srgb, var(--ground) 78%, transparent),
       transparent 70%
     );
     backdrop-filter: blur(2px);
@@ -1065,11 +1084,11 @@ body::after {
   outline: none;
   padding: 0.3rem 0;
   font-size: var(--t-1);
-  color: var(--bone);
+  color: var(--pine);
 }
 
 .search input::placeholder {
-  color: var(--bone-3);
+  color: var(--pine-3);
   opacity: 1;
   font-size: var(--t-0);
 }
@@ -1097,21 +1116,21 @@ body::after {
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--bone-3);
+  color: var(--pine-3);
   white-space: nowrap;
   transition: color 0.18s var(--ease), border-color 0.18s var(--ease),
     background 0.18s var(--ease);
 }
 
 .chip:hover {
-  color: var(--bone);
+  color: var(--pine);
   border-color: var(--rule-hi);
 }
 
 .chip[data-active="true"] {
-  background: var(--bone);
-  border-color: var(--bone);
-  color: var(--ink);
+  background: var(--pine);
+  border-color: var(--pine);
+  color: var(--ground);
 }
 
 /* ═══════════════════════════ CATALOGUE GRID ═══════════════════════════
@@ -1168,7 +1187,8 @@ body::after {
   aspect-ratio: 4 / 5;
   overflow: hidden;
   border-radius: 8px;
-  background: linear-gradient(160deg, #241d16, #171310 70%);
+  transition: border-color 0.3s var(--ease), box-shadow 0.3s var(--ease);
+  background: linear-gradient(160deg, #ece3cf, #f8f4e9 70%);
   border: 1px solid var(--rule);
   transition: border-color 0.3s var(--ease);
 }
@@ -1191,6 +1211,7 @@ body::after {
 .tile:hover .tile-frame,
 .tile:focus-within .tile-frame {
   border-color: var(--rule-hi);
+  box-shadow: var(--lift);
 }
 
 .tile-empty {
@@ -1198,7 +1219,7 @@ body::after {
   inset: 0;
   display: grid;
   place-items: center;
-  color: var(--bone-3);
+  color: var(--pine-3);
   font-size: var(--t--2);
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -1215,8 +1236,10 @@ body::after {
   font-weight: 600;
   letter-spacing: 0.04em;
   font-variant-numeric: tabular-nums;
-  color: color-mix(in srgb, var(--bone) 62%, transparent);
-  text-shadow: 0 1px 6px rgb(0 0 0 / 0.7);
+  color: color-mix(in srgb, var(--pine) 78%, transparent);
+  text-shadow:
+    0 0 5px rgb(255 252 242 / 0.9),
+    0 1px 2px rgb(255 252 242 / 0.7);
 }
 
 .tile-badge {
@@ -1230,7 +1253,7 @@ body::after {
   font-size: var(--t--2);
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--bone-3);
+  color: var(--pine-3);
   line-height: 1.3;
   /* Held open even when a product has no brand, so the names below sit on one
      baseline across the row. */
@@ -1247,7 +1270,7 @@ body::after {
   line-height: 1.18;
   letter-spacing: -0.01em;
   font-variation-settings: "SOFT" 22, "WONK" 0, "opsz" 22;
-  color: var(--bone);
+  color: var(--pine);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   line-clamp: 2;
@@ -1278,12 +1301,12 @@ body::after {
   letter-spacing: -0.01em;
   font-variation-settings: "SOFT" 0, "WONK" 0, "opsz" 20;
   font-variant-numeric: tabular-nums;
-  color: var(--bone);
+  color: var(--pine);
 }
 
 .price-was {
   font-size: var(--t--1);
-  color: var(--bone-3);
+  color: var(--pine-3);
   text-decoration: line-through;
   font-variant-numeric: tabular-nums;
 }
@@ -1329,7 +1352,7 @@ body::after {
   font-size: var(--t--2);
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--bone-3);
+  color: var(--pine-3);
   margin-bottom: clamp(1.4rem, 3vw, 2.4rem);
   transition: color 0.18s var(--ease);
 }
@@ -1351,7 +1374,7 @@ body::after {
   border-radius: 12px;
   overflow: hidden;
   border: 1px solid var(--rule);
-  background: linear-gradient(160deg, #241d16, #171310 70%);
+  background: linear-gradient(160deg, #ece3cf, #f8f4e9 70%);
 }
 
 .detail-media img {
@@ -1393,8 +1416,28 @@ body::after {
   margin-bottom: 1.8rem;
 }
 
+/* On phones the buy control rides the bottom of the screen while the shopper
+   reads — the single highest-value ecommerce affordance a PDP can add. Sticky
+   (not fixed), so it never covers the footer or the mandated warnings; it
+   simply stops at its container's end. Desktop is untouched. */
+@media (max-width: 899px) {
+  .detail-buy {
+    position: sticky;
+    bottom: 0.75rem;
+    z-index: 5;
+    max-width: none;
+    background: color-mix(in srgb, var(--ground-raise) 92%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 0.7rem;
+    box-shadow: var(--lift);
+  }
+}
+
 .detail-copy {
-  color: var(--bone-2);
+  color: var(--pine-2);
   white-space: pre-line;
   max-width: 54ch;
 }
@@ -1415,7 +1458,7 @@ body::after {
 }
 
 .spec th {
-  color: var(--bone-3);
+  color: var(--pine-3);
   font-size: var(--t--2);
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -1423,7 +1466,7 @@ body::after {
 }
 
 .spec td {
-  color: var(--bone);
+  color: var(--pine);
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
@@ -1484,11 +1527,11 @@ body::after {
   height: 76px;
   border-radius: 6px;
   overflow: hidden;
-  background: linear-gradient(160deg, #241d16, #171310 70%);
+  background: linear-gradient(160deg, #ece3cf, #f8f4e9 70%);
   border: 1px solid var(--rule);
   display: grid;
   place-items: center;
-  color: var(--bone-3);
+  color: var(--pine-3);
   flex: none;
 }
 
@@ -1505,7 +1548,7 @@ body::after {
   font-weight: 500;
   line-height: 1.2;
   font-variation-settings: "SOFT" 20, "WONK" 0, "opsz" 22;
-  color: var(--bone);
+  color: var(--pine);
 }
 
 .ledger-name:hover {
@@ -1534,7 +1577,7 @@ body::after {
   width: 38px;
   height: 36px;
   cursor: pointer;
-  color: var(--bone-2);
+  color: var(--pine-2);
   font-size: 1rem;
   line-height: 1;
   transition: background 0.15s var(--ease), color 0.15s var(--ease);
@@ -1563,7 +1606,7 @@ body::after {
   justify-content: space-between;
   gap: 1rem;
   font-size: var(--t--1);
-  color: var(--bone-2);
+  color: var(--pine-2);
   font-variant-numeric: tabular-nums;
 }
 
@@ -1572,14 +1615,14 @@ body::after {
   border-top: 1px solid var(--rule-hi);
   margin-top: 0.5rem;
   padding-top: 0.9rem;
-  color: var(--bone);
+  color: var(--pine);
 }
 
 .totals .grand span:first-child {
   font-size: var(--t--2);
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--bone-3);
+  color: var(--pine-3);
 }
 
 .totals .grand span:last-child {
@@ -1633,7 +1676,7 @@ body::after {
 }
 
 .track-status[data-tone="off"] {
-  color: var(--bone-3);
+  color: var(--pine-3);
 }
 
 .timeline {
@@ -1673,7 +1716,7 @@ body::after {
   border: 1px solid var(--rule-hi);
   display: grid;
   place-items: center;
-  background: var(--ink);
+  background: var(--ground);
   position: relative;
   z-index: 1;
 }
@@ -1705,17 +1748,17 @@ body::after {
 
 .timeline-label {
   font-size: var(--t--1);
-  color: var(--bone-3);
+  color: var(--pine-3);
   line-height: 1.35;
   padding-top: 0.1rem;
 }
 
 .timeline li[data-state="done"] .timeline-label {
-  color: var(--bone-2);
+  color: var(--pine-2);
 }
 
 .timeline li[data-state="now"] .timeline-label {
-  color: var(--bone);
+  color: var(--pine);
   font-weight: 600;
 }
 
@@ -1736,7 +1779,7 @@ body::after {
   font-size: var(--t--2);
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--bone-3);
+  color: var(--pine-3);
   white-space: nowrap;
 }
 
@@ -1773,10 +1816,10 @@ body::after {
   background:
     radial-gradient(
       62% 44% at 50% 6%,
-      color-mix(in oklab, var(--clay) 34%, transparent),
+      color-mix(in oklab, var(--amber) 13%, transparent),
       transparent 74%
     ),
-    linear-gradient(180deg, var(--ink-deep), var(--ink) 60%);
+    linear-gradient(180deg, var(--ground-raise), var(--ground) 60%);
 }
 
 .gate-inner {
@@ -1793,7 +1836,7 @@ body::after {
   display: inline-flex;
   align-items: center;
   gap: 0.55rem;
-  color: var(--bone);
+  color: var(--pine);
 }
 
 /* The number is the whole design. */
@@ -1831,7 +1874,7 @@ body::after {
 
 .gate-fine {
   margin-top: 1.6rem;
-  color: var(--bone-3);
+  color: var(--pine-3);
   font-size: var(--t--2);
   line-height: 1.6;
   max-width: 34ch;
@@ -1863,7 +1906,7 @@ body::after {
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--bone-3);
+  color: var(--pine-3);
   margin: 0 0 1.1rem;
 }
 
@@ -1883,7 +1926,7 @@ body::after {
 }
 
 .plain-box {
-  background: var(--ink-raise);
+  background: var(--ground-raise);
   border: 1px solid var(--rule-hi);
   border-radius: 8px;
   padding: clamp(1.1rem, 3vw, 1.6rem);
@@ -1892,7 +1935,7 @@ body::after {
 .plain .label {
   font-size: 0.8rem;
   letter-spacing: 0.1em;
-  color: var(--bone-2);
+  color: var(--pine-2);
   margin-bottom: 0.4rem;
 }
 
@@ -1900,7 +1943,7 @@ body::after {
 .plain .textarea {
   min-height: 54px;
   font-size: 1.05rem;
-  background: var(--ink);
+  background: var(--ground);
   border: 1px solid var(--rule-hi);
   border-radius: 6px;
 }
@@ -1937,7 +1980,7 @@ body::after {
   font-size: 1.5rem;
   font-weight: 700;
   letter-spacing: -0.01em;
-  color: var(--bone);
+  color: var(--pine);
 }
 
 /* The "deliver to" readout that replaced the buyer's name. */
@@ -1945,14 +1988,14 @@ body::after {
   border: 1px dashed var(--rule-hi);
   border-radius: 6px;
   padding: 0.85rem 1rem;
-  background: var(--ink);
+  background: var(--ground);
 }
 
 .plain-address p {
   margin: 0.25rem 0 0;
   font-size: 1.02rem;
   line-height: 1.45;
-  color: var(--bone);
+  color: var(--pine);
 }
 
 .plain-summary-line {
@@ -1960,7 +2003,7 @@ body::after {
   justify-content: space-between;
   gap: 0.9rem;
   font-size: var(--t--1);
-  color: var(--bone-2);
+  color: var(--pine-2);
   padding: 0.3rem 0;
   font-variant-numeric: tabular-nums;
 }
@@ -1975,7 +2018,7 @@ body::after {
 .license {
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.04em;
-  color: var(--bone-2);
+  color: var(--pine-2);
   white-space: nowrap;
 }
 
@@ -1993,7 +2036,7 @@ body::after {
    so this block is not decoration and must not be toned down:
 
      - body-size type (--t-0), not caption size;
-     - --bone at 16.0 : 1 on the page ground, not a muted grey;
+     - --pine at 16.0 : 1 on the page ground, not a muted grey;
      - a real container with its own edge, so the warning reads as a distinct
        statement rather than as sales copy;
      - the yellow triangle at the height of the word WARNING, to its left,
@@ -2013,8 +2056,8 @@ body::after {
   border: 1px solid var(--rule-hi);
   border-left: 4px solid #ffd600;
   border-radius: 6px;
-  background: color-mix(in srgb, var(--ink-raise) 92%, transparent);
-  color: var(--bone);
+  background: color-mix(in srgb, var(--ground-raise) 92%, transparent);
+  color: var(--pine);
   font-size: var(--t-0);
   line-height: 1.55;
 }
@@ -2047,7 +2090,7 @@ body::after {
 .warn-word {
   font-weight: 800;
   letter-spacing: 0.03em;
-  color: var(--bone);
+  color: var(--pine);
 }
 
 .warn-link {
@@ -2059,7 +2102,7 @@ body::after {
 }
 
 .warn-link:hover {
-  color: var(--bone);
+  color: var(--pine);
 }
 
 .detail-warnings {
@@ -2108,7 +2151,7 @@ body::after {
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--bone-3);
+  color: var(--pine-3);
   margin: 2.4rem 0 0.8rem;
   padding-top: 1.1rem;
   border-top: 1px solid var(--rule);
@@ -2117,13 +2160,13 @@ body::after {
 .legal h3 {
   font-size: var(--t-0);
   font-weight: 700;
-  color: var(--bone);
+  color: var(--pine);
   margin: 1.4rem 0 0.4rem;
 }
 
 .legal p,
 .legal li {
-  color: var(--bone-2);
+  color: var(--pine-2);
   line-height: 1.65;
 }
 
@@ -2150,12 +2193,12 @@ body::after {
 }
 
 .legal strong {
-  color: var(--bone);
+  color: var(--pine);
   font-weight: 600;
 }
 
 .legal a {
-  color: var(--bone);
+  color: var(--pine);
   text-decoration: underline;
   text-decoration-color: var(--rule-hi);
   text-underline-offset: 0.25em;
@@ -2173,7 +2216,7 @@ body::after {
   margin-bottom: 2rem;
   padding-bottom: 1.4rem;
   border-bottom: 1px solid var(--rule);
-  color: var(--bone-3);
+  color: var(--pine-3);
   font-size: var(--t--1);
 }
 

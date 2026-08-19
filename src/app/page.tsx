@@ -127,7 +127,7 @@ export default async function HomePage({
                 <span className="plaque-value">
                   <span
                     className="dot"
-                    style={{ color: profile.open ? "var(--sage)" : "var(--bone-3)" }}
+                    style={{ color: profile.open ? "var(--sage)" : "var(--pine-3)" }}
                     aria-hidden
                   />
                   {profile.open ? "Taking orders" : "Closed"}
