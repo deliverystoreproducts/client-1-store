@@ -131,11 +131,12 @@ export function AgeGate({ minAge, storeName, licenseNumber }: { minAge: number; 
             posted, and `src/lib/open-routes.ts` is what makes this link lead
             somewhere instead of back to the gate. */}
         <p className="gate-fine" data-reveal style={{ "--i": 6 } as React.CSSProperties}>
-          Licensed California cannabis retailer · Licence{" "}
-          <span className="license" data-missing={!licenseNumber}>
-            {licenseNumber || LICENSE_PLACEHOLDER}
+          Licensed California cannabis retailer
+          <span className="gate-licence">
+            <span className="license" data-missing={!licenseNumber}>
+              {licenseNumber || LICENSE_PLACEHOLDER}
+            </span>
           </span>
-          <br />
           <Link className="link" href="/privacy">
             Privacy policy
           </Link>

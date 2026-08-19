@@ -2511,3 +2511,49 @@ body::after {
 .cart-count {
   animation: count-pop 0.3s var(--ease);
 }
+
+
+/* ═══════════════════════════ ANNOUNCEMENT BAR ═══════════════════════════
+   The one loud green stripe the owner asked for — a fern gradient above the
+   header. Cream text at 6.7:1; one line, one destination. */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  min-height: 40px;
+  padding: 0.35rem 1rem;
+  background: linear-gradient(90deg, var(--fern), #3f7a49 55%, var(--fern));
+  color: var(--ground);
+  font-size: var(--t--2);
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  text-align: center;
+  transition: filter 0.18s var(--ease);
+}
+
+.topbar:hover {
+  filter: brightness(1.06);
+}
+
+.topbar-badge {
+  background: var(--ground);
+  color: var(--fern);
+  border-radius: 4px;
+  padding: 0.08rem 0.4rem;
+  font-weight: 800;
+  flex: none;
+}
+
+.topbar-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Gate licence: its own centred line instead of a wrapped run-on. */
+.gate-licence {
+  display: block;
+  margin: 0.45rem auto 0.3rem;
+}

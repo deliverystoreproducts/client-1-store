@@ -6,6 +6,7 @@ import { AgeGate } from "@/components/AgeGate";
 import { CartProvider } from "@/components/CartProvider";
 import { SpinWheel } from "@/components/SpinWheel";
 import { SiteHeader } from "@/components/SiteHeader";
+import { TopBanner } from "@/components/TopBanner";
 import { StoreUnavailable } from "@/components/StoreUnavailable";
 import { isUpstreamConfigured } from "@/lib/kamui/env";
 import { OPEN_ROUTE_HEADER } from "@/lib/open-routes";
@@ -100,6 +101,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         ) : (
           <CartProvider>
             <div className="shell">
+              <TopBanner />
               <SiteHeader storeName={storeName} logo={profile.logo} />
               <main className="main">
                 <div className="wrap">{children}</div>
