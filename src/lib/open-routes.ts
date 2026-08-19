@@ -25,7 +25,16 @@
  */
 export const OPEN_ROUTE_HEADER = "x-ybs-open-route";
 
-export const OPEN_ROUTES = ["/privacy", "/terms"] as const;
+/**
+ * `/contact` is open for a practical reason rather than a legal one: it is the
+ * support channel. Somebody whose delivery went wrong — on a different device,
+ * or after the gate cookie expired — should not have to assert their age before
+ * they can find a phone number. There is no product data on that page.
+ *
+ * `/faq` and `/returns` stay GATED. Both discuss what may be purchased and in
+ * what quantity, which is close enough to a menu to keep behind the gate.
+ */
+export const OPEN_ROUTES = ["/privacy", "/terms", "/contact"] as const;
 
 export function isOpenRoute(pathname: string): boolean {
   const p = pathname.length > 1 && pathname.endsWith("/") ? pathname.slice(0, -1) : pathname;

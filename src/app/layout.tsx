@@ -130,10 +130,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                       <Link href="/account">Your account</Link>
                     </nav>
 
-                    <nav className="footer-col" aria-label="Help">
+                    <nav className="footer-col" aria-label="Info">
                       <span className="eyebrow" style={{ marginBottom: "0.7rem" }}>
-                        Help
+                        Info
                       </span>
+                      <Link href="/faq">FAQ</Link>
+                      <Link href="/returns">Returns &amp; refunds</Link>
+                      <Link href="/contact">Contact</Link>
                       <Link href="/track">Track an order</Link>
                       {profile.contactPhone ? (
                         <a href={`tel:${profile.contactPhone}`}>{profile.contactPhone}</a>
