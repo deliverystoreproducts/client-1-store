@@ -1069,6 +1069,9 @@ body::after {
   padding-inline: max(var(--gutter), calc((100dvw - var(--maxw)) / 2 + var(--gutter)));
   border-radius: 0;
   border-bottom: 1px solid var(--rule);
+  /* Flush to the header: cancel .main's top padding and own none. */
+  margin-top: calc(-1 * clamp(1rem, 1.8vw, 1.6rem));
+  padding-top: 0;
   min-height: clamp(300px, 46vh, 460px);
   display: flex;
   align-items: flex-end;
