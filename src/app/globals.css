@@ -934,8 +934,8 @@ body::after {
 
 .hero {
   position: relative;
-  padding-block: clamp(2.2rem, 6vw, 5.4rem) clamp(3rem, 7vw, 6rem);
-  margin-bottom: clamp(2.4rem, 5vw, 4.5rem);
+  padding-block: clamp(1.4rem, 2.6vw, 2.4rem) clamp(1.2rem, 2.2vw, 2rem);
+  margin-bottom: clamp(1.4rem, 2.6vw, 2.2rem);
   border-bottom: 1px solid var(--rule);
   isolation: isolate;
 }
@@ -960,84 +960,44 @@ body::after {
 }
 
 .hero-title {
-  font-size: var(--t-4);
-  max-width: 15ch;
-  margin: 0.9rem 0 0;
+  /* One size down from the old landing voice: still unmistakably the store's
+     word, but it shares the first screen with the shelf instead of owning it. */
+  font-size: var(--t-3);
+  max-width: 24ch;
+  margin: 0.55rem 0 0;
 }
 
 /* The one deliberate overlap on the site: the headline runs under the plaque
    on wide screens, and the plaque's left rule cuts across it. */
 .hero-body {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: clamp(1.6rem, 3vw, 2.4rem);
+  display: block;
 }
 
-.hero-lede {
-  margin-top: 1.4rem;
-  max-width: 42ch;
-}
-
-.hero-actions {
-  margin-top: clamp(1.6rem, 3vw, 2.4rem);
+/* The fact strip — what remains of the old five-row plaque: the same facts,
+   one line, read in two seconds. Wraps freely on phones. */
+.fact-strip {
   display: flex;
-  gap: 0.75rem;
   flex-wrap: wrap;
-}
-
-.plaque {
-  border-top: 1px solid var(--rule-hi);
-  display: grid;
-  gap: 0;
-}
-
-.plaque-row {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0.9rem;
-  align-items: baseline;
-  padding: 0.85rem 0;
-  border-bottom: 1px solid var(--rule);
-}
-
-.plaque-row .eyebrow {
-  min-width: 6.5rem;
-}
-
-.plaque-value {
+  align-items: center;
+  gap: 0.4rem 0;
+  margin: 0.9rem 0 0;
   font-size: var(--t--1);
-  color: var(--pine);
-  text-align: right;
+  color: var(--pine-2);
+}
+
+.fact {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  justify-content: flex-end;
+  gap: 0.45rem;
+  white-space: nowrap;
 }
 
-@media (min-width: 900px) {
-  .hero-body {
-    grid-template-columns: minmax(0, 1.55fr) minmax(240px, 0.85fr);
-    align-items: end;
-    gap: clamp(2rem, 4vw, 4rem);
-  }
-  .hero-title {
-    max-width: 13ch;
-    margin-right: -3rem; /* the overlap */
-    position: relative;
-    z-index: 1;
-  }
-  .plaque {
-    padding-left: 1.6rem;
-    border-left: 1px solid var(--rule-hi);
-    border-top: 0;
-    background: linear-gradient(
-      90deg,
-      color-mix(in srgb, var(--ground) 78%, transparent),
-      transparent 70%
-    );
-    backdrop-filter: blur(2px);
-  }
+.fact + .fact::before {
+  content: "·";
+  color: var(--pine-3);
+  margin-inline: 0.65rem;
 }
+
 
 /* ═══════════════════════════ HOME — FILTER RAIL ═══════════════════════════ */
 
@@ -1137,38 +1097,26 @@ body::after {
    Not a uniform grid: fixed columns, and every other column is dropped down so
    the page reads as woven brickwork rather than a spreadsheet. */
 
+/* A uniform grid. This replaced a woven-brick stagger (every other column
+   dropped down) — striking in a screenshot, but on a real shelf it read as
+   broken alignment, and the owner said so. Rows align; prices align; the eye
+   can compare. Composition now comes from the type system, not the offsets. */
 .catalogue {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  column-gap: clamp(0.8rem, 2.4vw, 2rem);
-  row-gap: clamp(2rem, 4vw, 3.4rem);
-}
-
-.catalogue > *:nth-child(2n) {
-  margin-top: clamp(1.4rem, 4vw, 2.6rem);
+  column-gap: clamp(0.8rem, 2.4vw, 1.6rem);
+  row-gap: clamp(1.8rem, 3.4vw, 2.8rem);
 }
 
 @media (min-width: 760px) {
   .catalogue {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
-  .catalogue > *:nth-child(2n) {
-    margin-top: 0;
-  }
-  .catalogue > *:nth-child(3n + 2) {
-    margin-top: 2.2rem;
-  }
 }
 
 @media (min-width: 1080px) {
   .catalogue {
     grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-  .catalogue > *:nth-child(3n + 2) {
-    margin-top: 0;
-  }
-  .catalogue > *:nth-child(2n) {
-    margin-top: 3rem;
   }
 }
 
@@ -1276,9 +1224,9 @@ body::after {
   line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  /* Two lines' worth, always. Without this the price and the add button ride
-     up under short names and the grid reads ragged rather than composed. */
-  min-height: calc(2 * 1.18em);
+  /* NOT height-reserved: with a uniform grid the foot rows align via
+     margin-top:auto, and empty reserved lines under short names read as the
+     misalignment they were meant to prevent. */
   transition: color 0.18s var(--ease);
 }
 
@@ -2261,4 +2209,206 @@ body::after {
   clip-path: inset(50%);
   white-space: nowrap;
   border: 0;
+}
+
+/* ═══════════════════════════ SPIN & SAVE ═══════════════════════════
+   The one interruption the site allows itself, ten seconds in, once. Copy
+   discipline lives in SpinWheel.tsx (never "win"/"prize" — §15040.2's
+   sweepstakes question is open with counsel); this block is only the look.
+   The modal uses the house system: porcelain card, pine ink, honey action. */
+
+@keyframes spin-backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes spin-card-in {
+  from { opacity: 0; transform: translateY(26px) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+
+.spin-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80; /* under the grain (90), over everything else */
+  display: grid;
+  place-items: end center;
+  background: rgb(31 42 30 / 0.44);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  animation: spin-backdrop-in 0.3s var(--ease) both;
+  padding: 1rem;
+}
+
+@media (min-width: 560px) {
+  .spin-backdrop {
+    place-items: center;
+  }
+}
+
+.spin-modal {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  background: var(--ground-raise);
+  border: 1px solid var(--rule);
+  border-radius: 16px;
+  padding: clamp(1.3rem, 4vw, 1.8rem);
+  box-shadow: var(--lift);
+  animation: spin-card-in 0.42s var(--ease) both;
+  text-align: center;
+}
+
+.spin-close {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.7rem;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--pine-3);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.15s var(--ease), background 0.15s var(--ease);
+}
+
+.spin-close:hover {
+  color: var(--pine);
+  background: var(--ground-deep);
+}
+
+.spin-title {
+  font-size: var(--t-2);
+  margin: 0.3rem 0 0.4rem;
+}
+
+.spin-sub {
+  color: var(--pine-2);
+  font-size: var(--t--1);
+  max-width: 32ch;
+  margin-inline: auto;
+}
+
+.wheel-stage {
+  position: relative;
+  width: min(240px, 62vw);
+  margin: 1.1rem auto 1.2rem;
+}
+
+.wheel-pointer {
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  width: 0;
+  height: 0;
+  border-left: 11px solid transparent;
+  border-right: 11px solid transparent;
+  border-top: 16px solid var(--clay);
+  filter: drop-shadow(0 1px 1px rgb(96 76 44 / 0.4));
+}
+
+.wheel {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 2px solid var(--rule-hi);
+  box-shadow: inset 0 0 0 1px var(--ground-raise), 0 6px 22px -10px rgb(96 76 44 / 0.4);
+  will-change: transform;
+}
+
+/* Hub. */
+.wheel::after {
+  content: "";
+  position: absolute;
+  inset: 50%;
+  width: 16%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: var(--ground-raise);
+  border: 2px solid var(--rule-hi);
+}
+
+.wheel-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.wheel-label i {
+  font-style: normal;
+  margin-top: 7%;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pine-2);
+  max-width: 5.5em;
+  text-align: center;
+  line-height: 1.15;
+}
+
+.spin-form {
+  display: grid;
+  gap: 0.7rem;
+  text-align: left;
+  margin-top: 0.4rem;
+}
+
+.spin-form .label {
+  margin-bottom: 0;
+}
+
+.spin-error {
+  color: var(--alarm);
+  font-size: var(--t--1);
+  font-weight: 600;
+  margin: 0.2rem 0 0;
+}
+
+.spin-fine {
+  color: var(--pine-3);
+  font-size: var(--t--2);
+  line-height: 1.5;
+  margin: 0.2rem 0 0;
+  text-align: center;
+}
+
+.spin-result {
+  display: grid;
+  gap: 0.7rem;
+  justify-items: center;
+  margin-top: 0.5rem;
+}
+
+.spin-code-value {
+  font-family: var(--font-display);
+  font-size: var(--t-2);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--amber);
+  border: 1px dashed var(--rule-hi);
+  border-radius: 8px;
+  padding: 0.4rem 1rem;
+  user-select: all;
+}
+
+/* ── cart pill pop — remounted with key={count}, so each change replays it. */
+@keyframes count-pop {
+  0% { transform: scale(0.6); }
+  55% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+.cart-count {
+  animation: count-pop 0.3s var(--ease);
 }

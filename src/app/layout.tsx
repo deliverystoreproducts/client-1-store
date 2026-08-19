@@ -4,6 +4,7 @@ import Link from "next/link";
 import "./globals.css";
 import { AgeGate } from "@/components/AgeGate";
 import { CartProvider } from "@/components/CartProvider";
+import { SpinWheel } from "@/components/SpinWheel";
 import { SiteHeader } from "@/components/SiteHeader";
 import { StoreUnavailable } from "@/components/StoreUnavailable";
 import { isUpstreamConfigured } from "@/lib/kamui/env";
@@ -201,6 +202,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 </div>
               </footer>
             </div>
+            <SpinWheel />
           </CartProvider>
         )}
       </body>

@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { ProductCard } from "@/components/ProductCard";
 import { getCatalogPage, getCategories, getStoreProfile } from "@/lib/store";
-import { SITE_TAGLINE } from "@/lib/site";
 import { DELIVERY_WINDOW_SHORT, deliveryWindowNotice, isWithinDeliveryWindow } from "@/lib/hours";
 
 /**
@@ -91,7 +90,7 @@ export default async function HomePage({
           <div className="hero-body">
             <div>
               <span className="eyebrow" data-reveal style={{ "--i": 0 } as React.CSSProperties}>
-                Same-day delivery · Cash at the door
+                {profile.open ? "Open — taking orders" : "Browsing only right now"}
               </span>
               <h1
                 className="display hero-title"
@@ -100,31 +99,11 @@ export default async function HomePage({
               >
                 {profile.heroTitle || "Delivered to your door, today."}
               </h1>
-              <p
-                className="lede hero-lede"
-                data-reveal
-                style={{ "--i": 2 } as React.CSSProperties}
-              >
-                {profile.heroSubtitle || SITE_TAGLINE}
-              </p>
-              <div
-                className="hero-actions"
-                data-reveal
-                style={{ "--i": 3 } as React.CSSProperties}
-              >
-                <Link className="btn" href="#catalogue">
-                  Shop the shelf
-                </Link>
-                <Link className="btn btn-ghost" href="/track">
-                  Track an order
-                </Link>
-              </div>
-            </div>
-
-            <div className="plaque" data-reveal style={{ "--i": 4 } as React.CSSProperties}>
-              <div className="plaque-row">
-                <span className="eyebrow">Status</span>
-                <span className="plaque-value">
+              {/* The five-row plaque this replaced was a screen of furniture before
+                  the first product. A store's first screen sells; the facts survive
+                  as one strip a customer reads in two seconds. */}
+              <p className="fact-strip" data-reveal style={{ "--i": 2 } as React.CSSProperties}>
+                <span className="fact">
                   <span
                     className="dot"
                     style={{ color: profile.open ? "var(--sage)" : "var(--pine-3)" }}
@@ -132,27 +111,15 @@ export default async function HomePage({
                   />
                   {profile.open ? "Taking orders" : "Closed"}
                 </span>
-              </div>
-              <div className="plaque-row">
-                <span className="eyebrow">Delivery</span>
-                <span className="plaque-value">{DELIVERY_WINDOW_SHORT}</span>
-              </div>
-              <div className="plaque-row">
-                <span className="eyebrow">Payment</span>
-                <span className="plaque-value">Cash on delivery</span>
-              </div>
-              <div className="plaque-row">
-                <span className="eyebrow">At the door</span>
-                <span className="plaque-value">{profile.minAge}+ with valid ID</span>
-              </div>
-              {profile.contactPhone ? (
-                <div className="plaque-row">
-                  <span className="eyebrow">Questions</span>
-                  <a className="plaque-value link" href={`tel:${profile.contactPhone}`}>
+                <span className="fact">{DELIVERY_WINDOW_SHORT}</span>
+                <span className="fact">Cash on delivery</span>
+                <span className="fact">{profile.minAge}+ with valid ID at the door</span>
+                {profile.contactPhone ? (
+                  <a className="fact link" href={`tel:${profile.contactPhone}`}>
                     {profile.contactPhone}
                   </a>
-                </div>
-              ) : null}
+                ) : null}
+              </p>
             </div>
           </div>
         </section>

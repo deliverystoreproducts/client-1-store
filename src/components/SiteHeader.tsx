@@ -63,7 +63,7 @@ export function SiteHeader({
           <Link href="/cart" className="cart-link">
             Cart
             {showCount ? (
-              <span className="cart-count" aria-hidden>
+              <span key={count} className="cart-count" aria-hidden>
                 {count}
               </span>
             ) : null}

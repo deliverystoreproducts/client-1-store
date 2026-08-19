@@ -203,6 +203,52 @@ export async function getUpstreamStream(
   }
 }
 
+// ───────────────────────────── spin & save ─────────────────────────────
+
+export interface SpinStatusResponse {
+  spun: boolean;
+  /** Present because we always ask with ?segments=1 — the face of the wheel. */
+  segments?: { label: string }[];
+}
+
+export interface SpinResultResponse {
+  prize: string;
+  segmentIndex: number;
+  couponCode: string;
+}
+
+/**
+ * GET /promo/spin?segments=1 — what is on this store's wheel, and (when a
+ * customer token rides along) whether this customer already played. The
+ * segments opt-in exists precisely so a storefront can DRAW the wheel before
+ * anyone signs in; without it this endpoint 401s for guests.
+ */
+export function getSpinStatus(customerToken?: string | null): Promise<SpinStatusResponse> {
+  return call<SpinStatusResponse>(
+    "GET",
+    `${API_PREFIX}/promo/spin?segments=1`,
+    {},
+    customerToken ? { customerToken, unauthorizedMeans: "customer" } : {},
+  );
+}
+
+/**
+ * POST /promo/spin — mint the discount. Identity is one of:
+ *   - a signed-in customer (token; body empty), or
+ *   - phone + the one-time code upstream just texted (upstream verifies it).
+ * A 401 here means THE CUSTOMER's code was wrong, never that our API key died —
+ * hence unauthorizedMeans.
+ */
+export function postSpin(
+  body: { phone?: string; code?: string },
+  customerToken?: string | null,
+): Promise<SpinResultResponse> {
+  return call<SpinResultResponse>("POST", `${API_PREFIX}/promo/spin`, { json: body }, {
+    ...(customerToken ? { customerToken } : {}),
+    unauthorizedMeans: "customer",
+  });
+}
+
 // ───────────────────────────── catalog ─────────────────────────────
 
 export interface ProductQuery {
