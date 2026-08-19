@@ -72,7 +72,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const year = new Date().getFullYear();
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body>
         {/* Applies the saved theme before first paint — no flash. */}
         <script
