@@ -539,7 +539,7 @@ body::after {
 
 .footer-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr));
   gap: clamp(1.6rem, 4vw, 3rem);
   align-items: start;
 }
@@ -626,9 +626,17 @@ body::after {
   transform: translateY(0);
 }
 
-.btn:disabled {
+.btn:disabled,
+.btn[data-disabled="true"] {
   opacity: 0.42;
   cursor: not-allowed;
+}
+
+/* A <span> wearing .btn — used where the action is legally unavailable (an
+   over-limit cart) rather than merely busy, so there is no control to focus or
+   press in the first place. */
+.btn[data-disabled="true"] {
+  pointer-events: none;
 }
 
 .btn-ghost {
@@ -1968,6 +1976,196 @@ body::after {
   border: 1px dashed var(--alarm);
   border-radius: 4px;
   padding: 0.05rem 0.4rem;
+}
+
+/* ═══════════════════════ MANDATED WARNINGS ═══════════════════════
+   Prop 65 (27 CCR § 25602 / §§ 25607.39–.45) and vape disposal
+   (B&P § 26152.1). Both regulations use the words "legible" and "prominently",
+   so this block is not decoration and must not be toned down:
+
+     - body-size type (--t-0), not caption size;
+     - --bone at 16.0 : 1 on the page ground, not a muted grey;
+     - a real container with its own edge, so the warning reads as a distinct
+       statement rather than as sales copy;
+     - the yellow triangle at the height of the word WARNING, to its left,
+       exactly as 27 CCR § 25603(a)(1) describes it.
+
+   It still belongs to the house: warm ink ground, hairline rule, the same
+   radius and spacing as .notice. The only thing that is not from the palette is
+   the regulation's own yellow, which is not ours to restyle. */
+
+.warn {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: start;
+  margin: 0 0 0.7rem;
+  padding: 0.9rem 1.05rem;
+  border: 1px solid var(--rule-hi);
+  border-left: 4px solid #ffd600;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--ink-raise) 92%, transparent);
+  color: var(--bone);
+  font-size: var(--t-0);
+  line-height: 1.55;
+}
+
+.warn:last-child {
+  margin-bottom: 0;
+}
+
+/* No triangle on the disposal notice — the yellow triangle is the Prop 65
+   symbol specifically, and borrowing it for a different statute would misstate
+   what it means. The clay edge marks it as a different kind of statement. */
+.warn-disposal {
+  grid-template-columns: minmax(0, 1fr);
+  border-left-color: var(--clay-lit);
+}
+
+.warn-sym {
+  width: 1.45em;
+  height: 1.45em;
+  flex: none;
+  margin-top: 0.05em;
+  display: block;
+}
+
+.warn-body {
+  margin: 0;
+  text-wrap: pretty;
+}
+
+.warn-word {
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  color: var(--bone);
+}
+
+.warn-link {
+  color: var(--amber);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 1px;
+  overflow-wrap: anywhere;
+}
+
+.warn-link:hover {
+  color: var(--bone);
+}
+
+.detail-warnings {
+  margin: 0 0 1.6rem;
+  max-width: 54ch;
+}
+
+/* In the basket the warnings are grouped once per distinct product class
+   rather than repeated per line — 27 CCR § 25602(b)(1)(C) asks for a prominent
+   warning before purchase, not for twelve copies of the same sentence. */
+.basket-warnings {
+  margin: 1.4rem 0 0;
+  /* A warning set the full width of a 1240px page is a paragraph nobody
+     finishes. Held to a readable measure — "legible" is the regulation's own
+     test, and 140 characters a line is not it. */
+  max-width: 84ch;
+}
+
+.plain .basket-warnings {
+  margin: 0 0 1.4rem;
+}
+
+/* ═══════════════════════ LEGAL PAGES ═══════════════════════
+   /privacy and /terms. One column, generous measure, no art direction — these
+   are documents, and a document that has been designed at is a document people
+   distrust. */
+
+.legal {
+  max-width: 68ch;
+  margin-inline: auto;
+}
+
+.legal h1 {
+  font-family: var(--font-display);
+  font-size: var(--t-3);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  font-variation-settings: "SOFT" 26, "WONK" 1, "opsz" 72;
+  margin-bottom: 0.6rem;
+}
+
+.legal h2 {
+  font-family: var(--font-body);
+  font-size: var(--t--2);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--bone-3);
+  margin: 2.4rem 0 0.8rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--rule);
+}
+
+.legal h3 {
+  font-size: var(--t-0);
+  font-weight: 700;
+  color: var(--bone);
+  margin: 1.4rem 0 0.4rem;
+}
+
+.legal p,
+.legal li {
+  color: var(--bone-2);
+  line-height: 1.65;
+}
+
+.legal ul {
+  list-style: none;
+  margin: 0 0 1em;
+  padding: 0;
+}
+
+.legal ul li {
+  position: relative;
+  padding-left: 1.15rem;
+  margin-bottom: 0.5rem;
+}
+
+.legal ul li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.72em;
+  width: 6px;
+  height: 1px;
+  background: var(--rule-hi);
+}
+
+.legal strong {
+  color: var(--bone);
+  font-weight: 600;
+}
+
+.legal a {
+  color: var(--bone);
+  text-decoration: underline;
+  text-decoration-color: var(--rule-hi);
+  text-underline-offset: 0.25em;
+}
+
+.legal a:hover {
+  color: var(--amber);
+  text-decoration-color: var(--amber);
+}
+
+.legal-meta {
+  display: flex;
+  gap: 0.6rem 1.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+  padding-bottom: 1.4rem;
+  border-bottom: 1px solid var(--rule);
+  color: var(--bone-3);
+  font-size: var(--t--1);
 }
 
 /* ═══════════════════════════ UTILITIES ═══════════════════════════ */

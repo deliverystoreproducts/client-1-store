@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { CheckoutView } from "@/components/CheckoutView";
 import { getStoreProfile } from "@/lib/store";
 import { deliveryWindowNotice, isWithinDeliveryWindow } from "@/lib/hours";
+import { SAFER_USE_BROCHURE_URL } from "@/lib/site";
 
 export const metadata: Metadata = { title: "Checkout" };
 export const dynamic = "force-dynamic";
@@ -19,6 +20,12 @@ export default async function CheckoutPage() {
       requireIdPhoto={profile.requireIdVerification}
       deliveryNotice={deliveryWindowNotice()}
       withinDeliveryWindow={isWithinDeliveryWindow()}
+      // B&P § 26070.3(b) — the DCC safer-use brochure, displayed online at the
+      // time of purchase. Empty string when the operator has not hosted one:
+      // the view then prints a loud refusal-to-pretend rather than a link to
+      // nothing. See src/lib/site.ts.
+      brochureUrl={SAFER_USE_BROCHURE_URL}
+      minAge={profile.minAge}
     />
   );
 }

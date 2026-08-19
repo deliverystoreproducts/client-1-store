@@ -32,5 +32,63 @@ export const LICENSE_NUMBER = (process.env.NEXT_PUBLIC_LICENSE_NUMBER || "").tri
 /** What the UI shows when the operator has not supplied a number yet. */
 export const LICENSE_PLACEHOLDER = "SET NEXT_PUBLIC_LICENSE_NUMBER";
 
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ *  OPERATOR-SUPPLIED FACTS. A developer cannot invent any of these.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * Same discipline as the licence number above: no defaults, and a loud
+ * placeholder wherever one is missing, so an unfinished legal page cannot ship
+ * looking finished. A plausible-looking wrong value on a cannabis storefront is
+ * worse than a visibly blank one.
+ *
+ * Everything here is listed in README.md § "Operator checklist before launch".
+ */
+
+/** Exact legal entity name as registered with the DCC — 4 CCR § 15420(a)(1). */
+export const LEGAL_ENTITY_NAME = (process.env.NEXT_PUBLIC_LEGAL_ENTITY_NAME || "").trim();
+
+/** Local jurisdiction cannabis permit number, if the city/county issues one. */
+export const LOCAL_PERMIT_NUMBER = (process.env.NEXT_PUBLIC_LOCAL_PERMIT_NUMBER || "").trim();
+
+/** Postal address for privacy correspondence — CalOPPA contact requirement. */
+export const PRIVACY_CONTACT_ADDRESS = (
+  process.env.NEXT_PUBLIC_PRIVACY_CONTACT_ADDRESS || ""
+).trim();
+
+/** Mailbox that actually receives access/deletion requests. */
+export const PRIVACY_CONTACT_EMAIL = (process.env.NEXT_PUBLIC_PRIVACY_CONTACT_EMAIL || "").trim();
+
+/**
+ * Effective date of the privacy policy and the terms — B&P § 22575(b)(4)
+ * requires the policy to state one.
+ *
+ * Deliberately NOT `new Date()`. A policy that re-dates itself on every deploy
+ * is a policy with no effective date at all, and it destroys the material-change
+ * notice in § 22575(b)(3).
+ */
+export const POLICY_EFFECTIVE_DATE = (process.env.NEXT_PUBLIC_POLICY_EFFECTIVE_DATE || "").trim();
+
+/**
+ * The DCC's SB 540 safer-use brochure, hosted BY US.
+ *
+ * B&P § 26070.3(b) requires it to be prominently displayed online at the time
+ * of online purchase. There is deliberately no default path: an unset value
+ * prints a red placeholder at checkout, whereas a default would silently link
+ * to a 404 and look compliant.
+ *
+ * Host the file on this origin — `public/` — not the DCC CDN. The whole site
+ * makes no third-party browser request and the brochure must not be the
+ * exception. The current PDFs are at
+ * https://cdn.cannabis.ca.gov/wp-content/uploads/sites/2/2024/12/SB-540-color.pdf
+ * (and -BW.pdf); § 26070.3 requires the DCC to recertify or update the brochure
+ * by 1 Jan 2030 and every five years after, so re-check what is being served.
+ */
+export const SAFER_USE_BROCHURE_URL = (
+  process.env.NEXT_PUBLIC_SAFER_USE_BROCHURE_URL || ""
+).trim();
+
+export const MISSING = (envVar: string) => `SET ${envVar}`;
+
 /** localStorage key for the browser-side cart. Namespaced to this store. */
 export const CART_STORAGE_KEY = "ybs.cart.v1";

@@ -35,6 +35,27 @@ export function pacificHour(now: Date = new Date()): number {
   return Number.isFinite(n) ? n % 24 : 12;
 }
 
+/**
+ * `YYYY-MM-DD` for the PACIFIC calendar day.
+ *
+ * Two compliance rules are keyed to a Pacific date rather than to UTC:
+ *   - 4 CCR § 15409 daily limits are "in a single day" per customer, and the
+ *     day that matters is the retailer's, not the server's.
+ *   - the dated rules in `src/lib/compliance/*` (the concentrate definition,
+ *     the excise-rate schedule) turn over at California midnight.
+ * A UTC day key rolls over at 16:00 or 17:00 Pacific, which would reset a daily
+ * limit in the middle of a trading evening.
+ */
+export function pacificDateKey(now: Date = new Date()): string {
+  // en-CA gives ISO-ordered YYYY-MM-DD.
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: DELIVERY_TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(now);
+}
+
 /** True when a delivery could legally be handed over right now. */
 export function isWithinDeliveryWindow(now: Date = new Date()): boolean {
   const h = pacificHour(now);

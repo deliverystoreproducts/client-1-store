@@ -2,7 +2,19 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AddToCartButton } from "@/components/AddToCartButton";
+import { Prop65WarningBox, VapeDisposalBox } from "@/components/ComplianceNotices";
 import { ProductCard } from "@/components/ProductCard";
+import {
+  POTENCY_LABEL_QUALIFIER,
+  reportCopyFindings,
+  reviewProductCopy,
+} from "@/lib/compliance/copy-rules";
+import { classifyConsumptionRoute, prop65WarningFor } from "@/lib/compliance/prop65";
+import {
+  findProhibitedDisposalLanguage,
+  redactProhibitedDisposalLanguage,
+  vapeDisposalMessagesFor,
+} from "@/lib/compliance/vape";
 import { formatUsd } from "@/lib/money";
 import { getProductDetail, getStoreProfile } from "@/lib/store";
 
@@ -28,6 +40,80 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
 
   const { product, related } = detail;
   const onSale = product.salePrice != null && product.salePrice < product.price;
+
+  // ══════════════════════════════════════════════════════════════════════
+  //  THIS IS THE COMPLIANCE-CRITICAL PAGE. Two MUSTs live here and nowhere
+  //  else on the site:
+  //
+  //   1. The Prop 65 cannabis warning — 27 CCR § 25602(b)(1)(A) says "a
+  //      warning on the product display page". This one. A footer copy would
+  //      earn nothing (§ 25602(b)(1)(C) forecloses it) and there is none.
+  //      Rendered as INLINE TEXT, so the exact-link-text rule in (B) — which
+  //      demands the word `WARNING`, not "Prop 65" or "Learn more" — never
+  //      has to be relied on.
+  //
+  //   2. The vape disposal message — B&P § 26152.1 binds ADVERTISING AND
+  //      MARKETING of a cartridge or integrated vaporizer, and this page is
+  //      marketing. Verbatim; do not paraphrase.
+  //
+  //  Everything is computed on the server. Nothing about the classification
+  //  reaches the browser except the rendered warning.
+  // ══════════════════════════════════════════════════════════════════════
+  const prop65 = prop65WarningFor(product);
+  const vapeMessages = vapeDisposalMessagesFor(product);
+
+  // Advisory copy review: B&P § 26152(b)/§ 26154 and 4 CCR § 15040/§ 15040.1
+  // need a human. Findings go to the SERVER log for the operator; the page is
+  // not censored and nothing is shown to the customer. See copy-rules.ts.
+  reportCopyFindings(product.id, product.name, reviewProductCopy(product));
+  if (classifyConsumptionRoute(product) == null) {
+    console.warn(
+      `[compliance] product ${product.id} "${product.name}" has no readable consumption route; ` +
+        `Prop 65 fell back to the configured default. Tag it (smoked / ingested / vaped_dabbed / dermal) in the catalogue.`,
+    );
+  }
+
+  if (vapeMessages.length > 1) {
+    console.warn(
+      `[compliance] product ${product.id} "${product.name}" is vape hardware but the catalogue does not say whether it is a cartridge or an integrated vaporizer, so BOTH B&P § 26152.1(a) messages are shown. Tag it \`vape:cartridge\` or \`vape:integrated\` for a single clean message.`,
+    );
+  }
+
+  // § 26152.1(b): marketing of these products "shall not indicate that [they are]
+  // disposable nor imply that [they] may be thrown in the trash or recycling
+  // streams." Supplier descriptions say exactly that, constantly. This is a
+  // guard, not a note — the offending sentence is withheld from the page.
+  const copy =
+    vapeMessages.length > 0
+      ? redactProhibitedDisposalLanguage(product.description)
+      : { text: product.description, removed: [] as string[] };
+  if (copy.removed.length > 0) {
+    console.error(
+      `[compliance] product ${product.id} "${product.name}" — B&P § 26152.1(b): withheld ${copy.removed.length} sentence(s) from the description. Fix the catalogue copy: ${copy.removed.join(" | ")}`,
+    );
+  }
+  // A NAME and a CATEGORY cannot be redacted — the name is the identity of the
+  // thing being bought, and the category is a navigation label the whole
+  // catalogue shares. Silently rewriting either would mis-describe the
+  // customer's order. Both are reported instead; fixing them is a catalogue
+  // task and it is on the operator checklist in README.md. (This catalogue
+  // currently ships a category literally named "Disposable", which is exactly
+  // what § 26152.1(b) forbids.)
+  if (vapeMessages.length > 0) {
+    const nameHits = findProhibitedDisposalLanguage(product.name);
+    if (nameHits.length > 0) {
+      console.error(
+        `[compliance] product ${product.id} — B&P § 26152.1(b): the PRODUCT NAME "${product.name}" indicates the item is disposable (${nameHits.join(", ")}). Rename it in the catalogue.`,
+      );
+    }
+    const categoryName = product.category?.name ?? "";
+    const categoryHits = findProhibitedDisposalLanguage(categoryName);
+    if (categoryHits.length > 0) {
+      console.error(
+        `[compliance] product ${product.id} — B&P § 26152.1(b): the CATEGORY "${categoryName}" indicates these items are disposable (${categoryHits.join(", ")}). Rename the category in the catalogue — it labels every SKU under it.`,
+      );
+    }
+  }
 
   // THC/CBD/genetics are shown only when the store has that display switched on
   // — some jurisdictions and some operators do not want potency on a web page.
@@ -83,9 +169,26 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
             <AddToCartButton productId={product.id} disabled={!product.available} />
           </div>
 
-          {product.description ? (
-            <p className="detail-copy">{product.description}</p>
+          {/* Above the description, not below it: 27 CCR § 25602(b) rules out a
+              warning the purchaser has to go looking for, and B&P § 26152.1
+              wants the disposal message "prominently … in a clear and legible
+              fashion". Both sit in the buying column, at body size, at full
+              contrast — see the `.warn` block in globals.css. */}
+          {prop65 ? (
+            <div className="detail-warnings">
+              <Prop65WarningBox warning={prop65} />
+            </div>
           ) : null}
+
+          {vapeMessages.length > 0 ? (
+            <div className="detail-warnings">
+              {vapeMessages.map((m) => (
+                <VapeDisposalBox key={m.hardware} message={m} />
+              ))}
+            </div>
+          ) : null}
+
+          {copy.text ? <p className="detail-copy">{copy.text}</p> : null}
 
           {showCannabinoids ? (
             <table className="spec">
@@ -117,6 +220,15 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
                 ) : null}
               </tbody>
             </table>
+          ) : null}
+
+          {/* B&P § 26152(b): no advertising statement inconsistent with the
+              product's own label. Batch potency varies, so the page qualifies
+              the figure instead of asserting a precision the catalogue cannot
+              guarantee against the package actually delivered. */}
+          {showCannabinoids &&
+          (product.thcPercentage != null || product.cbdPercentage != null) ? (
+            <p className="faint mt-1">{POTENCY_LABEL_QUALIFIER}</p>
           ) : null}
 
           {product.tags.length > 0 ? (

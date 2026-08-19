@@ -54,19 +54,24 @@ src/
   app/
     layout.tsx                 age gate + shell (fails closed when unconfigured)
     page.tsx                   home / browse / search / category filter
-    product/[id]/page.tsx      product detail
+    product/[id]/page.tsx      product detail — the compliance-critical page (§3.4)
     cart/, checkout/, checkout/confirmation/
     signin/, account/
     track/, track/[token]/
+    privacy/, terms/           legal notices; reachable WITHOUT the age gate (§3.4)
     unavailable/               the "we're closed" fail-closed page
     error.tsx, global-error.tsx, not-found.tsx
     api/                       ← the BFF. See §4.
   components/                  client components (cart, sign-in flow, views)
+    ComplianceNotices.tsx      Prop 65 + vape-disposal boxes (hook-free, both sides)
+    DailyLimitReadout.tsx      the 4 CCR §15409 position, honestly stated
   lib/
     kamui/                     SERVER ONLY: env, client, types, errors, images, map
+    compliance/                prop65, vape, limits, tax, copy-rules — see §3.4
     public-types.ts            the shapes the browser is allowed to see
     store.ts                   server read model
     session.ts                 httpOnly cookie custody
+    open-routes.ts             the two routes the age gate lets through
     csrf.ts, rate-limit.ts, money.ts, phone.ts, http.ts, site.ts
     client-api.ts              browser → our own /api (relative URLs only)
 ```
@@ -180,6 +185,14 @@ Full annotations live in `.env.example`. The short version:
 | `NEXT_PUBLIC_SITE_TAGLINE` | **public** | Hero subheading. |
 | `NEXT_PUBLIC_MIN_AGE` | **public** | Age *threshold*. The gate itself is unconditional — see § 3.1. |
 | `NEXT_PUBLIC_LICENSE_NUMBER` | **public** | ⚠️ **Required before launch.** The retailer's CA cannabis licence number. See § 3.2. |
+| `NEXT_PUBLIC_LEGAL_ENTITY_NAME` | **public** | ⚠️ **Required before launch.** Exact legal entity name as registered with the DCC. See § 3.4. |
+| `NEXT_PUBLIC_POLICY_EFFECTIVE_DATE` | **public** | ⚠️ **Required before launch.** Effective date printed on `/privacy` and `/terms` — B&P § 22575(b)(4). |
+| `NEXT_PUBLIC_PRIVACY_CONTACT_EMAIL` | **public** | ⚠️ **Required before launch.** Where privacy requests land. |
+| `NEXT_PUBLIC_PRIVACY_CONTACT_ADDRESS` | **public** | ⚠️ **Required before launch.** Postal address in the privacy policy. |
+| `NEXT_PUBLIC_SAFER_USE_BROCHURE_URL` | **public** | ⚠️ **Required before launch.** Self-hosted path to the DCC SB 540 brochure — B&P § 26070.3(b). |
+| `NEXT_PUBLIC_LOCAL_PERMIT_NUMBER` | **public** | Optional. Local jurisdiction permit number, printed beside the state licence. |
+| `NEXT_PUBLIC_PROP65_WARNINGS` | **public** | Optional. `exempt` switches Prop 65 warnings OFF under the HSC § 25249.11(b) sub-10-employee exemption. **Defaults to ON.** |
+| `NEXT_PUBLIC_PROP65_FALLBACK_ROUTE` | **public** | Optional. Warning to use for an unclassifiable product. Default `smoked` (the most protective). |
 
 > ### ⚠️ Never put the API key in a `NEXT_PUBLIC_*` variable
 >
@@ -240,6 +253,17 @@ The upstream tenant profile carries an `ageGate` boolean. It is deliberately
 toggle cannot reach this code. Only `minAge` crosses, defaulting to 21 in the
 mapper and in the fail-safe fallback profile.
 
+**Two routes are exempt, and neither is a loophole: `/privacy` and `/terms`**
+(`src/lib/open-routes.ts`). CalOPPA requires the privacy policy to be
+conspicuously posted, and the gate is itself a point of collection — it sets a
+cookie before anyone has read anything — so putting the policy behind it makes
+the link on the gate lead back to the gate. Both pages are static legal prose
+with no catalogue data in them, so the thing the gate protects is not in play.
+The proxy signals the exemption to the layout with a request header it
+**deletes from every inbound request first**, so a client cannot claim it for
+`/product/1`; verified by replaying the header against a product URL and getting
+the gate.
+
 ### 3.2 The licence number (required before launch)
 
 California **B&P § 26151(a)** requires all advertising and marketing to
@@ -268,6 +292,150 @@ plaque and the footer, and both the home page and checkout say plainly that an
 out-of-hours order goes out from 6:00 AM. If the operator's counsel decides
 placement must be blocked, `isWithinDeliveryWindow()` is the one function to gate
 on.
+
+### 3.4 California compliance — where each rule lives
+
+**`COMPLIANCE.md` in this repo is the source of truth.** It is desk research, not
+legal advice, and it says so; a California cannabis attorney must review it and
+the finished site before launch. This section is only the map from that document
+to this code.
+
+`src/lib/compliance/` holds the rules. Each file carries the statute, the
+verbatim text where wording is mandated, and — where the catalogue cannot supply
+what a rule needs — a declared gap rather than a fabricated number.
+
+| File | Rule | What it does |
+|---|---|---|
+| `prop65.ts` | 27 CCR § 25602(b), §§ 25607.39/.41/.43/.45 | The four cannabis-tailored warnings, verbatim, plus consumption-route classification and the HSC § 25249.11(b) exemption switch. |
+| `vape.ts` | B&P § 26152.1 | The two disposal sentences, verbatim; classifies cartridge vs integrated vaporizer; **enforces (b)** by withholding supplier copy that calls these products disposable. |
+| `limits.ts` | 4 CCR § 15409, HSC § 11006.5 | Daily quantity limits, with the concentrate definition as a **dated rule** (it changed on 1 Jan 2026 and changes again 1 Jan 2028). |
+| `tax.ts` | R&TC § 34011.2 | Excise-rate history and a drift check; the receipt labels that keep the excise tax **separately stated**. |
+| `copy-rules.ts` | B&P § 26152(b), § 26154, 4 CCR § 15040, § 15040.1 | Reviews product copy and logs findings server-side. Reviewer, not censor — three of those four rules need a human. |
+
+Where the mandated warnings appear:
+
+- **Prop 65 — on the product display page, inline** (`/product/[id]`). That is
+  27 CCR § 25602(b)(1)(A). **There is deliberately no Prop 65 warning in the
+  footer**: § 25602(b)(1)(C) says a warning is not prominently displayed if the
+  purchaser must search for it in the site's general content, so a footer copy
+  earns nothing. Because the text is inline, the exact-link-text rule in (B) —
+  which demands the word `WARNING`, not "Prop 65" — never has to be relied on.
+  The cart and checkout carry the same warnings for everything in the basket,
+  which is the independent (C) surface.
+- **Vape disposal — on the PDP for every cartridge and integrated vaporizer**,
+  and in the basket. Verbatim, including the word "collection" that the DCC's own
+  summary page drops.
+- **The SB 540 safer-use brochure — at checkout, above the place-order button**
+  (B&P § 26070.3(b)). Self-hosted; see `NEXT_PUBLIC_SAFER_USE_BROCHURE_URL`.
+- **`/privacy` and `/terms` are reachable WITHOUT answering the age gate**
+  (`src/lib/open-routes.ts`). CalOPPA wants the policy conspicuously posted, and
+  the gate is itself a point of collection, so hiding the policy behind it makes
+  the link on the gate lead back to the gate. Neither page renders any catalogue
+  data, so the gate loses nothing.
+
+**Three declared gaps. They are real, and they are in the code comments too:**
+
+1. **Per-SKU weights.** The catalogue carries no net weight and no
+   concentrate-equivalent weight, so `limits.ts` parses what it can out of a
+   product name and counts nothing else. **Every § 15409 total is a floor: the
+   check can prove a cart is over the limit, never that it is under one.**
+   § 15409(e) concentrate-inside-manufactured-products is not computed at all —
+   the milligrams are on the package label, not in the catalogue.
+2. **Excise amount on the confirmation page.** The excise tax is separately
+   stated wherever this app has the figures (cart and checkout). The placed-order
+   record the commerce API returns carries a single `price` and no tax breakdown,
+   so the confirmation page points at the itemised delivery receipt instead of
+   printing a number it would have to guess.
+3. **Age-affirmation persistence.** There is no marketing opt-in anywhere in this
+   app, so 4 CCR § 15041(d) is not currently engaged. The age gate is a valid
+   self-attestation, but it is not stored against the customer record — the
+   upstream profile has no field for it — so § 15041(c) cannot be relied on for
+   later sends. **Any marketing-SMS feature needs that field first.**
+
+## Operator checklist before launch
+
+None of this can be invented by a developer, and the site prints a red
+`SET NEXT_PUBLIC_…` placeholder wherever one is missing — on purpose, so an
+unfinished storefront cannot look finished. Work through
+[`COMPLIANCE.md` § 11](./COMPLIANCE.md) for the full list; these are the ones
+this codebase reads.
+
+**Identity and licensing**
+
+- [ ] `NEXT_PUBLIC_LEGAL_ENTITY_NAME` — exact legal entity name as registered
+      with the DCC, not the trading name. 4 CCR § 15420(a)(1).
+- [ ] `NEXT_PUBLIC_LICENSE_NUMBER` — DCC licence number exactly as issued.
+      B&P § 26151(a)(1).
+- [ ] `NEXT_PUBLIC_LOCAL_PERMIT_NUMBER` — if the city or county issues one.
+- [ ] Confirm the **licence type** (non-storefront retailer Type 9 vs storefront
+      Type 10 vs microbusiness Type 12). It changes which rules apply.
+- [ ] **Read your local permit conditions.** COMPLIANCE.md § 13 item 9: cities
+      routinely impose website and advertising conditions that no desk research
+      can discover. Assume at least one affects this site.
+
+**Legal pages**
+
+- [ ] `NEXT_PUBLIC_POLICY_EFFECTIVE_DATE` — written once, by hand. Never
+      generated at build time.
+- [ ] `NEXT_PUBLIC_PRIVACY_CONTACT_EMAIL` and
+      `NEXT_PUBLIC_PRIVACY_CONTACT_ADDRESS`.
+- [ ] **Confirm the Do Not Track disclosure is still true.** `/privacy` states as
+      fact that this site loads no third-party script, pixel, font or CDN and
+      therefore does no cross-site tracking. That is accurate today. **Adding any
+      analytics or ad pixel makes the policy false the same day** — and see
+      COMPLIANCE.md § 8.4 on CIPA litigation before adding one at all.
+- [ ] **Have counsel read SB 378 (B&P § 22943 et seq.) against this site.**
+      Operative 1 July 2026, exposure up to $10,000 per violation per day, and
+      the definition may reach a licensed retailer's own storefront. If it
+      applies, `/terms` stops being optional and acquires prescribed content.
+      COMPLIANCE.md § 13 item 12.
+
+**Prop 65**
+
+- [ ] **Employee headcount**, and who watches for the tenth hire. Warnings are ON
+      by default; `NEXT_PUBLIC_PROP65_WARNINGS=exempt` turns them off and should
+      only ever be set on a written determination under HSC § 25249.11(b).
+
+**SB 540 brochure**
+
+- [ ] `NEXT_PUBLIC_SAFER_USE_BROCHURE_URL` — download the current DCC PDF, put it
+      in `public/`, point this at it. Do not hot-link the DCC CDN.
+- [ ] **Stock printed copies in every delivery vehicle.** B&P § 26070.3(b)
+      requires printed copies at final delivery; no website setting does that.
+
+**Catalogue** — these are data fixes in the back office, not code changes
+
+- [ ] **Tag every product with a consumption route** (`smoked`, `ingested`,
+      `vaped_dabbed`, `dermal`) so Prop 65 selects the right warning instead of
+      falling back. Untagged products are logged server-side.
+- [ ] **Tag vape hardware** `vape:cartridge` or `vape:integrated`. Untagged vape
+      SKUs get both disposal messages, which is over-inclusive but never wrong.
+- [ ] **Give every SKU a net weight and a concentrate-equivalent weight.** This
+      is what closes declared gap 1 above and makes the § 15409 check real.
+- [ ] **Rename anything that calls a vape "disposable"** — including the category
+      currently named *Disposable*. B&P § 26152.1(b) forbids it, and a name or a
+      category cannot be redacted at render time without mis-describing the
+      customer's order. Product descriptions ARE redacted; names and categories
+      are only reported.
+- [ ] **Review supplier copy** for health claims (B&P § 26154), "candy"/"kandy"
+      and cartoon artwork (4 CCR § 15040(a)(3) — note B&P § 26152.2 lets a city
+      attorney sue directly), and alcohol terms on beverages (4 CCR § 15040.1).
+      Run the store and read the `[compliance]` lines in the server log; they
+      name the product, the field and the citation.
+- [ ] **Check that potency figures match the package label** (B&P § 26152(b)).
+      Batch potency varies; the PDP qualifies the number, but the number itself
+      must come from the batch record that produced the label.
+
+**Back office**
+
+- [ ] **Verify the excise rate the API returns.** It should be **15 %** — AB 564
+      reversed the 19 % increase with effect from 1 October 2025. The app logs a
+      `[tax]` error when the rate it is given disagrees with the statute; it does
+      not override it, because charging one number and showing another is worse.
+- [ ] **Put a tax breakdown on the order record** if the excise amount is to be
+      restated on the web confirmation (declared gap 2).
+
+**And before you flip `robots` to `index`** — see § 7.7.
 
 ## 4. What this app asks the commerce API for
 
@@ -415,7 +583,18 @@ bundle. Changing any of them requires a **rebuild and redeploy**:
 | `NEXT_PUBLIC_SITE_SHORT_NAME` | Defaults to `NEXT_PUBLIC_SITE_NAME`. |
 | `NEXT_PUBLIC_SITE_TAGLINE` | Hero subheading. |
 | `NEXT_PUBLIC_MIN_AGE` | Age *threshold* only. Default 21. The gate cannot be switched off. |
-| `NEXT_PUBLIC_LICENSE_NUMBER` | ⚠️ Required before launch. Printed in the footer and on every receipt. |
+| `NEXT_PUBLIC_LICENSE_NUMBER` | ⚠️ Required before launch. Printed in the footer, on the age gate, and on every receipt. |
+| `NEXT_PUBLIC_LEGAL_ENTITY_NAME` | ⚠️ Required before launch. Legal entity name as registered with the DCC. |
+| `NEXT_PUBLIC_POLICY_EFFECTIVE_DATE` | ⚠️ Required before launch. Effective date on `/privacy` and `/terms`. |
+| `NEXT_PUBLIC_PRIVACY_CONTACT_EMAIL` / `..._ADDRESS` | ⚠️ Required before launch. Privacy contact details. |
+| `NEXT_PUBLIC_SAFER_USE_BROCHURE_URL` | ⚠️ Required before launch. Self-hosted DCC SB 540 brochure — B&P § 26070.3(b). |
+| `NEXT_PUBLIC_LOCAL_PERMIT_NUMBER` | Optional. Local jurisdiction permit number. |
+| `NEXT_PUBLIC_PROP65_WARNINGS` | Optional. `exempt` turns Prop 65 warnings off. Defaults to ON — see § 3.4. |
+| `NEXT_PUBLIC_PROP65_FALLBACK_ROUTE` | Optional. Warning for an unclassifiable product. Default `smoked`. |
+
+⚠️ **These are compiled in.** A storefront built without
+`NEXT_PUBLIC_SAFER_USE_BROCHURE_URL` shows the red checkout block until it is
+**rebuilt**, not until the variable is set. Set them, then build.
 
 They are exposed as Docker build args, so:
 
@@ -637,4 +816,12 @@ same seams:
 - Automated tests. The types and flows were verified against a stub of the
   upstream API during development, but no test suite ships in this repo.
 - `robots` is set to `noindex` in `src/app/layout.tsx`. Flip it when the real
-  domain, hours and legal pages are in place — see §7.7.
+  domain, hours and legal pages are in place — see §7.7. `/privacy` and `/terms`
+  set `noindex` in their own metadata as well; drop those lines too if the
+  operator wants the policies indexed.
+- **Medicinal.** This is an adult-use-only storefront. Serving 18–20 medicinal
+  patients means verifying a physician's recommendation, a different set of
+  daily limits (4 CCR § 15409(b)–(c)), different potency ceilings, and the
+  MMIC sales-tax exemption (R&TC § 6369.6 — which needs the MMIC **and** a
+  government ID, not a recommendation). A half-built medicinal path is worse
+  than none; the daily-limit module hard-codes the adult-use figures and says so.

@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { OPEN_ROUTE_HEADER, isOpenRoute } from "@/lib/open-routes";
 
 /**
  * THE AGE GATE, ENFORCED BEFORE ANY PAGE CODE RUNS.
@@ -40,17 +41,27 @@ export default function proxy(req: NextRequest) {
   const passed = req.cookies.get(AGE_COOKIE)?.value === "1";
   const { pathname } = req.nextUrl;
 
+  // The legal notices stay reachable without answering the gate — see
+  // src/lib/open-routes.ts for why. The header is how the root layout learns
+  // that THIS file made that decision; any inbound copy is deleted first, so a
+  // client cannot claim it for /product/1.
+  const headers = new Headers(req.headers);
+  headers.delete(OPEN_ROUTE_HEADER);
+  const open = isOpenRoute(pathname);
+  if (open) headers.set(OPEN_ROUTE_HEADER, "1");
+  const forward = { request: { headers } };
+
   if (passed) {
     // Nothing left to answer; /age is not a page anyone should sit on.
     if (pathname === GATE_PATH) {
       return NextResponse.redirect(new URL("/", req.url));
     }
-    return NextResponse.next();
+    return NextResponse.next(forward);
   }
 
-  if (pathname === GATE_PATH) return NextResponse.next();
+  if (pathname === GATE_PATH || open) return NextResponse.next(forward);
 
-  return NextResponse.rewrite(new URL(GATE_PATH, req.url));
+  return NextResponse.rewrite(new URL(GATE_PATH, req.url), forward);
 }
 
 export const config = {

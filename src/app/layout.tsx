@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import Link from "next/link";
 import "./globals.css";
 import { AgeGate } from "@/components/AgeGate";
@@ -6,9 +7,17 @@ import { CartProvider } from "@/components/CartProvider";
 import { SiteHeader } from "@/components/SiteHeader";
 import { StoreUnavailable } from "@/components/StoreUnavailable";
 import { isUpstreamConfigured } from "@/lib/kamui/env";
+import { OPEN_ROUTE_HEADER } from "@/lib/open-routes";
 import { hasPassedAgeGate } from "@/lib/session";
 import { getStoreProfile } from "@/lib/store";
-import { LICENSE_NUMBER, LICENSE_PLACEHOLDER, SITE_TAGLINE } from "@/lib/site";
+import {
+  LEGAL_ENTITY_NAME,
+  LICENSE_NUMBER,
+  LICENSE_PLACEHOLDER,
+  LOCAL_PERMIT_NUMBER,
+  MISSING,
+  SITE_TAGLINE,
+} from "@/lib/site";
 import { DELIVERY_WINDOW_LABEL } from "@/lib/hours";
 
 export const metadata: Metadata = {
@@ -54,7 +63,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   //      the whole shelf ships inside <script> tags under the gate.
   //   2. This branch renders the gate instead of `children`, so a request that
   //      somehow skipped middleware still shows no store.
-  const gated = !passedGate;
+  //
+  // ONE EXCEPTION, and it is not a loophole: /privacy and /terms. CalOPPA
+  // (B&P § 22575) requires the privacy policy to be conspicuously posted, and
+  // the gate is itself a point of collection — it sets a cookie before anyone
+  // has read anything — so hiding the policy behind it makes the link on the
+  // gate lead back to the gate. Those two routes render no catalogue data at
+  // all, so the thing layer 1 protects is not in play. The header is stamped by
+  // `src/proxy.ts`, which deletes any inbound copy first.
+  const openRoute = (await headers()).get(OPEN_ROUTE_HEADER) === "1";
+  const gated = !passedGate && !openRoute;
 
   const year = new Date().getFullYear();
 
@@ -124,16 +142,57 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                         <a href={`mailto:${profile.contactEmail}`}>{profile.contactEmail}</a>
                       ) : null}
                     </nav>
+
+                    <nav className="footer-col" aria-label="Legal">
+                      <span className="eyebrow" style={{ marginBottom: "0.7rem" }}>
+                        Legal
+                      </span>
+                      {/* CalOPPA (B&P § 22575) requires the privacy policy to be
+                          CONSPICUOUSLY POSTED — a link on every page is what that
+                          means in practice. */}
+                      <Link href="/privacy">Privacy policy</Link>
+                      <Link href="/terms">Terms of service</Link>
+                      {/* Not required by any rule (COMPLIANCE.md § 4.4) — a free
+                          trust signal, and the customer can check the number
+                          printed below against the state's own register. */}
+                      <a
+                        href="https://search.cannabis.ca.gov/"
+                        rel="noopener noreferrer"
+                        target="_blank"
+                      >
+                        Verify our licence
+                      </a>
+                    </nav>
                   </div>
 
+                  {/* ── Licensee identification ──────────────────────────────
+                      B&P § 26151(a)(1): all advertising and marketing shall
+                      "accurately and legibly identify the licensee responsible
+                      for its content, by adding, at a minimum, the licensee's
+                      license number." Every page of this store is marketing, so
+                      it goes in the global footer.
+
+                      ⚠️ THERE IS DELIBERATELY NO PROP 65 WARNING HERE. 27 CCR
+                      § 25602(b)(1)(C) says a warning is not prominently
+                      displayed if "the purchaser must search for it in the
+                      general content of the website" — a footer warning earns
+                      nothing. It belongs on the product display page, and that
+                      is where it is. Do not "helpfully" add one here. */}
                   <div className="footer-legal">
                     <p>
-                      {/* B&P § 26151(a) — every page of this store is marketing, and
-                          marketing must identify the licensee by licence number. */}
-                      Licensed cannabis retailer · License{" "}
+                      <span className="license" data-missing={!LEGAL_ENTITY_NAME}>
+                        {LEGAL_ENTITY_NAME || MISSING("NEXT_PUBLIC_LEGAL_ENTITY_NAME")}
+                      </span>{" "}
+                      · Licensed cannabis retailer · DCC Licence{" "}
                       <span className="license" data-missing={!LICENSE_NUMBER}>
                         {LICENSE_NUMBER || LICENSE_PLACEHOLDER}
                       </span>
+                      {LOCAL_PERMIT_NUMBER ? (
+                        <>
+                          {" "}
+                          · Local permit <span className="license">{LOCAL_PERMIT_NUMBER}</span>
+                        </>
+                      ) : null}
                       <br />
                       Delivery {DELIVERY_WINDOW_LABEL} (4 CCR § 15403). Must be {profile.minAge}+
                       with a valid government-issued ID. Keep out of reach of children and pets.

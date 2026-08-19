@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { LICENSE_NUMBER, LICENSE_PLACEHOLDER } from "@/lib/site";
 
 /**
  * Legal-age confirmation.
@@ -114,6 +116,33 @@ export function AgeGate({ minAge, storeName }: { minAge: number; storeName: stri
         <p className="gate-fine" data-reveal style={{ "--i": 5 } as React.CSSProperties}>
           By entering you confirm you are of legal age in your jurisdiction. Keep out of reach of
           children and pets.
+        </p>
+
+        {/* ── The gate is marketing too ──────────────────────────────────────
+            B&P § 26151(a)(1) covers "all advertisements and marketing", and
+            "marketing" is defined at § 26150(e) as any act or process of
+            promoting or selling. This page promotes the store, and the global
+            footer is not rendered while the gate is up — so the licence number
+            has to be here as well, or the one page every visitor sees first is
+            the one page with no licensee identification on it.
+
+            The privacy link is here because the gate is a point of collection:
+            answering it sets a cookie. CalOPPA wants the policy conspicuously
+            posted, and `src/lib/open-routes.ts` is what makes this link lead
+            somewhere instead of back to the gate. */}
+        <p className="gate-fine" data-reveal style={{ "--i": 6 } as React.CSSProperties}>
+          Licensed California cannabis retailer · Licence{" "}
+          <span className="license" data-missing={!LICENSE_NUMBER}>
+            {LICENSE_NUMBER || LICENSE_PLACEHOLDER}
+          </span>
+          <br />
+          <Link className="link" href="/privacy">
+            Privacy policy
+          </Link>
+          {" · "}
+          <Link className="link" href="/terms">
+            Terms
+          </Link>
         </p>
       </div>
     </main>

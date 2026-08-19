@@ -3,9 +3,12 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { BasketComplianceNotices } from "@/components/ComplianceNotices";
 import { useCart } from "@/components/CartProvider";
+import { DailyLimitReadout } from "@/components/DailyLimitReadout";
 import { SignInFlow } from "@/components/SignInFlow";
 import { apiGet, apiPost, ClientApiError } from "@/lib/client-api";
+import { TAX_LINE_LABELS } from "@/lib/compliance/tax";
 import { formatUsd } from "@/lib/money";
 import type {
   PricedCart,
@@ -39,11 +42,19 @@ export function CheckoutView({
   requireIdPhoto,
   deliveryNotice,
   withinDeliveryWindow,
+  brochureUrl,
+  minAge,
 }: {
   requireIdPhoto: boolean;
   /** One plain sentence about 4 CCR § 15403 delivery hours, computed server-side. */
   deliveryNotice: string;
   withinDeliveryWindow: boolean;
+  /**
+   * The DCC's SB 540 safer-use brochure, served from THIS origin. Empty string
+   * when the operator has not supplied one — see the block that renders it.
+   */
+  brochureUrl: string;
+  minAge: number;
 }) {
   const router = useRouter();
   const { items, ready, clear } = useCart();
@@ -231,7 +242,18 @@ export function CheckoutView({
     );
   }
 
-  const canSubmit = address.trim().length >= 6 && !submitting && (cart?.lines.length ?? 0) > 0;
+  // Warnings and limits were both decided on the SERVER when the cart was
+  // priced; this view only groups and renders them. The daily-limit refusal is
+  // enforced again in POST /api/checkout — a disabled button is a courtesy, not
+  // a control.
+  const routes = (cart?.lines ?? [])
+    .map((l) => l.consumptionRoute)
+    .filter((r): r is NonNullable<typeof r> => r != null);
+  const vapeHardware = (cart?.lines ?? []).flatMap((l) => l.vapeHardware);
+  const overLimit = (cart?.dailyLimit.exceeded.length ?? 0) > 0;
+
+  const canSubmit =
+    address.trim().length >= 6 && !submitting && (cart?.lines.length ?? 0) > 0 && !overLimit;
 
   return (
     <div className="plain">
@@ -337,12 +359,79 @@ export function CheckoutView({
             {deliveryNotice}
           </div>
 
+          {/* 4 CCR §§ 15404 / 15415(g): the delivery employee verifies identity
+              and age IN PERSON before handing anything over, and § 15415(c)
+              forbids an unstaffed delivery. The website is not the compliance
+              boundary for age — the driver is — so checkout must never leave a
+              customer expecting otherwise. */}
+          <div className="notice mb-2">
+            <strong>ID is checked at the door.</strong> The driver has to see a valid, unexpired,
+            government-issued photo ID and cannot complete the delivery without it. Someone{" "}
+            {minAge} or older must be there to receive the order in person — we cannot leave
+            cannabis at a door, with a neighbour, or in a locker.
+          </div>
+
+          {cart ? <DailyLimitReadout assessment={cart.dailyLimit} className="mb-2" /> : null}
+
+          {/* 27 CCR § 25602(b)(1)(C) and B&P § 26152.1, on the last screen
+              before the order is placed. Plain styling, deliberately — this
+              page is a form, and the warnings read as statements rather than as
+              design. */}
+          <BasketComplianceNotices
+            routes={routes}
+            vapeHardware={vapeHardware}
+            className="basket-warnings"
+          />
+
+          {/* ── SB 540 safer-use brochure — B&P § 26070.3(b) ────────────────
+              "On and after March 1, 2025, a retailer … shall prominently
+              display the brochure, including printed copies, at the point of
+              sale or final delivery in person AND ONLINE AT TIME OF ONLINE
+              PURCHASES, and offer each new consumer a copy … at the time of
+              first purchase or delivery."
+
+              This is the most commonly missed website obligation in California
+              cannabis retail, because it lives in the statute and is mirrored
+              nowhere in the DCC regulations — a regulations-only review never
+              sees it.
+
+              Placement is the whole point: immediately above the place-order
+              control, not behind an accordion and not in the footer.
+              "Prominently" and "at time of … purchase" both point here.
+
+              ⚠️ Served from THIS origin, never hot-linked from the DCC's CDN —
+              the site makes no third-party browser request and the brochure is
+              not the exception. And ⚠️ the STATUTE ALSO REQUIRES PRINTED COPIES
+              at final delivery; that is a driver-runbook task no website can
+              discharge. */}
+          {brochureUrl ? (
+            <div className="notice mb-2">
+              <strong>Before you order: California&apos;s safer-use guide.</strong> The Department
+              of Cannabis Control publishes a short guide to the effects of cannabis, high-potency
+              products, mental health, and use while pregnant or breastfeeding. Please read it —
+              you are also given a printed copy at delivery.
+              <p className="mt-1 mb-0">
+                <a className="link" href={brochureUrl} target="_blank" rel="noopener noreferrer">
+                  Open the DCC safer-use guide (PDF)
+                </a>
+              </p>
+            </div>
+          ) : (
+            <div className="notice notice-error mb-2" role="alert">
+              <strong>SET NEXT_PUBLIC_SAFER_USE_BROCHURE_URL.</strong> B&amp;P § 26070.3(b) has
+              required this store to display the DCC safer-use brochure online at the time of
+              purchase since 1 March 2025. Host the current PDF on this origin and set the
+              variable. This store is not launch-ready until you do.
+            </div>
+          )}
+
           <button className="btn btn-block" disabled={!canSubmit}>
             {submitting ? "Placing your order…" : "Place order"}
           </button>
 
           <p className="faint mt-2 mb-0">
-            We&apos;ll text order updates to the mobile number you verified.
+            We&apos;ll text order updates to the mobile number you verified. Transactional messages
+            only — this store does not send marketing texts.
           </p>
         </form>
 
@@ -396,10 +485,31 @@ export function CheckoutView({
                 <span>−{formatUsd(cart.discount)}</span>
               </div>
             ) : null}
-            {cart && cart.taxes.total > 0 ? (
+            {/* R&TC § 34011.2(d) requires the cannabis excise tax to be
+                SEPARATELY STATED — never folded into one "tax" figure. CDTFA
+                warns that failing to separately state it can mean the whole
+                selling price is treated as gross receipts subject to the excise
+                tax, so this is a money question as well as a paperwork one.
+                Order follows § 34011.2(e)–(f). */}
+            {cart && cart.taxes.city > 0 ? (
               <div>
-                <span>Estimated tax</span>
-                <span>{formatUsd(cart.taxes.total)}</span>
+                <span>{TAX_LINE_LABELS.city}</span>
+                <span>{formatUsd(cart.taxes.city)}</span>
+              </div>
+            ) : null}
+            {cart && cart.taxes.excise > 0 ? (
+              <div>
+                <span>
+                  {TAX_LINE_LABELS.excise}
+                  {cart.exciseRatePercent != null ? ` (${cart.exciseRatePercent}%)` : ""}
+                </span>
+                <span>{formatUsd(cart.taxes.excise)}</span>
+              </div>
+            ) : null}
+            {cart && cart.taxes.state > 0 ? (
+              <div>
+                <span>{TAX_LINE_LABELS.state}</span>
+                <span>{formatUsd(cart.taxes.state)}</span>
               </div>
             ) : null}
             <div className="grand">
@@ -410,7 +520,9 @@ export function CheckoutView({
 
           <p className="faint mt-2 mb-0">
             Store-wide deals and any delivery minimum are applied when the order is confirmed, so
-            the final amount can be lower than this estimate.
+            the final amount can be lower than this estimate. The itemised receipt you get at the
+            door states the California cannabis excise tax separately, as required by R&amp;TC
+            § 34011.2(d).
           </p>
         </aside>
       </div>

@@ -9,6 +9,16 @@ import {
   toPublicStoreProfile,
 } from "@/lib/kamui/map";
 import { computeTaxes, toCents } from "@/lib/money";
+import { pacificDateKey } from "@/lib/hours";
+import {
+  assessDailyLimits,
+  EMPTY_DAILY_LIMIT_ASSESSMENT,
+  type AssessableLine,
+  type DailyLimitAssessment,
+} from "@/lib/compliance/limits";
+import { classifyConsumptionRoute, PROP65_FALLBACK_ROUTE, PROP65_WARNINGS_ENABLED } from "@/lib/compliance/prop65";
+import { vapeDisposalMessagesFor } from "@/lib/compliance/vape";
+import { checkExciseRate } from "@/lib/compliance/tax";
 import type {
   CartLineInput,
   PricedCart,
@@ -186,6 +196,8 @@ export async function priceCart(
 
   const priced: PricedCartLine[] = [];
   const unavailable: number[] = [];
+  /** Full catalogue shapes, kept for the § 15409 assessment (needs category + tags). */
+  const assessable: AssessableLine[] = [];
   let subtotalCents = 0;
 
   for (const line of lines) {
@@ -194,6 +206,12 @@ export async function priceCart(
       unavailable.push(line.productId);
       continue;
     }
+    assessable.push({
+      name: p.name,
+      quantity: line.quantity,
+      tags: p.tags,
+      category: p.category,
+    });
     const unitCents = toCents(p.unitPrice);
     const lineCents = unitCents * line.quantity;
     subtotalCents += lineCents;
@@ -206,6 +224,13 @@ export async function priceCart(
       listPrice: p.price,
       lineTotal: lineCents / 100,
       available: p.available,
+      // Warning selection happens HERE, on the server, using the same functions
+      // the product page uses — so the basket cannot show a different Prop 65
+      // warning from the one on the PDP the customer added from.
+      consumptionRoute: PROP65_WARNINGS_ENABLED
+        ? classifyConsumptionRoute(p) ?? PROP65_FALLBACK_ROUTE
+        : null,
+      vapeHardware: vapeDisposalMessagesFor(p).map((m) => m.hardware),
     });
   }
 
@@ -244,9 +269,15 @@ export async function priceCart(
   }
 
   // ── taxes (estimate) ──────────────────────────────────────────────────
+  //
+  // Broken out per component, not lumped: R&TC § 34011.2(d) requires the
+  // cannabis excise tax to be SEPARATELY STATED on the document the purchaser
+  // gets, and a single "tax" figure does not satisfy it. See src/lib/compliance/tax.ts.
   let taxes = { city: 0, excise: 0, state: 0, total: 0 };
+  let exciseRatePercent: number | null = null;
   try {
     const rates = await api.getTaxRates();
+    exciseRatePercent = Number.isFinite(rates.exciseRate) ? rates.exciseRate : null;
     const t = computeTaxes(subtotalCents - discountCents, rates);
     taxes = {
       city: t.cityCents / 100,
@@ -254,6 +285,15 @@ export async function priceCart(
       state: t.stateCents / 100,
       total: t.totalCents / 100,
     };
+    // The rate is the back office's to set, and this app must not overwrite it —
+    // showing a customer a number they will not be charged is worse than the
+    // wrong rate. But it must not pass silently either: AB 564 put the rate back
+    // to 15 % on 1 Oct 2025 and a back office still charging the repealed 19 %
+    // is over-collecting on every order.
+    if (exciseRatePercent != null) {
+      const check = checkExciseRate(exciseRatePercent, pacificDateKey());
+      if (check.warning) console.error(check.warning);
+    }
   } catch (e) {
     logPageFailure("tax-rates", e);
   }
@@ -269,7 +309,9 @@ export async function priceCart(
     couponMessage,
     couponApplied,
     taxes,
+    exciseRatePercent,
     estimatedTotal: Math.max(0, estimatedTotalCents) / 100,
+    dailyLimit: assessDailyLimits(assessable),
   };
 }
 
@@ -282,8 +324,72 @@ function emptyCart(): PricedCart {
     couponMessage: null,
     couponApplied: false,
     taxes: { city: 0, excise: 0, state: 0, total: 0 },
+    exciseRatePercent: null,
     estimatedTotal: 0,
+    dailyLimit: EMPTY_DAILY_LIMIT_ASSESSMENT,
   };
+}
+
+// ───────────────────── § 15409 re-validation at checkout ─────────────────────
+
+/**
+ * The daily-limit check that actually matters: 4 CCR § 15409 is PER CUSTOMER
+ * PER DAY, not per order, so a second basket the same day is measured against
+ * the first.
+ *
+ * Runs server-side at order placement only — it costs one extra upstream call,
+ * which is fine once per checkout and would not be fine on every cart keystroke.
+ * The cart's own assessment (`priceCart`) is the advisory copy; this is the one
+ * that refuses.
+ *
+ * Same declared gap applies: unmeasurable lines contribute zero, so this can
+ * prove an over-limit day and cannot prove an under-limit one. See
+ * `src/lib/compliance/limits.ts`.
+ */
+export async function assessDailyLimitsForCheckout(
+  lines: CartLineInput[],
+  customerToken: string,
+): Promise<DailyLimitAssessment> {
+  if (lines.length === 0) return EMPTY_DAILY_LIMIT_ASSESSMENT;
+
+  const assessable: AssessableLine[] = [];
+
+  const res = await api.listProductsByIds(lines.map((l) => l.productId));
+  const byId = new Map((res.products ?? []).map((p) => [p.id, toPublicProduct(p)]));
+  for (const line of lines) {
+    const p = byId.get(line.productId);
+    if (!p) continue;
+    assessable.push({ name: p.name, quantity: line.quantity, tags: p.tags, category: p.category });
+  }
+
+  // Everything already sold to this customer TODAY, Pacific.
+  try {
+    const today = pacificDateKey();
+    const history = await api.listMyOrders(customerToken, { limit: 25 });
+    for (const order of history.orders ?? []) {
+      if (!order.createdAt) continue;
+      const placed = new Date(order.createdAt);
+      if (Number.isNaN(placed.getTime()) || pacificDateKey(placed) !== today) continue;
+      // A cancelled order was not a sale.
+      if (/cancel/i.test(order.status ?? "")) continue;
+      for (const item of order.orderItems ?? []) {
+        const name = item.product?.name;
+        if (!name) continue;
+        // Past orders carry no category or tags — classification falls back to
+        // the product name, which is the same signal the weight is parsed from.
+        assessable.push({ name, quantity: item.quantity, tags: null, category: null });
+      }
+    }
+  } catch (e) {
+    // A history we cannot read must not block a lawful order, but it must not
+    // pass as "nothing bought today" either — say so in the log.
+    logPageFailure("daily-limit-history", e);
+    console.error(
+      "[compliance] 4 CCR § 15409 day total could not include prior orders — order history unreadable. This basket was checked in isolation.",
+    );
+  }
+
+  return assessDailyLimits(assessable);
 }
 
 function logPageFailure(what: string, e: unknown): void {

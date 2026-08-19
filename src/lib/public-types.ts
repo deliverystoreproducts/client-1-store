@@ -1,6 +1,12 @@
+import type { DailyLimitAssessment } from "@/lib/compliance/limits";
+import type { ConsumptionRoute } from "@/lib/compliance/prop65";
+import type { VapeHardware } from "@/lib/compliance/vape";
+
 /**
  * The shapes THIS storefront speaks — to its own pages and to its own browser
- * JavaScript. Pure types, no imports, importable from anywhere.
+ * JavaScript. Pure types, importable from anywhere — the three imports above
+ * are `import type` only and are erased at compile time, so this file still
+ * pulls in no runtime code.
  *
  * These are deliberately NOT the upstream wire types. Everything that crosses
  * from `src/lib/kamui/types.ts` goes through `src/lib/kamui/map.ts`, which:
@@ -110,6 +116,21 @@ export interface PricedCartLine {
   listPrice: number;
   lineTotal: number;
   available: boolean;
+  /**
+   * Which of the four tailored Prop 65 warnings this line needs
+   * (27 CCR §§ 25607.39/.41/.43/.45), or null when Prop 65 warnings are
+   * switched off under the HSC § 25249.11(b) sub-10-employee exemption.
+   *
+   * Classified SERVER-SIDE from the catalogue, never in the browser — the same
+   * function the product page uses, so the cart cannot disagree with the PDP.
+   */
+  consumptionRoute: ConsumptionRoute | null;
+  /**
+   * Vape hardware kinds whose B&P § 26152.1 disposal message this line must
+   * carry. Empty for everything that is not a cartridge or an integrated
+   * vaporizer. Two entries when the catalogue does not say which it is.
+   */
+  vapeHardware: VapeHardware[];
 }
 
 export interface PricedCart {
@@ -120,12 +141,30 @@ export interface PricedCart {
   discount: number;
   couponMessage: string | null;
   couponApplied: boolean;
+  /**
+   * Separately stated, because R&TC § 34011.2(d) requires the cannabis excise
+   * tax to be separately stated on the document the purchaser gets. A single
+   * lumped "tax" figure does not satisfy it. Order matters too — § 34011.2(e)–(f)
+   * computes sales tax on a base that includes the excise tax.
+   */
   taxes: { city: number; excise: number; state: number; total: number };
+  /** The excise rate the backend says it will charge, in percent. */
+  exciseRatePercent: number | null;
   /**
    * Best-effort total. Store-wide deal engines run at checkout and can only make
    * this smaller, so treat it as an upper bound, not a quote.
    */
   estimatedTotal: number;
+  /**
+   * 4 CCR § 15409 daily-limit position for THIS CART ONLY. Computed server-side.
+   *
+   * ⚠️ Read `src/lib/compliance/limits.ts` before trusting it: the catalogue
+   * publishes no per-SKU weights, so every figure here is a FLOOR. It can prove
+   * a cart is over the limit; it cannot prove one is under it. The per-customer
+   * per-day aggregation that § 15409 actually requires happens at checkout,
+   * server-side, where the customer's order history is reachable.
+   */
+  dailyLimit: DailyLimitAssessment;
 }
 
 export interface PublicOrderSummary {
