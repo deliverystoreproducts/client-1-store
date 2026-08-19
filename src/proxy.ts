@@ -72,5 +72,5 @@ export const config = {
    *   /_next/* — build output.
    *   /fonts/* — the self-hosted webfaces; the gate itself needs them.
    */
-  matcher: ["/((?!api|_next/static|_next/image|fonts|favicon.ico|robots.txt).*)"],
+  matcher: ["/((?!api|_next/static|_next/image|fonts|favicon.ico|icon.svg|robots.txt).*)"],
 };
