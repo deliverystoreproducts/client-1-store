@@ -2845,14 +2845,49 @@ body::after {
   background:
     radial-gradient(55% 45% at 10% -10%, rgb(139 92 246 / 0.28), transparent 60%),
     radial-gradient(70% 60% at 85% 108%, rgb(255 79 163 / 0.2), transparent 65%),
+    radial-gradient(60% 34% at 50% 40%, rgb(34 181 88 / 0.13), transparent 70%),
     linear-gradient(180deg, var(--ground-raise), var(--ground) 46%);
+  background-size: 100% 100%, 100% 100%, 160% 130%, 100% 100%;
+  animation: aurora 26s ease-in-out infinite alternate;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) body::before {
-    background:
-      radial-gradient(55% 45% at 10% -10%, rgb(139 92 246 / 0.28), transparent 60%),
-      radial-gradient(70% 60% at 85% 108%, rgb(255 79 163 / 0.2), transparent 65%),
-      linear-gradient(180deg, var(--ground-raise), var(--ground) 46%);
+  background:
+    radial-gradient(55% 45% at 10% -10%, rgb(139 92 246 / 0.28), transparent 60%),
+    radial-gradient(70% 60% at 85% 108%, rgb(255 79 163 / 0.2), transparent 65%),
+    radial-gradient(60% 34% at 50% 40%, rgb(34 181 88 / 0.13), transparent 70%),
+    linear-gradient(180deg, var(--ground-raise), var(--ground) 46%);
+  background-size: 100% 100%, 100% 100%, 160% 130%, 100% 100%;
+  animation: aurora 26s ease-in-out infinite alternate;
+  }
+}
+
+/* The green aurora drifts through the blacklight — the site's one ambient
+   motion, killed by prefers-reduced-motion like everything else. */
+@keyframes aurora {
+  from { background-position: 0 0, 0 0, -30% 20%, 0 0; }
+  to { background-position: 0 0, 0 0, 30% -10%, 0 0; }
+}
+
+/* After dark, taxonomy signs in GREEN — money stays pink, places go green. */
+:root[data-theme="dark"] .chip[data-active="true"] {
+  border-bottom-color: var(--fern);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .chip[data-active="true"] {
+    border-bottom-color: var(--fern);
+  }
+}
+
+/* Hovered plates glow blacklight in the dark. */
+:root[data-theme="dark"] .tile:hover .tile-frame,
+:root[data-theme="dark"] .tile:focus-within .tile-frame {
+  box-shadow: 0 0 26px rgb(139 92 246 / 0.35), 0 14px 34px -14px rgb(0 0 0 / 0.6);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .tile:hover .tile-frame,
+  :root:not([data-theme="light"]) .tile:focus-within .tile-frame {
+    box-shadow: 0 0 26px rgb(139 92 246 / 0.35), 0 14px 34px -14px rgb(0 0 0 / 0.6);
   }
 }
 
@@ -2866,4 +2901,31 @@ body::after {
     color: #a78bfa;
     text-shadow: 0 0 28px rgb(139 92 246 / 0.5);
   }
+}
+
+
+/* A ring bursts off the button the moment something lands in the cart. */
+.btn[data-added="true"]::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  border: 2px solid var(--fern);
+  animation: burst 0.55s var(--ease) both;
+  pointer-events: none;
+}
+
+@keyframes burst {
+  from { opacity: 0.9; transform: scale(0.9); }
+  to { opacity: 0; transform: scale(1.35); }
+}
+
+/* The wheel sways while it waits — and holds still the moment physics start. */
+.wheel-idle {
+  animation: sway 4.5s ease-in-out infinite;
+}
+
+@keyframes sway {
+  0%, 100% { rotate: -3deg; }
+  50% { rotate: 3deg; }
 }

@@ -40,6 +40,7 @@ export function AddToCartButton({
   return (
     <button
       className={tone}
+      data-added={added}
       onClick={() => {
         add(productId, quantity);
         setAdded(true);

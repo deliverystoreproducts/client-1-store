@@ -264,7 +264,7 @@ export function SpinWheel() {
 
         <div className="wheel-stage" aria-hidden={step.at === "result"}>
           <span className="wheel-pointer" aria-hidden />
-          <div className="wheel" style={wheelStyle} aria-hidden>
+          <div className={rotation === 0 ? "wheel wheel-idle" : "wheel"} style={wheelStyle} aria-hidden>
             {segments.map((s, i) => (
               <span
                 key={i}
