@@ -124,57 +124,57 @@
   --lift: 0 14px 34px -14px rgb(96 76 44 / 0.28), 0 2px 8px -2px rgb(96 76 44 / 0.14);
 }
 
-/* ── NEON JUNGLE — the dark theme. Deep jungle ground, acid-lime actions, a
-   magenta flash. System preference first; the header toggle stamps data-theme
-   and wins in both directions. Statutory colors (Prop 65 yellow, alarm reds)
-   stay statutory. */
+/* ── GLACIER — the dark theme (owner's pick, round two). Ink-blue ground,
+   frost-cyan identity and money, and the Add act stays green — the act is the
+   brand, the mood is the theme. System preference first; the header toggle
+   stamps data-theme and wins both directions. Statutory colors stay statutory. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-  --ground: #0d1710;
-  --ground-deep: #0a120c;
-  --ground-raise: #13241a;
-  --field: #13241a;
-  --rule: #25402c;
-  --rule-hi: #3a5c42;
-  --pine: #eef7e9;
-  --pine-2: #c2d6bd;
-  --pine-3: #7e9b7c;
-  --clay: #ff4fa3; /* the magenta flash — fills get dark ink text via --ground */
-  --clay-lit: #e03a8c;
-  --amber: #b7f34a; /* acid lime carries price + action highlights (14 : 1) */
-  --amber-deep: #9dd63c;
-  --sage: #7ee08a;
+  --ground: #0c1216;
+  --ground-deep: #090e12;
+  --ground-raise: #131e26;
+  --field: #131e26;
+  --rule: #22384a;
+  --rule-hi: #35516b;
+  --pine: #e9f4f8;
+  --pine-2: #bcd3de;
+  --pine-3: #7d95a3;
+  --clay: #7dd8ff; /* frost — fills read with the dark ground's ink (11.8 : 1) */
+  --clay-lit: #5ec4f5;
+  --amber: #7dd8ff; /* frost carries price + highlights (11.8 : 1) */
+  --amber-deep: #58b7e8;
+  --sage: #52c780;
   --alarm: #ff7a66;
-  --fern: #b7f34a; /* actions go lime; dark ink text rides the fill */
-  --marigold: #d8e94a;
-  --coral: #ff4fa3;
-  --plate-a: #1c3a24;
-  --plate-b: #0f1f14;
+  --fern: #22b558; /* the act stays GREEN in every theme (7.0 : 1 with ink) */
+  --marigold: #9fe2ff;
+  --coral: #7dd8ff;
+  --plate-a: #16232d;
+  --plate-b: #0e171e;
   --lift: 0 14px 34px -14px rgb(0 0 0 / 0.55), 0 2px 8px -2px rgb(0 0 0 / 0.4);
   }
 }
 
 :root[data-theme="dark"] {
-  --ground: #0d1710;
-  --ground-deep: #0a120c;
-  --ground-raise: #13241a;
-  --field: #13241a;
-  --rule: #25402c;
-  --rule-hi: #3a5c42;
-  --pine: #eef7e9;
-  --pine-2: #c2d6bd;
-  --pine-3: #7e9b7c;
-  --clay: #ff4fa3; /* the magenta flash — fills get dark ink text via --ground */
-  --clay-lit: #e03a8c;
-  --amber: #b7f34a; /* acid lime carries price + action highlights (14 : 1) */
-  --amber-deep: #9dd63c;
-  --sage: #7ee08a;
+  --ground: #0c1216;
+  --ground-deep: #090e12;
+  --ground-raise: #131e26;
+  --field: #131e26;
+  --rule: #22384a;
+  --rule-hi: #35516b;
+  --pine: #e9f4f8;
+  --pine-2: #bcd3de;
+  --pine-3: #7d95a3;
+  --clay: #7dd8ff; /* frost — fills read with the dark ground's ink (11.8 : 1) */
+  --clay-lit: #5ec4f5;
+  --amber: #7dd8ff; /* frost carries price + highlights (11.8 : 1) */
+  --amber-deep: #58b7e8;
+  --sage: #52c780;
   --alarm: #ff7a66;
-  --fern: #b7f34a; /* actions go lime; dark ink text rides the fill */
-  --marigold: #d8e94a;
-  --coral: #ff4fa3;
-  --plate-a: #1c3a24;
-  --plate-b: #0f1f14;
+  --fern: #22b558; /* the act stays GREEN in every theme (7.0 : 1 with ink) */
+  --marigold: #9fe2ff;
+  --coral: #7dd8ff;
+  --plate-a: #16232d;
+  --plate-b: #0e171e;
   --lift: 0 14px 34px -14px rgb(0 0 0 / 0.55), 0 2px 8px -2px rgb(0 0 0 / 0.4);
 }
 
@@ -2696,9 +2696,15 @@ body::after {
 
 /* In dark (Neon Jungle) the lime bar needs its jungle ink explicitly — the
    token flips to cream there, which would fail on lime. */
-:root[data-theme="dark"] .topbar { color: #12210f; }
+:root[data-theme="dark"] .topbar {
+  background: linear-gradient(90deg, #7dd8ff, #c9f0ff);
+  color: #082330;
+}
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .topbar { color: #12210f; }
+  :root:not([data-theme="light"]) .topbar {
+    background: linear-gradient(90deg, #7dd8ff, #c9f0ff);
+    color: #082330;
+  }
 }
 
 .topbar:hover {
