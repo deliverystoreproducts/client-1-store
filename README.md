@@ -73,29 +73,96 @@ src/
 
 ---
 
-## 2. Running it
+## 2. Quick start — run it locally against the real store
 
-Requires Node 22+ and pnpm.
+Prerequisites: **Node 22+** and **pnpm 10+** (`corepack enable` gives you pnpm).
 
 ```bash
+git clone git@github.com:Hovakimyan/YB_storefront.git
+cd YB_storefront
 pnpm install
-cp .env.example .env.local     # then fill in KAMUI_API_BASE_URL + KAMUI_STORE_API_KEY
-pnpm dev                       # http://localhost:3000
+cp .env.example .env.local
 ```
+
+Open `.env.local` and set the only two values that matter:
+
+```bash
+# The commerce API. The store endpoints live on the Kamui dashboard's own origin.
+KAMUI_API_BASE_URL=https://app.kamui.digital
+
+# This store's key — see "Getting the API key" below. Shown once, at creation.
+KAMUI_STORE_API_KEY=sk_...
+```
+
+Then:
+
+```bash
+pnpm dev      # → http://localhost:3000
+```
+
+Other scripts:
 
 ```bash
 pnpm build       # production build (output: "standalone")
-pnpm start       # serve the build
+pnpm start       # serve that build the way the container does — see §7
 pnpm typecheck   # tsc --noEmit
 ```
 
-Without credentials the app still starts, and every page renders a clean
-"we're temporarily closed" screen. That is deliberate — see §6.6.
+### Getting the API key
 
-**Local HTTPS note.** The session cookie uses the `__Host-` prefix, which the
-browser only accepts on a `Secure` cookie. Chrome, Firefox and Safari all treat
-`http://localhost` as a secure context, so `pnpm dev` works as-is. It will *not*
-work over plain http on a LAN IP — use `localhost` or a TLS tunnel.
+The store mints its own, in its own back office: sign in at
+**https://app.kamui.digital** as the store owner (a superadmin can do it too),
+then **Settings → API keys** (`/settings/api-keys`) → create a key with the
+**`store`** scope.
+
+- **The value is shown once.** If it is lost, mint a new one — it cannot be read back.
+- **The key carries the tenant.** There is no store id to configure anywhere; the
+  server resolves the tenant from the key alone.
+- If the business runs **several retail brands** from one back office, mint the key
+  for the right brand. A brand-scoped key decides every price this storefront
+  shows and charges, and there is deliberately no per-request override.
+
+Everything else is optional and annotated in `.env.example` — read that file
+rather than duplicating it here.
+
+### Check it's really connected
+
+Working looks like this: the age gate appears, and once you pass it the home page
+shows **your actual products**, with their images and prices, plus the category
+chips from your catalog. Anything else means the app is running but not talking
+to the backend.
+
+To test the key by itself, with this app out of the picture:
+
+```bash
+curl -s -o /dev/null -w '%{http_code}\n' \
+  -H "Authorization: Bearer $KAMUI_STORE_API_KEY" \
+  https://app.kamui.digital/api/store/v1/products
+```
+
+| Code | Meaning |
+|---|---|
+| `200` | The key works. |
+| `401` | Wrong, mistyped, or revoked key. |
+| `403` | Real key, but it does not carry the `store` scope. |
+
+### If something doesn't work
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| Every page is **"We're temporarily closed"** | The server has no upstream config at all — one of the two vars is missing or `KAMUI_API_BASE_URL` isn't a valid absolute URL. | Check `.env.local`, then **restart `pnpm dev`** — env changes are not hot-reloaded. |
+| **"The shop is briefly unavailable"** on the home page | The app reached for the catalog and the call failed: bad key, wrong base URL, or the backend is down. | Run the curl above. The real reason is in the terminal as an `[upstream] … -> <code>` line — never on the page, by design (§6.6). |
+| curl says **401** | Key is wrong or has been revoked. | Mint a new one; `.env.local` values are pasted, so check for a trailing space or a truncated copy. |
+| curl says **403** | Key exists but lacks the `store` scope. | Mint a new key with the `store` scope; scopes cannot be added to an existing key. |
+| **"This store hasn't published any products yet"** and curl says 200 | The key is fine — the tenant genuinely has no active products. | Publish/activate products in the dashboard. |
+| Every product shows a **placeholder image** | Images route through `/api/img/*`, which allow-lists exactly the two upstream path shapes. If upstream changes that convention, every URL maps to `null`. | `curl -i http://localhost:3000/api/img/<filename>`; if it 404s, see §8.4. |
+| **Sign-in never sticks** — the code is accepted, then you're signed out | You are not on `localhost`. The session cookie is `__Host-` prefixed and `Secure` with no dev exception (`src/lib/session.ts`), so any plain-http origin that is *not* localhost has the cookie silently dropped by the browser. | Use `http://localhost:3000`. On a LAN IP or a shared dev box you need real TLS — a tunnel (`cloudflared`, `ngrok`) in front is enough. Set `SITE_ORIGIN` to the tunnel's URL so the CSRF check accepts it. |
+| **No SMS arrives** | Nothing this app controls — the backend sends it on the key's authority. | Check the store's SMS configuration in the dashboard. |
+| `429` on sign-in | The local rate limiter: 8 sends per client and 4 per phone number per 10 minutes (`src/app/api/auth/send-code/route.ts`). | Wait it out, or restart the dev server — the limiter is in-process memory. |
+
+**Why localhost specifically works:** Chrome, Firefox and Safari all treat
+`http://localhost` as a secure context, so they accept a `Secure` cookie there.
+No other plain-http origin gets that exemption.
 
 ---
 
@@ -239,7 +306,7 @@ government-issued ID and forwards it upstream.
    the tracking lookup are throttled in `src/lib/rate-limit.ts`, because our key
    can make the backend spend money on SMS. **It is per-process** — if you run
    more than one instance, move it to a shared store before treating it as a
-   security control.
+   security control. This constrains where the app may be hosted; see §7.6.
 9. **No client source maps** (`productionBrowserSourceMaps: false`), no
    `x-powered-by`, and `nosniff` / `DENY` / `strict-origin-when-cross-origin` /
    a restrictive `Permissions-Policy` on every response.
@@ -251,32 +318,185 @@ government-issued ID and forwards it upstream.
 
 ---
 
-## 7. Deploying
+## 7. Deploy
 
-`next.config.ts` sets `output: "standalone"`, so the build is self-contained:
+`next.config.ts` sets `output: "standalone"`, so `pnpm build` emits a
+self-contained Node server. The repo ships everything needed to run it on a
+container host:
+
+| File | What it is |
+|---|---|
+| `Dockerfile` | Three-stage production image (deps → build → runtime), Node 22 alpine, non-root. |
+| `.dockerignore` | Keeps `node_modules`, `.next`, `.git` and **every `.env*`** out of the build context. |
+| `railway.toml` | Railway service config: Dockerfile build, healthcheck, single replica. |
+| `src/app/api/health/route.ts` | Liveness endpoint that never touches upstream. |
+| `.github/workflows/ci.yml` | typecheck + build on push/PR to `main`. No secrets. |
 
 ```bash
-pnpm install --frozen-lockfile
-pnpm build
-# ship .next/standalone + .next/static + public (if you add one)
-node .next/standalone/server.js
+docker build -t yb-storefront .
+docker run --rm -p 3000:3000 \
+  -e KAMUI_API_BASE_URL=https://app.kamui.digital \
+  -e KAMUI_STORE_API_KEY=... \
+  yb-storefront
 ```
 
-A minimal Dockerfile, Railway/Fly/Render, or any Node host works. Requirements:
+### 7.1 Environment variables on the host
 
-- **Node 22+.**
-- **Environment variables set as secrets**, not baked into the image. `NEXT_PUBLIC_*`
-  values *are* baked in at build time, so a change to those requires a rebuild;
-  the secret ones are read at runtime and only need a restart.
-- **Serve over HTTPS.** The session cookie is `Secure`; without TLS there is no
-  session (and the API key would ride an unencrypted hop).
-- **Put it behind a proxy that sets `x-forwarded-for`.** The rate limiter keys on
-  it; exposed directly, that header is attacker-controlled.
-- If the proxy rewrites `Host`, set `SITE_ORIGIN` so the CSRF check knows the name
-  browsers actually use.
-- Health check: `GET /` returns 200 even when the backend is unreachable (it
-  renders the "closed" page), so point liveness checks at it and watch the logs
-  for `[upstream]` lines rather than treating 200 as "the catalog works".
+**Runtime secrets** — set these in the host's variable/secret store. They are read
+from `process.env` on every request, so changing one needs a **restart**, not a
+rebuild:
+
+| Variable | Required | Notes |
+|---|---|---|
+| `KAMUI_API_BASE_URL` | **yes** | `https://app.kamui.digital`. No trailing slash. Must be `https` when `NODE_ENV=production` — the app refuses to serve otherwise, because the key rides an `Authorization` header. Loopback is the one exemption, for smoke tests. |
+| `KAMUI_STORE_API_KEY` | **yes** | The `store`-scoped key (§2). Full-privilege: catalog, orders, coupons, **SMS on the store's account**. |
+| `SITE_ORIGIN` | if proxied | e.g. `https://shop.example.com`. Only needed when the proxy rewrites `Host`; the CSRF check needs the name browsers actually use. |
+| `KAMUI_API_TIMEOUT_MS` | no | Default 10000, clamped 1000–60000. |
+| `PORT` | no | Defaults to 3000. Railway injects its own; `server.js` honours it. |
+| `HOSTNAME` | **do not set** | Pinned to `0.0.0.0` in the Dockerfile. See §7.3. |
+
+**Build-time public values** — `NEXT_PUBLIC_*` is **inlined into browser
+JavaScript when the image is built**. Setting one at `docker run` or in the
+Railway dashboard does *nothing*; the value is already compiled into the client
+bundle. Changing any of them requires a **rebuild and redeploy**:
+
+| Variable | Notes |
+|---|---|
+| `NEXT_PUBLIC_SITE_NAME` | Header, titles, age gate. Unset → falls back to the upstream store name. |
+| `NEXT_PUBLIC_SITE_SHORT_NAME` | Defaults to `NEXT_PUBLIC_SITE_NAME`. |
+| `NEXT_PUBLIC_SITE_TAGLINE` | Hero subheading. |
+| `NEXT_PUBLIC_MIN_AGE` | Age shown before the upstream setting loads. Default 21. |
+
+They are exposed as Docker build args, so:
+
+```bash
+docker build --build-arg NEXT_PUBLIC_SITE_NAME="YB Cannabis Co." -t yb-storefront .
+```
+
+On Railway, set them as service variables *and* mark them as build-time — Railway
+passes service variables to the Docker build, so a plain variable works, but the
+value only takes effect on the next build.
+
+> The secrets are **not** build args, deliberately. A build arg is readable in
+> `docker history` forever, and `.dockerignore` excludes every `.env*` for the
+> same reason. The build never needs them: every route is server-rendered on
+> demand, so a credential-less build produces a byte-identical image.
+
+### 7.2 HTTPS is mandatory — this is the first-deploy failure
+
+The session cookie is `__Host-ybs_session`: `__Host-` prefixed, `Secure`,
+`SameSite=Lax`, `Path=/`, no `Domain`. There is **no development escape hatch** in
+`src/lib/session.ts` — `secure: true` is unconditional.
+
+Over plain `http://` on any host that is not `localhost`, the browser **silently
+discards** that cookie. The failure is not an error; it is worse. Sign-in appears
+to succeed, the SMS code is accepted, and the visitor lands back signed out. The
+age gate (`__Host-ybs_age`) does the same thing, so the gate re-prompts on every
+navigation. Nothing in the logs says why.
+
+Serve TLS, or nothing works. Railway, Fly and Render all terminate TLS for you;
+if you front the app with your own nginx/Caddy, terminate there and forward.
+
+Two related proxy settings:
+
+- **`x-forwarded-for` must be set by the proxy.** The rate limiter keys on it
+  (`src/lib/rate-limit.ts`). Exposed directly to the internet, that header is
+  attacker-supplied and the limiter becomes decorative.
+- **If the proxy rewrites `Host`, set `SITE_ORIGIN`.** Otherwise every mutating
+  request fails the CSRF origin check with a `403` — sign-in, checkout, the lot.
+
+### 7.3 The standalone `HOSTNAME` trap
+
+`.next/standalone/server.js` does:
+
+```js
+const currentPort = parseInt(process.env.PORT, 10) || 3000
+const hostname = process.env.HOSTNAME || '0.0.0.0'
+```
+
+Every container runtime sets `HOSTNAME` to the container id. So the default
+behaviour is that the server binds to a name resolving to nothing routable, the
+platform's health check never connects, and the deploy fails with no application
+error to look at. The `Dockerfile` pins `ENV HOSTNAME=0.0.0.0`, which wins over
+the runtime-injected value. **Do not set `HOSTNAME` as a service variable.**
+
+The other standalone trap: `.next/standalone` does **not** contain
+`.next/static` or `public/`. Copy both in, or the app boots and every stylesheet
+and script 404s. The `Dockerfile` copies all three trees; `pnpm start` mirrors
+the same layout locally, which is why it is not `next start` (that command
+prints a warning and does not serve a standalone build).
+
+### 7.4 Health check
+
+`GET /api/health` → `200 {"status":"ok","uptime":<seconds>}`.
+
+It answers from this process alone: no upstream call, no config read, no cookie.
+That is the point. A health check that reaches the commerce API converts *their*
+outage into *our* restart loop — the platform kills a healthy container, the
+replacement fails the same check, and the storefront serves 502 instead of its
+"temporarily closed" page. Whether upstream is reachable is a monitoring
+question: watch the `[upstream]` log lines.
+
+`GET /` also returns 200 when the backend is unreachable, but it renders the
+whole shell to do it. Point liveness at `/api/health`.
+
+### 7.5 Railway
+
+`railway.toml` configures the build and the healthcheck, so:
+
+1. Create a service from the GitHub repo. Railway reads `railway.toml` and builds
+   the `Dockerfile` — no start command to set, no Nixpacks guessing.
+2. **Variables** → add `KAMUI_API_BASE_URL` and `KAMUI_STORE_API_KEY`, plus any
+   `NEXT_PUBLIC_*` you want baked in.
+3. Deploy. Watch for the healthcheck on `/api/health` to go green.
+4. **Custom domain:** service → **Settings → Networking → Custom Domain**, enter
+   e.g. `shop.example.com`, then add the `CNAME` Railway shows you at your DNS
+   provider. **TLS is automatic** — Railway provisions and renews the certificate
+   once the CNAME resolves; there is nothing to install. Apex domains need your
+   DNS provider to support ALIAS/ANAME flattening (Cloudflare, Route 53 and
+   Netlify DNS do).
+5. Once the domain is live, set `SITE_ORIGIN=https://shop.example.com`.
+
+`numReplicas = 1` is set on purpose — see §7.6.
+
+### 7.6 Serverless hosts (Vercel, Lambda, Cloud Run scale-to-zero): a real caveat
+
+This app builds and deploys fine on Vercel. One security control degrades, and
+you should decide about it consciously rather than discover it on an invoice.
+
+`src/lib/rate-limit.ts` is a fixed-window limiter held in **process memory**. It
+guards `/api/auth/send-code` (8 per client, 4 per phone, per 10 min),
+`/api/auth/verify-code`, and the tracking lookup. `send-code` makes the backend
+**send an SMS on the store's account**, so the limiter is standing between an
+open endpoint and a phone bill.
+
+On a long-running container, one process owns the counters and the limit means
+what it says. On a serverless platform each invocation may land in a fresh
+instance with empty counters, and platforms scale out precisely when traffic
+spikes — which is exactly the attack. Ten warm instances is ten times the budget;
+an attacker who paces requests to force cold starts gets no effective limit at
+all. The same applies to a container host scaled past one replica, which is why
+`railway.toml` pins `numReplicas = 1`.
+
+**Recommendation: run it as a long-running container** (Railway, Fly, Render,
+Cloud Run with `min-instances=1`), single replica, until the limiter is shared.
+
+**To make serverless — or multiple replicas — viable**, move the counters to
+shared storage: swap the `Map` in `src/lib/rate-limit.ts` for Redis (`INCR` +
+`EXPIRE` is the whole implementation) or Upstash. The call sites take a key and a
+window and do not care where the count lives; `rateLimit()` becoming `async` is
+the only ripple. Do that first, then scale.
+
+### 7.7 Before you launch: search engines
+
+`src/app/layout.tsx` sets `robots: { index: false, follow: false }` in the
+exported `metadata`. Every page ships `<meta name="robots" content="noindex,
+nofollow">` and **nothing will appear in Google**.
+
+That is intentional for a store that is not open yet. To launch, change that one
+line to `robots: { index: true, follow: true }` (or delete the key — indexing is
+the Next default) and redeploy. Do it once the real domain, hours, and legal
+pages are in place, not before.
 
 ---
 
@@ -367,4 +587,4 @@ same seams:
 - Automated tests. The types and flows were verified against a stub of the
   upstream API during development, but no test suite ships in this repo.
 - `robots` is set to `noindex` in `src/app/layout.tsx`. Flip it when the real
-  domain, hours and legal pages are in place.
+  domain, hours and legal pages are in place — see §7.7.
