@@ -19,6 +19,34 @@ import { upstreamOrigin } from "./env";
 
 const UPLOADS_PREFIX = "/api/uploads";
 const PROXY_PREFIX = "/api/img";
+/** Sub-path under PROXY_PREFIX for foreign-CDN images. */
+const EXT_SEGMENT = "ext";
+
+/**
+ * Hosts whose images we are willing to fetch on a visitor's behalf.
+ *
+ * Why an allow-list and not "any https URL the catalog gives us": this route
+ * fetches a URL chosen by data we do not own. Left open it is an SSRF primitive
+ * (point it at 169.254.169.254 or an internal service) and a free bandwidth
+ * relay. Closed by default; an unknown host is refused, never passed through.
+ *
+ * Configurable because suppliers change — a new CDN should be an env edit, not
+ * a deploy of new code.
+ */
+function allowedImageHosts(): Set<string> {
+  const raw = process.env.IMAGE_PROXY_ALLOWED_HOSTS ?? "images.weedmaps.com";
+  return new Set(
+    raw
+      .split(",")
+      .map((h) => h.trim().toLowerCase())
+      .filter(Boolean),
+  );
+}
+
+/** Exact host match only. A suffix match would let `evil-images.weedmaps.com.attacker.tld` through. */
+export function isAllowedImageHost(host: string): boolean {
+  return allowedImageHosts().has(host.toLowerCase());
+}
 
 /** Path segments are filenames, never traversal. Upstream validates too; we do
  *  not rely on that — this route must not become an open proxy. */
@@ -42,9 +70,15 @@ function segmentsFromUploadPath(pathname: string): string[] | null {
  *
  * - relative upload path            -> /api/img/... (proxied)
  * - absolute URL on the upstream    -> /api/img/... (proxied, host stripped)
- * - absolute URL somewhere else     -> passed through (a third-party CDN says
- *                                      nothing about our backend)
+ * - absolute URL on an ALLOWED CDN  -> /api/img/ext/... (proxied)
+ * - absolute URL anywhere else      -> null (refused, placeholder shown)
  * - anything else / unparseable     -> null, and the UI shows a placeholder
+ *
+ * Foreign CDNs used to be passed through on the reasoning that a third-party
+ * host says nothing about our backend. True, but it says something about our
+ * VISITOR: their IP reaches that CDN on every catalog page, and the CDN learns
+ * the catalog's provenance. The whole point of this app is that a browser here
+ * talks to this origin and nothing else, so those go through the proxy too.
  */
 export function toPublicImageUrl(raw: string | null | undefined): string | null {
   if (!raw) return null;
@@ -75,7 +109,42 @@ export function toPublicImageUrl(raw: string | null | undefined): string | null 
     const segments = segmentsFromUploadPath(url.pathname);
     return segments ? `${PROXY_PREFIX}/${segments.join("/")}` : null;
   }
-  return url.toString();
+
+  if (!isAllowedImageHost(url.hostname)) return null;
+  // base64url: no "/", "+" or "=", so it survives a path segment untouched.
+  const encoded = Buffer.from(url.toString(), "utf8").toString("base64url");
+  return `${PROXY_PREFIX}/${EXT_SEGMENT}/${encoded}`;
+}
+
+/**
+ * Decode an /api/img/ext/<b64url> request back to the URL to fetch.
+ *
+ * Re-validates from scratch rather than trusting that we minted it — the value
+ * arrives from the client and a signature would be the only proof of origin.
+ * Returns null on anything not an http(s) URL on an allow-listed host.
+ */
+export function externalUrlForProxy(segments: string[]): URL | null {
+  if (segments.length !== 2 || segments[0] !== EXT_SEGMENT) return null;
+  const encoded = segments[1];
+  if (!encoded || encoded.length > 2048 || !/^[A-Za-z0-9_-]+$/.test(encoded)) return null;
+
+  let decoded: string;
+  try {
+    decoded = Buffer.from(encoded, "base64url").toString("utf8");
+  } catch {
+    return null;
+  }
+
+  let url: URL;
+  try {
+    url = new URL(decoded);
+  } catch {
+    return null;
+  }
+  if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+  if (url.username || url.password) return null; // credentials-in-URL is never legitimate here
+  if (!isAllowedImageHost(url.hostname)) return null;
+  return url;
 }
 
 /**
