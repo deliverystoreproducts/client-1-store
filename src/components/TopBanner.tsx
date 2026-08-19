@@ -18,7 +18,11 @@ export function TopBanner() {
   return (
     <Link href={href} className="topbar">
       <span className="topbar-badge">YB</span>
-      <span className="topbar-text">{text}</span>
+      {/* The marquee slides INSIDE this window; without it the 100%-padded
+          text becomes a full-bar flex item and shoves the badge off-screen. */}
+      <span className="topbar-track">
+        <span className="topbar-text">{text}</span>
+      </span>
       <span aria-hidden>→</span>
     </Link>
   );
