@@ -231,12 +231,40 @@ export function CheckoutView({
           We verify your number by text so the driver can reach you. Payment is cash on delivery —
           nothing is charged online.
         </p>
-        <div className="mt-2">
-          <SignInFlow
-            onSignedIn={onSignedIn}
-            requireIdPhoto={requireIdPhoto}
-            initialStep={session.pendingRegistration ? "profile" : "phone"}
-          />
+        <div className="plain-grid">
+          <div className="mt-2">
+            <SignInFlow
+              onSignedIn={onSignedIn}
+              requireIdPhoto={requireIdPhoto}
+              initialStep={session.pendingRegistration ? "profile" : "phone"}
+            />
+          </div>
+          {/* The basket stays VISIBLE while the shopper hands over their phone
+              number (audit #4): asking for identity while hiding the thing
+              being bought is the peak-anxiety moment of the funnel. Read-only —
+              the promo box and totals-with-taxes belong to the signed-in view. */}
+          {cart && cart.lines.length > 0 ? (
+            <aside className="plain-box" aria-label="Order summary">
+              <h2>Your order</h2>
+              <div className="mb-2">
+                {cart.lines.map((l) => (
+                  <div className="plain-summary-line" key={l.productId}>
+                    <span>
+                      {l.quantity} × {l.name}
+                    </span>
+                    <span>{formatUsd(l.lineTotal)}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="totals">
+                <div className="grand">
+                  <span>Estimated total</span>
+                  <span>{formatUsd(cart.estimatedTotal)}</span>
+                </div>
+              </div>
+              <p className="faint mt-1">Taxes shown at the next step. Cash at the door.</p>
+            </aside>
+          ) : null}
         </div>
       </div>
     );

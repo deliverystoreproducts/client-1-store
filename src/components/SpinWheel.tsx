@@ -332,12 +332,16 @@ export function SpinWheel() {
               >
                 {copied ? "Copied ✓" : "Copy code"}
               </button>
-              <Link className="btn btn-ghost btn-sm" href="/cart" onClick={() => setOpen(false)}>
-                Use it in your cart
+              <Link
+                className="btn btn-ghost btn-sm"
+                href="/checkout"
+                onClick={() => setOpen(false)}
+              >
+                Apply it at checkout
               </Link>
             </div>
             <p className="spin-fine">
-              Enter it in the promo box at the cart. Good for 7 days, one per phone number.
+              Enter it in the promo box at checkout. Good for 7 days, one per phone number.
             </p>
           </div>
         ) : null}
@@ -346,7 +350,7 @@ export function SpinWheel() {
           <div className="spin-result" role="status">
             <p>
               This number already has its discount — check your texts for the code, and the promo
-              box in <Link className="link" href="/cart">your cart</Link> is where it goes.
+              box at <Link className="link" href="/checkout">checkout</Link> is where it goes.
             </p>
           </div>
         ) : null}

@@ -1380,23 +1380,34 @@ body::after {
   margin-bottom: 1.8rem;
 }
 
-/* On phones the buy control rides the bottom of the screen while the shopper
-   reads — the single highest-value ecommerce affordance a PDP can add. Sticky
-   (not fixed), so it never covers the footer or the mandated warnings; it
-   simply stops at its container's end. Desktop is untouched. */
+/* The phone follow bar. Rendered as the LAST child of the buy column, because
+   sticky+bottom only clamps an element whose natural position is still below
+   the viewport — the top-of-column button could never engage (audit B1).
+   Sticky, never fixed: it parks at the column's end and cannot cover the
+   mandated warnings or the footer. */
+.detail-follow {
+  display: none;
+}
+
 @media (max-width: 899px) {
-  .detail-buy {
+  .detail-follow {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
     position: sticky;
     bottom: 0.75rem;
     z-index: 5;
-    max-width: none;
     background: color-mix(in srgb, var(--ground-raise) 92%, transparent);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border: 1px solid var(--rule);
     border-radius: 10px;
-    padding: 0.7rem;
+    padding: 0.6rem 0.6rem 0.6rem 1rem;
     box-shadow: var(--lift);
+    animation: rise 0.4s var(--ease) both;
+  }
+  .detail-follow .btn {
+    flex: 1;
   }
 }
 

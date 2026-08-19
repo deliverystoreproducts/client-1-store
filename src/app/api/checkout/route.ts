@@ -115,7 +115,7 @@ export async function POST(req: Request): Promise<Response> {
     const limits = await assessDailyLimitsForCheckout(items, token);
     if (limits.exceeded.length > 0) {
       return fail(400, "daily_limit_exceeded", {
-        message: limits.exceeded.map(describeBreach).join(" "),
+        message: limits.exceeded.map((k) => describeBreach(k, limits)).join(" "),
       });
     }
   } catch (e) {

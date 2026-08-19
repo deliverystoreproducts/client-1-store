@@ -13,12 +13,14 @@ export const dynamic = "force-dynamic";
 
 const PAGE_SIZE = 24;
 
+// The default is HONEST: it says Newest and it IS newest. It used to say
+// "Featured" while upstream defaulted to name-ASC, which made the shop window
+// an ASCII wall of near-identical "$100 Ounce of the Day" rows (audit B3).
 const SORTS = [
-  { value: "", label: "Featured" },
+  { value: "", label: "Newest first" },
   { value: "price_asc", label: "Price: low to high" },
   { value: "price_desc", label: "Price: high to low" },
   { value: "name_asc", label: "Name A–Z" },
-  { value: "newest", label: "Newest" },
 ] as const;
 
 function param(sp: Record<string, string | string[] | undefined>, key: string): string {
@@ -44,7 +46,7 @@ export default async function HomePage({
   const [profile, categories, results] = await Promise.all([
     getStoreProfile(),
     getCategories(),
-    getCatalogPage({ search, categoryId, sort, page, limit: PAGE_SIZE }),
+    getCatalogPage({ search, categoryId, sort: sort ?? "newest", page, limit: PAGE_SIZE }),
   ]);
 
   const pageHref = (n: number) => {

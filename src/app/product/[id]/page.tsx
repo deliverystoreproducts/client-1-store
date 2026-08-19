@@ -244,6 +244,17 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
           <p className="faint mt-3">
             Pay cash when your order arrives. Valid {profile.minAge}+ ID required at the door.
           </p>
+
+          {/* The follow bar, phones only. sticky+bottom only clamps an element
+              whose flow position is still BELOW the viewport — the buy button
+              at the TOP of this column could never engage (audit B1). Last
+              child of the column, so it rides the screen edge through the
+              description, warnings and specs, then parks at the column's end
+              without ever covering the footer. */}
+          <div className="detail-follow">
+            <span className="price num">{formatUsd(product.unitPrice)}</span>
+            <AddToCartButton productId={product.id} disabled={!product.available} small />
+          </div>
         </div>
       </div>
 

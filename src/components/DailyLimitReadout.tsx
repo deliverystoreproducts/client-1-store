@@ -48,7 +48,7 @@ export function DailyLimitReadout({
     return (
       <div className={`notice notice-error ${className ?? ""}`} role="alert">
         <strong>Over the state daily limit.</strong>{" "}
-        {exceeded.map((kind) => describeBreach(kind)).join(" ")}
+        {exceeded.map((kind) => describeBreach(kind, assessment)).join(" ")}
       </div>
     );
   }

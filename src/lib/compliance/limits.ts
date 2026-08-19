@@ -425,13 +425,20 @@ function round2(n: number): number {
   return Math.round(n * 100) / 100;
 }
 
-/** One sentence per breach, in the customer's language, citing the rule. */
-export function describeBreach(kind: LimitBreach): string {
+/** One sentence per breach, in the customer's language, citing the rule.
+ *  Pass the assessment so the sentence can say HOW FAR over the cart is —
+ *  "remove some flower" with no numbers was the audit's #5: a mandatory wall
+ *  that told the shopper nothing actionable. */
+export function describeBreach(kind: LimitBreach, a?: DailyLimitAssessment): string {
   switch (kind) {
-    case "non_concentrated":
-      return `California limits one customer to ${DAILY_LIMIT_NON_CONCENTRATED_GRAMS} g of non-concentrated cannabis per day (4 CCR § 15409). Please remove some flower before checking out.`;
-    case "concentrate":
-      return `California limits one customer to ${DAILY_LIMIT_CONCENTRATE_GRAMS} g of cannabis concentrate per day (4 CCR § 15409). Please remove some concentrate before checking out.`;
+    case "non_concentrated": {
+      const counted = a ? ` This cart counts at least ${round2(a.nonConcentratedGrams)} g.` : "";
+      return `California limits one customer to ${DAILY_LIMIT_NON_CONCENTRATED_GRAMS} g of non-concentrated cannabis per day (4 CCR § 15409).${counted} Please remove some flower before checking out.`;
+    }
+    case "concentrate": {
+      const counted = a ? ` This cart counts at least ${round2(a.concentrateGrams)} g.` : "";
+      return `California limits one customer to ${DAILY_LIMIT_CONCENTRATE_GRAMS} g of cannabis concentrate per day (4 CCR § 15409).${counted} Please remove some concentrate before checking out.`;
+    }
     case "immature_plants":
       return `California limits one customer to ${DAILY_LIMIT_IMMATURE_PLANTS} immature cannabis plants per day (4 CCR § 15409).`;
   }
