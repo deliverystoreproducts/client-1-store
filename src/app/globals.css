@@ -1030,7 +1030,7 @@ body::after {
   grid-template-columns: minmax(0, 1fr);
   gap: 0.9rem;
   align-items: end;
-  margin-bottom: 1rem;
+  margin-bottom: 0.7rem;
 }
 
 /* Below this the search field and the sort control cannot share a row without
@@ -1043,6 +1043,36 @@ body::after {
 
 .rail form {
   display: contents;
+}
+
+/* The sort control in the rail speaks the same ruled-line language as the
+   search beside it — a white browser box was the one element on the page from
+   another design system (owner flagged it). */
+.select-quiet {
+  min-height: 46px;
+  width: auto;
+  background-color: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--rule-hi);
+  border-radius: 0;
+  padding-left: 0.1rem;
+  color: var(--pine-2);
+  font-size: var(--t--1);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: border-color 0.2s var(--ease), color 0.2s var(--ease);
+}
+
+.select-quiet:hover {
+  color: var(--pine);
+  border-bottom-color: var(--fern);
+}
+
+.select-quiet:focus-visible {
+  outline: none;
+  border-bottom-color: var(--fern);
+  color: var(--pine);
 }
 
 /* Search as a ruled line, not a box — the catalogue idiom. */

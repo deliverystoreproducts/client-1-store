@@ -170,9 +170,9 @@ export default async function HomePage({
               type="search"
               name="q"
               defaultValue={search}
-              placeholder="Search flower, edibles, brands…"
+              placeholder="Search the shelf…"
             />
-            <button className="btn btn-sm" type="submit">
+            <button className="btn btn-ghost btn-sm" type="submit">
               Search
             </button>
           </div>
@@ -181,7 +181,7 @@ export default async function HomePage({
             <label className="sr-only" htmlFor="sort">
               Sort products
             </label>
-            <select className="select" id="sort" name="sort" defaultValue={sortRaw}>
+            <select className="select select-quiet" id="sort" name="sort" defaultValue={sortRaw}>
               {SORTS.map((s) => (
                 <option key={s.value || "default"} value={s.value}>
                   {s.label}
