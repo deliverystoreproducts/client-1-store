@@ -27,6 +27,7 @@ const shortName = process.env.NEXT_PUBLIC_SITE_SHORT_NAME || "YB";
 export function InstallPrompt() {
   const [mode, setMode] = useState<"hidden" | "android" | "ios">("hidden");
   const [bip, setBip] = useState<BipEvent | null>(null);
+  const [canShare, setCanShare] = useState(false);
 
   useEffect(() => {
     if (window.matchMedia("(display-mode: standalone)").matches) return;
@@ -48,7 +49,10 @@ export function InstallPrompt() {
     const ios =
       /iphone|ipod|ipad/i.test(navigator.userAgent) ||
       (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-    if (ios) timer = window.setTimeout(() => setMode("ios"), SHOW_DELAY_MS);
+    if (ios) {
+      setCanShare(typeof navigator.share === "function");
+      timer = window.setTimeout(() => setMode("ios"), SHOW_DELAY_MS);
+    }
 
     return () => {
       window.removeEventListener("beforeinstallprompt", onBip);
@@ -74,6 +78,18 @@ export function InstallPrompt() {
     } catch {}
   };
 
+  // iOS has no install API, but a button tap MAY open the real share sheet —
+  // and "Add to Home Screen" lives inside it. Cancelling the sheet throws;
+  // that is not an error and the card stays for another try.
+  const openShareSheet = async () => {
+    try {
+      await navigator.share({
+        title: document.title,
+        url: window.location.origin + "/",
+      });
+    } catch {}
+  };
+
   return (
     <div className="install-bar" role="dialog" aria-label="Add to home screen">
       <img className="install-icon" src="/icons/icon-192.png" alt="" width={40} height={40} />
@@ -81,6 +97,10 @@ export function InstallPrompt() {
         <strong>Keep {shortName} on your home screen</strong>
         {mode === "android" ? (
           <span>One tap to install — opens full screen, like an app.</span>
+        ) : canShare ? (
+          <span>
+            Tap <strong>Add now</strong>, then choose <strong>Add to Home Screen</strong>.
+          </span>
         ) : (
           <span>
             Tap{" "}
@@ -106,6 +126,11 @@ export function InstallPrompt() {
       {mode === "android" && (
         <button className="btn btn-sm" onClick={install}>
           Install
+        </button>
+      )}
+      {mode === "ios" && canShare && (
+        <button className="btn btn-sm" onClick={openShareSheet}>
+          Add now
         </button>
       )}
       <button className="install-close" aria-label="Not now" onClick={snooze}>
