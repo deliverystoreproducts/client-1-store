@@ -88,16 +88,24 @@ export default async function HomePage({
   const activeCategory = categories.find((c) => c.id === categoryId);
   const firstOnPage = (page - 1) * PAGE_SIZE;
 
+  const heroSrc = profile.heroImage ?? toPublicImageUrl(DEFAULT_HERO_IMAGE);
+
   return (
     <>
       {!browsing ? (
         <section className="hero" data-media="true">
-          {(profile.heroImage ?? toPublicImageUrl(DEFAULT_HERO_IMAGE)) ? (
-            <div
-              className="hero-media"
-              aria-hidden
-              style={{ backgroundImage: `url(${profile.heroImage ?? toPublicImageUrl(DEFAULT_HERO_IMAGE)})` }}
-            />
+          {heroSrc ? (
+            <>
+              {/* The hero is a CSS background, invisible to the preload
+                  scanner until style resolution — this link starts the fetch
+                  with the document instead (React hoists it into <head>). */}
+              <link rel="preload" as="image" fetchPriority="high" href={heroSrc} />
+              <div
+                className="hero-media"
+                aria-hidden
+                style={{ backgroundImage: `url(${heroSrc})` }}
+              />
+            </>
           ) : null}
 
           <div className="hero-body">

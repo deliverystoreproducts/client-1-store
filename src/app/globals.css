@@ -329,14 +329,17 @@ body::after {
   }
 }
 
+/* Timings measured against LCP: an element animating up from opacity 0 does
+   not paint until the animation lets it, so the intro IS the LCP tax. The
+   0.45s/40ms pair keeps the staged feel at roughly half the original cost. */
 [data-reveal] {
-  animation: rise 0.72s var(--ease) both;
-  animation-delay: calc(var(--i, 0) * 65ms);
+  animation: rise 0.45s var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 40ms);
 }
 
 [data-reveal="rule"] {
-  animation: wipe 0.9s var(--ease) both;
-  animation-delay: calc(var(--i, 0) * 65ms);
+  animation: wipe 0.6s var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 40ms);
   transform-origin: left center;
 }
 

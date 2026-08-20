@@ -23,8 +23,13 @@ export const metadata: Metadata = {
   },
   description: SITE_TAGLINE,
   // No indexing by default: a store should opt in to search engines once its
-  // real domain, hours and legal pages are in place.
-  robots: { index: false, follow: false },
+  // real domain, hours and legal pages are in place. Launch day flips ONE env
+  // var (SEO_INDEX=on) — until then this is also the single deliberate
+  // Lighthouse SEO failure.
+  robots:
+    process.env.SEO_INDEX === "on"
+      ? { index: true, follow: true }
+      : { index: false, follow: false },
   // Installed-app identity for iOS (Android reads the manifest).
   appleWebApp: {
     capable: true,
