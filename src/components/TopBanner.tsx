@@ -5,42 +5,31 @@ import Link from "next/link";
 /**
  * The announcement bar. One line, one action.
  *
- * DEFAULT: advertises the wheel and OPENS it on click (owner's call): if the
- * visitor hasn't spun today the modal appears; if they have, it shows today's
- * code and the once-per-day rule. A custom campaign (NEXT_PUBLIC_ANNOUNCEMENT
- * + _HREF) stays a plain link, and its truth stays the operator's job -
- * an untrue discount claim is a § 26154 problem. "off" hides the bar.
+ * DEFAULT: the standing online-order promo — a flat percentage with a code,
+ * redeemed through the existing checkout promo box (which also accepts
+ * /checkout?promo=CODE links). The wheel this replaced is gone: a chance
+ * mechanic on a licensed product was a standing counsel question; a flat,
+ * always-true discount is not. TRUTH IS OPERATOR DUTY: the code advertised
+ * here must exist in the dashboard (Coupons → reusable percent coupon) —
+ * an untrue discount claim is a § 26154 problem. A custom campaign
+ * (NEXT_PUBLIC_ANNOUNCEMENT + _HREF) overrides; "off" hides the bar.
  */
+const PROMO_CODE = process.env.NEXT_PUBLIC_PROMO_CODE || "WEB10";
+
 export function TopBanner() {
   const text = (process.env.NEXT_PUBLIC_ANNOUNCEMENT || "").trim();
   const href = (process.env.NEXT_PUBLIC_ANNOUNCEMENT_HREF || "").trim();
   if (text === "off") return null;
 
-  if (text) {
-    return (
-      <Link href={href || "/#catalogue"} className="topbar">
-        <span className="topbar-badge">YB</span>
-        <span className="topbar-track">
-          <span className="topbar-text">{text}</span>
-        </span>
-        <span aria-hidden>→</span>
-      </Link>
-    );
-  }
-
   return (
-    <button
-      type="button"
-      className="topbar"
-      onClick={() => window.dispatchEvent(new CustomEvent("ybs:open-spin"))}
-    >
+    <Link href={text ? href || "/#catalogue" : "/#catalogue"} className="topbar">
       <span className="topbar-badge">YB</span>
       <span className="topbar-track">
         <span className="topbar-text">
-          Spin the wheel — every spin takes a percentage off · one spin per day
+          {text || `10% off every online order — code ${PROMO_CODE} at checkout`}
         </span>
       </span>
       <span aria-hidden>→</span>
-    </button>
+    </Link>
   );
 }

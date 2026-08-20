@@ -71,7 +71,7 @@ export function CheckoutView({
   const [coupon, setCoupon] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState("");
 
-  // A wheel win arrives as /checkout?promo=CODE. Prefill AND apply — the
+  // Promo links arrive as /checkout?promo=CODE. Prefill AND apply — the
   // "Apply it at checkout" button must mean applied, not "now retype it"
   // (owner found the gap). window.location in a mount effect rather than
   // useSearchParams: no Suspense-boundary requirement, runs client-only.
