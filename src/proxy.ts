@@ -71,6 +71,12 @@ export const config = {
    *              are same-origin fetches from pages that are already gated.
    *   /_next/* — build output.
    *   /fonts/* — the self-hosted webfaces; the gate itself needs them.
+   *   PWA plumbing — manifest, sw.js, offline page, icons: fetched by the
+   *     browser/worker without a person navigating; rewriting any of them to
+   *     the gate's HTML breaks install (wrong MIME) while gating nothing —
+   *     none of them carry catalogue data.
    */
-  matcher: ["/((?!api|_next/static|_next/image|fonts|favicon.ico|icon.svg|robots.txt).*)"],
+  matcher: [
+    "/((?!api|_next/static|_next/image|fonts|favicon.ico|icon.svg|robots.txt|manifest.webmanifest|sw.js|offline.html|icons/|apple-icon.png).*)",
+  ],
 };

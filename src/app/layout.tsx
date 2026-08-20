@@ -8,6 +8,7 @@ import { SpinWheel } from "@/components/SpinWheel";
 import { SiteHeader } from "@/components/SiteHeader";
 import { TopBanner } from "@/components/TopBanner";
 import { StoreUnavailable } from "@/components/StoreUnavailable";
+import { SwRegister } from "@/components/SwRegister";
 import { isUpstreamConfigured } from "@/lib/kamui/env";
 import { OPEN_ROUTE_HEADER } from "@/lib/open-routes";
 import { hasPassedAgeGate } from "@/lib/session";
@@ -24,10 +25,19 @@ export const metadata: Metadata = {
   // No indexing by default: a store should opt in to search engines once its
   // real domain, hours and legal pages are in place.
   robots: { index: false, follow: false },
+  // Installed-app identity for iOS (Android reads the manifest).
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: process.env.NEXT_PUBLIC_SITE_SHORT_NAME || "YB",
+  },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#f7f2e6",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f6fbf2" },
+    { media: "(prefers-color-scheme: dark)", color: "#120b1e" },
+  ],
   width: "device-width",
   initialScale: 1,
 };
@@ -214,6 +224,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <SpinWheel />
           </CartProvider>
         )}
+        <SwRegister />
       </body>
     </html>
   );
