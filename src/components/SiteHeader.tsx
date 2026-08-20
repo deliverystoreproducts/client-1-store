@@ -53,7 +53,7 @@ export function SiteHeader({
           ) : (
             <span className="brand-seal" aria-hidden />
           )}
-          {storeName}
+          <span className="brand-name">{storeName}</span>
         </Link>
 
         <nav className="nav" aria-label="Main">
