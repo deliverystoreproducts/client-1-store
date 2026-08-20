@@ -82,6 +82,33 @@ export async function getStoreProfile(): Promise<PublicStoreProfile> {
   }
 }
 
+export interface BannerPromo {
+  code: string;
+  label: string;
+}
+
+/**
+ * The standing banner promo, or null. The banner advertises ONLY a coupon
+ * that actually exists upstream and is still valid — an untrue discount claim
+ * is a § 26154 problem, so truth is enforced here instead of being left as an
+ * operator duty: no coupon (or expired, or personal, or non-monetary) means
+ * no banner. Never throws.
+ */
+export async function getBannerPromo(): Promise<BannerPromo | null> {
+  const code = (process.env.PROMO_CODE || "WEB10").trim().toUpperCase();
+  if (!code || code === "OFF") return null;
+  try {
+    const c = await api.lookupCoupon(code);
+    if (!c.valid || typeof c.value !== "number" || c.value <= 0) return null;
+    if (c.type === "percent") return { code, label: `${c.value}% off every online order` };
+    if (c.type === "fixed") return { code, label: `$${c.value} off every online order` };
+    return null;
+  } catch (e) {
+    logPageFailure("banner-promo", e);
+    return null;
+  }
+}
+
 /** True when we could not reach the backend at all — used to route to /unavailable. */
 export async function storeIsReachable(): Promise<boolean> {
   try {

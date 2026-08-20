@@ -395,4 +395,22 @@ export function validateCoupon(
   });
 }
 
+export interface CouponLookupResponseV1 {
+  valid: boolean;
+  type?: string;
+  value?: number;
+}
+
+/**
+ * GET /coupon/lookup?code=… — a coupon's terms, no cart and no session needed.
+ * The banner uses it so it only ever advertises a promo that actually exists
+ * upstream and is still redeemable.
+ */
+export function lookupCoupon(code: string): Promise<CouponLookupResponseV1> {
+  return call<CouponLookupResponseV1>(
+    "GET",
+    `${API_PREFIX}/coupon/lookup?code=${encodeURIComponent(code)}`,
+  );
+}
+
 export type { CheckoutErrorBodyV1 };

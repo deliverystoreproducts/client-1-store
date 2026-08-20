@@ -12,7 +12,7 @@ import { SwRegister } from "@/components/SwRegister";
 import { isUpstreamConfigured } from "@/lib/kamui/env";
 import { OPEN_ROUTE_HEADER } from "@/lib/open-routes";
 import { hasPassedAgeGate } from "@/lib/session";
-import { getStoreProfile } from "@/lib/store";
+import { getBannerPromo, getStoreProfile } from "@/lib/store";
 import { LICENSE_PLACEHOLDER, MISSING, SITE_TAGLINE } from "@/lib/site";
 import { DELIVERY_WINDOW_LABEL } from "@/lib/hours";
 
@@ -70,6 +70,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // rather than a shop whose every shelf happens to be empty.
   const configured = isUpstreamConfigured();
   const profile = await getStoreProfile();
+  const promo = await getBannerPromo();
   const storeName =
     process.env.NEXT_PUBLIC_SITE_NAME || profile.storeName || "YB Cannabis Co.";
   const passedGate = await hasPassedAgeGate();
@@ -143,7 +144,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         ) : (
           <CartProvider>
             <div className="shell">
-              <TopBanner />
+              <TopBanner promo={promo} />
               <SiteHeader storeName={storeName} logo={profile.logo} />
               <main className="main">
                 <div className="wrap">{children}</div>
