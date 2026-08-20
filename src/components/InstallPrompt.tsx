@@ -6,16 +6,21 @@ import { useEffect, useState } from "react";
  * The home-screen nudge. Two platforms, two truths:
  *   - Android (Chrome) fires `beforeinstallprompt`; we stash it and offer a
  *     real one-tap Install button.
- *   - iOS Safari has no install API at all — the only path is Share → "Add to
- *     Home Screen", so we can only teach it.
- * Shows on coarse-pointer devices only (desktop Chrome has its own omnibox
- * install UI), never inside an already-installed app, waits out the spin
- * wheel's opening moment, and a dismissal sleeps for two weeks.
+ *   - iOS has no install API — and the share sheet a page can OPEN
+ *     (navigator.share) is the generic URL sheet, which does NOT carry
+ *     "Add to Home Screen". Field-verified on device: an "Add now" button
+ *     opened a sheet where the action simply wasn't. The action lives ONLY in
+ *     the sheet behind the BROWSER'S OWN share button, so teaching where that
+ *     button is — per browser — is the honest best.
+ * Shows immediately on the first post-gate page (the layout mounts this only
+ * past the age check, so it can never front-run it), coarse-pointer devices
+ * only, never inside an installed app, and a dismissal sleeps for two weeks.
  */
 
 const SNOOZE_KEY = "ybs.install.snooze";
 const SNOOZE_MS = 14 * 24 * 60 * 60 * 1000;
-const SHOW_DELAY_MS = 22_000;
+/** A beat for the page to settle so the rise reads as an arrival, not a pop-in. */
+const SHOW_DELAY_MS = 500;
 
 type BipEvent = Event & {
   prompt: () => Promise<void>;
@@ -27,7 +32,7 @@ const shortName = process.env.NEXT_PUBLIC_SITE_SHORT_NAME || "YB";
 export function InstallPrompt() {
   const [mode, setMode] = useState<"hidden" | "android" | "ios" | "embedded">("hidden");
   const [bip, setBip] = useState<BipEvent | null>(null);
-  const [canShare, setCanShare] = useState(false);
+  const [iosHint, setIosHint] = useState<"safari" | "chrome" | "other">("other");
 
   useEffect(() => {
     if (window.matchMedia("(display-mode: standalone)").matches) return;
@@ -45,10 +50,10 @@ export function InstallPrompt() {
     // Embedded in-app browsers (Instagram, FB, TikTok, ...) have NO install
     // surface on either platform: beforeinstallprompt never fires in Android
     // webviews, and iOS webview share sheets don't carry Add to Home Screen —
-    // offering "Add now" there is a dead promise. Named tokens first; the iOS
-    // fallback heuristic is a webview tell (real iOS browsers — Safari,
-    // CriOS/FxiOS/EdgiOS — all end their UA with a Safari/ token, embedded
-    // WKWebViews don't).
+    // teaching the share button there is a dead promise. Named tokens first;
+    // the iOS fallback heuristic is a webview tell (real iOS browsers —
+    // Safari, CriOS/FxiOS/EdgiOS — all end their UA with a Safari/ token,
+    // embedded WKWebViews don't).
     const embedded =
       /\bwv\b|Instagram|FBAN|FBAV|FB_IAB|TikTok|musical_ly|BytedanceWebview|Snapchat|Line\/|MicroMessenger|GSA\//i.test(
         ua,
@@ -68,7 +73,10 @@ export function InstallPrompt() {
     window.addEventListener("beforeinstallprompt", onBip);
 
     if (iosDevice) {
-      setCanShare(typeof navigator.share === "function");
+      // Each browser parks its share button somewhere else; point at it.
+      setIosHint(
+        /CriOS\//.test(ua) ? "chrome" : /FxiOS|EdgiOS/.test(ua) ? "other" : "safari",
+      );
       timer = window.setTimeout(() => setMode("ios"), SHOW_DELAY_MS);
     }
 
@@ -96,17 +104,18 @@ export function InstallPrompt() {
     } catch {}
   };
 
-  // iOS has no install API, but a button tap MAY open the real share sheet —
-  // and "Add to Home Screen" lives inside it. Cancelling the sheet throws;
-  // that is not an error and the card stays for another try.
-  const openShareSheet = async () => {
-    try {
-      await navigator.share({
-        title: document.title,
-        url: window.location.origin + "/",
-      });
-    } catch {}
-  };
+  const shareGlyph = (
+    <svg className="install-share" viewBox="0 0 16 20" aria-label="Share" role="img">
+      <path
+        d="M8 1v11M4.5 4.5 8 1l3.5 3.5M2 8v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V8"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
 
   return (
     <div className="install-bar" role="region" aria-label="Add to home screen">
@@ -121,40 +130,26 @@ export function InstallPrompt() {
             browser first (the <strong>&#8943;</strong> menu &rarr;{" "}
             <strong>Open in browser</strong>), then add it from there.
           </span>
-        ) : canShare ? (
+        ) : iosHint === "chrome" ? (
           <span>
-            Tap <strong>Add now</strong>, then choose <strong>Add to Home Screen</strong>.
+            Tap {shareGlyph} at the <strong>top right</strong>, then{" "}
+            <strong>Add to Home Screen</strong>.
+          </span>
+        ) : iosHint === "safari" ? (
+          <span>
+            Tap {shareGlyph} at the <strong>bottom of your screen</strong>, then{" "}
+            <strong>Add to Home Screen</strong>.
           </span>
         ) : (
           <span>
-            Tap{" "}
-            <svg
-              className="install-share"
-              viewBox="0 0 16 20"
-              aria-label="Share"
-              role="img"
-            >
-              <path
-                d="M8 1v11M4.5 4.5 8 1l3.5 3.5M2 8v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V8"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>{" "}
-            then <strong>Add to Home Screen</strong>.
+            Tap {shareGlyph} in your browser&rsquo;s menu, then{" "}
+            <strong>Add to Home Screen</strong>.
           </span>
         )}
       </div>
       {mode === "android" && (
         <button className="btn btn-sm" onClick={install}>
           Install
-        </button>
-      )}
-      {mode === "ios" && canShare && (
-        <button className="btn btn-sm" onClick={openShareSheet}>
-          Add now
         </button>
       )}
       <button className="install-close" aria-label="Not now" onClick={snooze}>
