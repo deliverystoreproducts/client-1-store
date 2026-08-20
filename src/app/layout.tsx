@@ -30,11 +30,28 @@ export const metadata: Metadata = {
     process.env.SEO_INDEX === "on"
       ? { index: true, follow: true }
       : { index: false, follow: false },
-  // Installed-app identity for iOS (Android reads the manifest).
+  // Installed-app identity for iOS (Android reads the manifest). The startup
+  // images kill the blank white flash an installed PWA otherwise shows on
+  // launch; Safari picks the FIRST link whose media matches, so the dark
+  // variants come first — a light-scheme device skips them, a dark one stops
+  // there. Files generated from icon.svg by the splash script (see git log).
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
     title: process.env.NEXT_PUBLIC_SITE_SHORT_NAME || "YB",
+    startupImage: (
+      [
+        [430, 932, 3], [402, 874, 3], [393, 852, 3], [390, 844, 3],
+        [375, 812, 3], [414, 896, 3], [414, 896, 2], [375, 667, 2],
+        [768, 1024, 2], [810, 1080, 2], [820, 1180, 2], [834, 1194, 2], [1024, 1366, 2],
+      ] as const
+    ).flatMap(([w, h, r]) => {
+      const device = `(device-width: ${w}px) and (device-height: ${h}px) and (-webkit-device-pixel-ratio: ${r}) and (orientation: portrait)`;
+      return [
+        { url: `/splash/${w}x${h}@${r}x-dark.png`, media: `(prefers-color-scheme: dark) and ${device}` },
+        { url: `/splash/${w}x${h}@${r}x-light.png`, media: device },
+      ];
+    }),
   },
 };
 
