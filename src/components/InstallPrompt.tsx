@@ -25,7 +25,7 @@ type BipEvent = Event & {
 const shortName = process.env.NEXT_PUBLIC_SITE_SHORT_NAME || "YB";
 
 export function InstallPrompt() {
-  const [mode, setMode] = useState<"hidden" | "android" | "ios">("hidden");
+  const [mode, setMode] = useState<"hidden" | "android" | "ios" | "embedded">("hidden");
   const [bip, setBip] = useState<BipEvent | null>(null);
   const [canShare, setCanShare] = useState(false);
 
@@ -37,7 +37,29 @@ export function InstallPrompt() {
     } catch {}
     if (!window.matchMedia("(pointer: coarse)").matches) return;
 
+    const ua = navigator.userAgent;
+    const iosDevice =
+      /iphone|ipod|ipad/i.test(ua) ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+    // Embedded in-app browsers (Instagram, FB, TikTok, ...) have NO install
+    // surface on either platform: beforeinstallprompt never fires in Android
+    // webviews, and iOS webview share sheets don't carry Add to Home Screen —
+    // offering "Add now" there is a dead promise. Named tokens first; the iOS
+    // fallback heuristic is a webview tell (real iOS browsers — Safari,
+    // CriOS/FxiOS/EdgiOS — all end their UA with a Safari/ token, embedded
+    // WKWebViews don't).
+    const embedded =
+      /\bwv\b|Instagram|FBAN|FBAV|FB_IAB|TikTok|musical_ly|BytedanceWebview|Snapchat|Line\/|MicroMessenger|GSA\//i.test(
+        ua,
+      ) || (iosDevice && !/Safari\//i.test(ua));
+
     let timer: number | undefined;
+    if (embedded) {
+      timer = window.setTimeout(() => setMode("embedded"), SHOW_DELAY_MS);
+      return () => window.clearTimeout(timer);
+    }
+
     const onBip = (e: Event) => {
       e.preventDefault();
       setBip(e as BipEvent);
@@ -45,11 +67,7 @@ export function InstallPrompt() {
     };
     window.addEventListener("beforeinstallprompt", onBip);
 
-    // iPadOS masquerades as macOS; touch points give it away.
-    const ios =
-      /iphone|ipod|ipad/i.test(navigator.userAgent) ||
-      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-    if (ios) {
+    if (iosDevice) {
       setCanShare(typeof navigator.share === "function");
       timer = window.setTimeout(() => setMode("ios"), SHOW_DELAY_MS);
     }
@@ -97,6 +115,12 @@ export function InstallPrompt() {
         <strong>Keep {shortName} on your home screen</strong>
         {mode === "android" ? (
           <span>One tap to install — opens full screen, like an app.</span>
+        ) : mode === "embedded" ? (
+          <span>
+            You&rsquo;re in another app&rsquo;s browser. Open this site in your
+            browser first (the <strong>&#8943;</strong> menu &rarr;{" "}
+            <strong>Open in browser</strong>), then add it from there.
+          </span>
         ) : canShare ? (
           <span>
             Tap <strong>Add now</strong>, then choose <strong>Add to Home Screen</strong>.
