@@ -2932,3 +2932,71 @@ body::after {
   0%, 100% { rotate: -3deg; }
   50% { rotate: 3deg; }
 }
+
+
+/* ═══════════════════ INSTALL NUDGE (mobile only) ═══════════════════ */
+/* z 70: above the sticky bars (30), beneath the wheel overlay (90). */
+.install-bar {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--rule-hi);
+  border-radius: 12px;
+  background: var(--ground);
+  box-shadow: 0 18px 44px -18px rgb(0 0 0 / 0.45);
+  animation: install-rise 0.45s var(--ease) both;
+  max-width: 480px;
+  margin-inline: auto;
+}
+
+@keyframes install-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.install-icon {
+  border-radius: 9px;
+  flex-shrink: 0;
+}
+
+.install-copy {
+  display: grid;
+  gap: 0.15rem;
+  font-size: var(--t--2);
+  line-height: 1.35;
+  min-width: 0;
+}
+
+.install-copy strong {
+  color: var(--pine);
+}
+
+.install-copy span {
+  color: var(--pine-3);
+}
+
+.install-share {
+  width: 0.85em;
+  height: 1.05em;
+  vertical-align: -0.15em;
+  color: var(--fern);
+}
+
+.install-close {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  margin-left: auto;
+  border: 0;
+  background: none;
+  color: var(--pine-3);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}

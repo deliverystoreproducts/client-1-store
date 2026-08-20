@@ -5,6 +5,7 @@ import "./globals.css";
 import { AgeGate } from "@/components/AgeGate";
 import { CartProvider } from "@/components/CartProvider";
 import { SpinWheel } from "@/components/SpinWheel";
+import { InstallPrompt } from "@/components/InstallPrompt";
 import { SiteHeader } from "@/components/SiteHeader";
 import { TopBanner } from "@/components/TopBanner";
 import { StoreUnavailable } from "@/components/StoreUnavailable";
@@ -222,6 +223,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               </footer>
             </div>
             <SpinWheel />
+            <InstallPrompt />
           </CartProvider>
         )}
         <SwRegister />

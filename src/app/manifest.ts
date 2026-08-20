@@ -7,6 +7,7 @@ import { SITE_TAGLINE } from "@/lib/site";
 export default function manifest(): MetadataRoute.Manifest {
   const name = process.env.NEXT_PUBLIC_SITE_NAME || "YB Cannabis Co.";
   return {
+    id: "/",
     name,
     short_name: process.env.NEXT_PUBLIC_SITE_SHORT_NAME || "YB",
     description: SITE_TAGLINE,
