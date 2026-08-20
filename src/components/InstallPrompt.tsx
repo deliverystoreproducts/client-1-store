@@ -109,7 +109,7 @@ export function InstallPrompt() {
   };
 
   return (
-    <div className="install-bar" role="dialog" aria-label="Add to home screen">
+    <div className="install-bar" role="region" aria-label="Add to home screen">
       <img className="install-icon" src="/icons/icon-192.png" alt="" width={40} height={40} />
       <div className="install-copy">
         <strong>Keep {shortName} on your home screen</strong>

@@ -7,13 +7,19 @@
  * hashed build assets, fonts and icons — all immutable, none of them gated.
  * /api/* is never touched.
  */
+// BUMP VERSION whenever offline.html or the caching rules change — the old
+// cache (including the precached offline page) lives until the version moves.
 const VERSION = "ybs-v1";
 const OFFLINE_URL = "/offline.html";
 const CACHED_PATHS = ["/_next/static/", "/fonts/", "/icons/"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(VERSION).then((cache) => cache.addAll([OFFLINE_URL])).then(() => self.skipWaiting()),
+    caches
+      .open(VERSION)
+      // cache: "reload" skips the HTTP cache so the precached copy is fresh.
+      .then((cache) => cache.add(new Request(OFFLINE_URL, { cache: "reload" })))
+      .then(() => self.skipWaiting()),
   );
 });
 
@@ -34,7 +40,22 @@ self.addEventListener("fetch", (event) => {
   if (url.pathname.startsWith("/api/")) return;
 
   if (req.mode === "navigate") {
-    event.respondWith(fetch(req).catch(() => caches.match(OFFLINE_URL)));
+    // The cache can be evicted under storage pressure; never respondWith
+    // undefined — fall through to a plain-text last resort.
+    event.respondWith(
+      fetch(req).catch(() =>
+        caches
+          .match(OFFLINE_URL)
+          .then(
+            (hit) =>
+              hit ||
+              new Response("You're offline. Reconnect and try again.", {
+                status: 503,
+                headers: { "Content-Type": "text/plain; charset=utf-8" },
+              }),
+          ),
+      ),
+    );
     return;
   }
 
