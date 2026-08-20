@@ -74,6 +74,7 @@ export function AccountView() {
     try {
       await apiPost("/api/auth/logout");
     } finally {
+      window.dispatchEvent(new Event("ybs:auth-changed"));
       router.push("/");
       router.refresh();
     }

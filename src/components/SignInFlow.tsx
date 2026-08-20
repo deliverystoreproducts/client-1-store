@@ -79,6 +79,15 @@ export function SignInFlow({ onSignedIn, requireIdPhoto, initialStep = "phone" }
   const [error, setError] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
 
+  // The header's session badge is a client component fetching /api/auth/me
+  // once — no router.push or refresh() would ever update it. This signal is
+  // what it re-fetches on, and it also covers checkout's inline sign-in,
+  // which changes no URL at all.
+  function signedIn(customer: PublicCustomer | null) {
+    window.dispatchEvent(new Event("ybs:auth-changed"));
+    onSignedIn(customer);
+  }
+
   function handle(e: unknown) {
     setError(e instanceof ClientApiError ? e.message : "Something went wrong. Please try again.");
   }
@@ -92,7 +101,7 @@ export function SignInFlow({ onSignedIn, requireIdPhoto, initialStep = "phone" }
         "/api/auth/send-code",
         { phone },
       );
-      if (res.status === "signed_in") return onSignedIn(res.customer ?? null);
+      if (res.status === "signed_in") return signedIn(res.customer ?? null);
       if (res.status === "needs_profile") return setStep("profile");
       setStep("code");
       if (resend) setNote("We sent a new code.");
@@ -112,7 +121,7 @@ export function SignInFlow({ onSignedIn, requireIdPhoto, initialStep = "phone" }
         "/api/auth/verify-code",
         { phone, code },
       );
-      if (res.status === "signed_in") return onSignedIn(res.customer ?? null);
+      if (res.status === "signed_in") return signedIn(res.customer ?? null);
       setStep("profile");
     } catch (e) {
       handle(e);
@@ -133,7 +142,7 @@ export function SignInFlow({ onSignedIn, requireIdPhoto, initialStep = "phone" }
         "/api/auth/register",
         form,
       );
-      if (res.status === "signed_in") return onSignedIn(res.customer ?? null);
+      if (res.status === "signed_in") return signedIn(res.customer ?? null);
       setError("We couldn't finish creating your account.");
     } catch (e) {
       if (e instanceof ClientApiError && e.code === "not_verified") {

@@ -27,18 +27,27 @@ export function SiteHeader({
   useEffect(() => setMenuOpen(false), [pathname]);
   const [session, setSession] = useState<SessionState | null>(null);
 
+  // Re-fetched on every route change AND on the ybs:auth-changed signal the
+  // sign-in/out flows dispatch. Without both, the badge fossilizes at its
+  // mount-time value: this is a client component, so neither router.push nor
+  // router.refresh() ever remounts it — "Sign in" kept showing after login.
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/auth/me")
-      .then((r) => (r.ok ? (r.json() as Promise<SessionState>) : null))
-      .then((s) => {
-        if (!cancelled) setSession(s);
-      })
-      .catch(() => undefined);
+    const load = () =>
+      fetch("/api/auth/me")
+        .then((r) => (r.ok ? (r.json() as Promise<SessionState>) : null))
+        .then((s) => {
+          if (!cancelled) setSession(s);
+        })
+        .catch(() => undefined);
+    load();
+    const onAuth = () => void load();
+    window.addEventListener("ybs:auth-changed", onAuth);
     return () => {
       cancelled = true;
+      window.removeEventListener("ybs:auth-changed", onAuth);
     };
-  }, []);
+  }, [pathname]);
 
   const showCount = ready && count > 0;
 
