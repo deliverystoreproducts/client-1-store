@@ -104,7 +104,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const year = new Date().getFullYear();
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    // data-scroll-behavior is Next's handshake for CSS smooth scrolling: it
+    // keeps ROUTE-change scroll resets instant while same-page anchor jumps
+    // (banner → #catalogue, pager) animate.
+    <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
       <body>
         {/* Applies the saved theme before first paint — no flash. */}
         <script

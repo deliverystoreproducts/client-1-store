@@ -192,6 +192,10 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+  /* In-page jumps (banner → #catalogue, pager) glide instead of teleporting.
+     Route changes stay instant via data-scroll-behavior on <html> (Next's
+     handshake), and the reduced-motion block forces this back to auto. */
+  scroll-behavior: smooth;
 }
 
 html,
