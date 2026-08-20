@@ -114,8 +114,9 @@ export function AgeGate({ minAge, storeName, licenseNumber }: { minAge: number; 
         </div>
 
         <p className="gate-fine" data-reveal style={{ "--i": 5 } as React.CSSProperties}>
-          By entering you confirm you are of legal age in your jurisdiction. Keep out of reach of
-          children and pets.
+          You must be {minAge} or older to enter and order — a valid government-issued photo ID
+          is checked at delivery, and payment is cash at the door. Keep out of reach of children
+          and pets.
         </p>
 
         {/* ── The gate is marketing too ──────────────────────────────────────
