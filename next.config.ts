@@ -56,7 +56,14 @@ const config: NextConfig = {
               "default-src 'self'",
               "script-src 'self' 'unsafe-inline'",
               "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data:",
+              // blob: is what URL.createObjectURL() mints, and it is how the ID
+              // scanner shows you the photo you just took. Without it the
+              // capture silently renders nothing — the policy blocks the
+              // preview while the file itself is perfectly fine. Still no
+              // remote origin: a blob URL is same-origin, in-memory, and dies
+              // with the page.
+              "img-src 'self' data: blob:",
+              "media-src 'self' blob:",
               "font-src 'self'",
               "connect-src 'self'",
               "manifest-src 'self'",

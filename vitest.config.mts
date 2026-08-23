@@ -14,7 +14,7 @@ export default defineConfig({
   test: {
     // Only unit-testable logic lives under src/lib; components are verified in
     // a real browser against the production build (see README).
-    include: ["src/**/*.test.ts"],
+    include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
     environment: "node",
   },
 });

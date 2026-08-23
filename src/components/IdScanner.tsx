@@ -83,24 +83,28 @@ export function IdScanner({
   // navigation, on the flow finishing. Nothing else stops the tracks.
   useEffect(() => stopCamera, [stopCamera]);
 
-  const publish = useCallback(
-    (next: Partial<Record<Side, { file: File; url: string }>>) => {
-      onChange(next.front && next.back ? { front: next.front.file, back: next.back.file } : null);
-    },
-    [onChange],
-  );
+  /**
+   * Telling the parent happens in an EFFECT, not inside the state updater.
+   *
+   * It used to call onChange from within setShots, which is a render-phase
+   * side effect: React declines to apply a parent update raised while a child
+   * is rendering, so the images never reached checkout and the Next button
+   * stayed dead however many photos you took. Under reactStrictMode the same
+   * updater also ran twice, minting two object URLs per shot.
+   */
+  const { front, back } = shots;
+  useEffect(() => {
+    onChange(front && back ? { front: front.file, back: back.file } : null);
+  }, [front, back, onChange]);
 
-  const accept = useCallback(
-    (side: Side, file: File) => {
-      setShots((prev) => {
-        URL.revokeObjectURL(prev[side]?.url ?? "");
-        const next = { ...prev, [side]: { file, url: URL.createObjectURL(file) } };
-        publish(next);
-        return next;
-      });
-    },
-    [publish],
-  );
+  const accept = useCallback((side: Side, file: File) => {
+    // Created out here so a double-invoked updater cannot mint two URLs.
+    const url = URL.createObjectURL(file);
+    setShots((prev) => {
+      if (prev[side]) URL.revokeObjectURL(prev[side]!.url);
+      return { ...prev, [side]: { file, url } };
+    });
+  }, []);
 
   async function startCamera(side: Side) {
     setError(null);
@@ -116,21 +120,37 @@ export function IdScanner({
       });
       streamRef.current = stream;
       setCapturing(side);
-      // The element only exists once `capturing` renders it.
-      requestAnimationFrame(() => {
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          void videoRef.current.play().catch(() => undefined);
-        }
-      });
     } catch {
       setError("no_camera");
     }
   }
 
+  /**
+   * Attach the stream AFTER React has committed the <video>.
+   *
+   * This used to run in a requestAnimationFrame fired straight after
+   * setCapturing, which can land BEFORE the commit — videoRef.current is then
+   * still null, srcObject never gets set, and the result is a granted camera
+   * permission, a black rectangle, and a "Take photo" button that silently
+   * does nothing for ever. An effect keyed on `capturing` cannot run early.
+   */
+  useEffect(() => {
+    const video = videoRef.current;
+    const stream = streamRef.current;
+    if (!capturing || !video || !stream) return;
+    video.srcObject = stream;
+    void video.play().catch(() => setError("no_camera"));
+  }, [capturing]);
+
   async function shoot(side: Side) {
     const video = videoRef.current;
-    if (!video?.videoWidth) return;
+    if (!video?.videoWidth) {
+      // NEVER return silently here. A tap that does nothing and says nothing is
+      // indistinguishable from a broken page, and that is exactly how this
+      // reached production unnoticed.
+      setError("not_ready");
+      return;
+    }
     try {
       accept(side, await drawToJpeg(video, video.videoWidth, video.videoHeight));
       stopCamera();
@@ -159,9 +179,11 @@ export function IdScanner({
       ? "We couldn't open your camera. Choose a photo instead — make sure the barcode is sharp."
       : error === "bad_image"
         ? "We couldn't read that image. Try another photo."
-        : error === "capture_failed"
-          ? "That didn't capture. Please try again."
-          : null;
+        : error === "not_ready"
+          ? "The camera is still starting up. Give it a moment and tap again."
+          : error === "capture_failed"
+            ? "That didn't capture. Please try again."
+            : null;
 
   return (
     <div className="idscan">
@@ -184,7 +206,11 @@ export function IdScanner({
             <div className="idscan-stage" style={{ aspectRatio: String(CARD_ASPECT) }}>
               {live ? (
                 <>
-                  <video ref={videoRef} className="idscan-video" playsInline muted />
+                  {/* autoPlay as well as the explicit play() — Safari honours
+                      the attribute when a programmatic play() would be
+                      rejected, and a video that never plays reports
+                      videoWidth 0 for ever. */}
+                  <video ref={videoRef} className="idscan-video" autoPlay playsInline muted />
                   <span className="idscan-guide" aria-hidden />
                 </>
               ) : shot ? (
