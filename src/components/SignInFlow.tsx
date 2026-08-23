@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { AddressField } from "@/components/AddressField";
+import { IdScanner } from "@/components/IdScanner";
 import { apiPost, apiPostForm, ClientApiError } from "@/lib/client-api";
 import { formatPhone } from "@/lib/phone";
 import type { PublicCustomer } from "@/lib/public-types";
@@ -74,7 +75,7 @@ export function SignInFlow({ onSignedIn, requireIdPhoto, initialStep = "phone" }
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
-  const [idPhoto, setIdPhoto] = useState<File | null>(null);
+  const [idImages, setIdImages] = useState<{ front: File; back: File } | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
@@ -137,7 +138,10 @@ export function SignInFlow({ onSignedIn, requireIdPhoto, initialStep = "phone" }
       const form = new FormData();
       form.set("name", name);
       if (address) form.set("address", address);
-      if (idPhoto) form.set("idPhoto", idPhoto);
+      if (idImages) {
+        form.set("idFront", idImages.front);
+        form.set("idBack", idImages.back);
+      }
       const res = await apiPostForm<{ status: string; customer?: PublicCustomer }>(
         "/api/auth/register",
         form,
@@ -287,24 +291,19 @@ export function SignInFlow({ onSignedIn, requireIdPhoto, initialStep = "phone" }
           </div>
           {requireIdPhoto ? (
             <div className="field">
-              <label className="label" htmlFor="idPhoto">
-                Photo of your government-issued ID
-              </label>
-              <input
-                id="idPhoto"
-                className="input"
-                type="file"
-                accept="image/*"
-                onChange={(e) => setIdPhoto(e.target.files?.[0] ?? null)}
-                required
-              />
+              <span className="label">Your government-issued ID</span>
+              <IdScanner onChange={setIdImages} disabled={busy} />
               <p className="faint mt-1 mb-0">
-                Required by law before your first delivery. Stored securely by the store.
+                Required before your first delivery. We read the barcode on the back to confirm
+                your age — your driver still checks the physical card at the door.
               </p>
             </div>
           ) : null}
-          <button className="btn btn-block" disabled={busy || !name.trim()}>
-            {busy ? "Creating your account…" : "Create account"}
+          <button
+            className="btn btn-block"
+            disabled={busy || !name.trim() || (requireIdPhoto && !idImages)}
+          >
+            {busy ? "Checking your ID…" : "Create account"}
           </button>
         </form>
       ) : null}

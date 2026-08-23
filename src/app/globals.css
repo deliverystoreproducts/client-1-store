@@ -2797,3 +2797,102 @@ body::after {
   line-height: 1;
   cursor: pointer;
 }
+
+/* ═══════════════════════════ ID SCANNER ═══════════════════════════ */
+
+.idscan {
+  display: grid;
+  gap: 1.1rem;
+  margin-top: 0.5rem;
+}
+
+.idscan-side {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.idscan-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: var(--t--1);
+}
+
+.idscan-done {
+  color: var(--fern);
+  font-size: var(--t--2);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Card-shaped stage: the frame IS the instruction — people fill a frame they
+   can see far more reliably than they follow a sentence about angles. */
+.idscan-stage {
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+  border: 1px solid var(--rule);
+  background: linear-gradient(160deg, var(--plate-a), var(--plate-b) 70%);
+}
+
+.idscan-video,
+.idscan-shot {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.idscan-guide {
+  position: absolute;
+  inset: 7%;
+  border: 2px dashed rgb(255 255 255 / 0.75);
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+.idscan-empty {
+  position: absolute;
+  inset: 10%;
+  border: 1px dashed var(--rule-hi);
+  border-radius: 8px;
+}
+
+.idscan-hint {
+  margin: 0;
+  color: var(--pine-3);
+  font-size: var(--t--2);
+  line-height: 1.4;
+}
+
+.idscan-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* A <label> wearing a button: the file input is the fallback path, and a
+   styled label is the only way to make one look like anything. */
+.idscan-file {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.idscan-file input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.idscan-error {
+  margin: 0;
+  padding: 0.6rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--rule-hi);
+  color: var(--pine-2);
+  font-size: var(--t--2);
+}

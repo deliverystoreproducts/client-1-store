@@ -9,6 +9,17 @@ const config: NextConfig = {
   output: "standalone",
   reactStrictMode: true,
 
+  // The barcode reader's WASM binary is read off disk at runtime (see
+  // src/lib/identity/decode.ts), so nothing in the module graph references it
+  // as an import and the standalone tracer would leave it behind. Without this
+  // the ID check still works — it degrades to "a human should look" — but it
+  // degrades everywhere, silently, which is the worst way to lose a feature.
+  outputFileTracingIncludes: {
+    "/api/auth/register": [
+      "./node_modules/.pnpm/zxing-wasm@*/node_modules/zxing-wasm/dist/reader/*.wasm",
+    ],
+  },
+
   // Do NOT ship the `x-powered-by` header — it says nothing useful and is one
   // more fingerprint on every response.
   poweredByHeader: false,
