@@ -73,8 +73,16 @@ interface Body {
  * is never forwarded — we read only the numeric/city fields and write our own
  * sentence, so an internal detail cannot ride out in an error.
  */
-function describeRefusal(e: UpstreamError): { error: string; message: string; detail?: Record<string, string | number> } | null {
-  const body = (e.body ?? {}) as { error?: unknown; minimumOrder?: unknown; city?: unknown };
+function describeRefusal(e: UpstreamError): {
+  error: string;
+  message: string;
+  detail?: Record<string, string | number>;
+} | null {
+  const body = (e.body ?? {}) as {
+    error?: unknown;
+    minimumOrder?: unknown;
+    city?: unknown;
+  };
 
   if (e.status === 400 && typeof body.minimumOrder === "number" && body.minimumOrder > 0) {
     const city = typeof body.city === "string" && body.city ? body.city : null;
@@ -163,10 +171,14 @@ export async function POST(req: Request): Promise<Response> {
 
   const address = typeof body.address === "string" ? body.address.trim() : "";
   if (address.length < 6) {
-    return fail(400, "address_required", { message: "Enter a full delivery address." });
+    return fail(400, "address_required", {
+      message: "Enter a full delivery address.",
+    });
   }
   if (address.length > 300) {
-    return fail(400, "address_too_long", { message: "That address is too long." });
+    return fail(400, "address_too_long", {
+      message: "That address is too long.",
+    });
   }
 
   const notes = typeof body.notes === "string" ? body.notes.trim().slice(0, 500) || null : null;

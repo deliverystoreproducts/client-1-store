@@ -2896,3 +2896,52 @@ body::after {
   color: var(--pine-2);
   font-size: var(--t--2);
 }
+
+/* ═══════════════════ CHECKOUT STEPS ═══════════════════ */
+/* Plain, like the rest of checkout: a row of labels that says where you are
+   and what is left, not a decorated progress bar. */
+.steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  list-style: none;
+  margin: 0 0 1.4rem;
+  padding: 0 0 1rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.steps-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: var(--t--2);
+  color: var(--pine-3);
+}
+
+.steps-item[data-state="current"] {
+  color: var(--pine);
+  font-weight: 700;
+}
+
+.steps-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  border: 1px solid var(--rule-hi);
+  font-size: var(--t--2);
+  font-weight: 700;
+}
+
+.steps-item[data-state="current"] .steps-num {
+  background: var(--fern);
+  border-color: var(--fern);
+  color: var(--ground);
+}
+
+.steps-item[data-state="done"] .steps-num {
+  border-color: var(--fern);
+  color: var(--fern);
+}

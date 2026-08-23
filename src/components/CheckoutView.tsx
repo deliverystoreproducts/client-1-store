@@ -90,13 +90,25 @@ export function CheckoutView({
   // Held only for the life of this page. Cleared by the redirect to the
   // confirmation screen, so the next order scans again — which is the point.
   const [idImages, setIdImages] = useState<{ front: File; back: File } | null>(null);
+  /**
+   * Checkout is three steps: where it goes, who is receiving it, then what is
+   * being bought. One long scroll put the ID scanner between the delivery
+   * notices and the place-order button, where it read as one more disclosure to
+   * skim past rather than a thing to stop and do. Splitting it also means the
+   * camera is not mounted until it is actually needed.
+   */
+  const [step, setStep] = useState<1 | 2 | 3>(1);
   const [error, setError] = useState<string | null>(null);
 
   const loadSession = useCallback(async () => {
     try {
       setSession(await apiGet<SessionState>("/api/auth/me"));
     } catch {
-      setSession({ authenticated: false, pendingRegistration: false, customer: null });
+      setSession({
+        authenticated: false,
+        pendingRegistration: false,
+        customer: null,
+      });
     }
   }, []);
 
@@ -205,7 +217,13 @@ export function CheckoutView({
       const form = new FormData();
       form.set(
         "payload",
-        JSON.stringify({ items, address, notes, couponCode: appliedCoupon || null, saveAddress }),
+        JSON.stringify({
+          items,
+          address,
+          notes,
+          couponCode: appliedCoupon || null,
+          saveAddress,
+        }),
       );
       if (idImages) {
         form.set("idFront", idImages.front);
@@ -309,12 +327,10 @@ export function CheckoutView({
   const vapeHardware = (cart?.lines ?? []).flatMap((l) => l.vapeHardware);
   const overLimit = (cart?.dailyLimit.exceeded.length ?? 0) > 0;
 
+  const addressReady = address.trim().length >= 6;
+
   const canSubmit =
-    address.trim().length >= 6 &&
-    !submitting &&
-    (cart?.lines.length ?? 0) > 0 &&
-    !overLimit &&
-    !!idImages;
+    addressReady && !submitting && (cart?.lines.length ?? 0) > 0 && !overLimit && !!idImages;
 
   return (
     <div className="plain">
@@ -332,116 +348,185 @@ export function CheckoutView({
           className="plain-box"
           onSubmit={(e) => {
             e.preventDefault();
-            if (canSubmit) void placeOrder();
+            // Enter advances the wizard rather than doing nothing: only the
+            // final step's button is a submit, but a keyboard user pressing
+            // Enter in the address field expects to move on.
+            if (step === 1) {
+              if (addressReady) setStep(2);
+            } else if (step === 3 && canSubmit) {
+              void placeOrder();
+            }
           }}
         >
-          <h2>Delivery</h2>
+          <ol className="steps" aria-label="Checkout progress">
+            {(["Delivery", "ID check", "Review"] as const).map((label, i) => (
+              <li
+                key={label}
+                className="steps-item"
+                data-state={step === i + 1 ? "current" : step > i + 1 ? "done" : "todo"}
+                aria-current={step === i + 1 ? "step" : undefined}
+              >
+                <span className="steps-num">{step > i + 1 ? "✓" : i + 1}</span>
+                {label}
+              </li>
+            ))}
+          </ol>
 
-          {/* Where this is going — never who is ordering. */}
-          <div className="field">
-            <span className="label" id="deliver-to-label">
-              Deliver to
-            </span>
-            <div className="plain-address" aria-labelledby="deliver-to-label">
-              {lastAddress ? (
-                <>
-                  <span className="faint">
-                    {lastAddressSource === "order"
-                      ? "Your last order went here."
-                      : "Your saved address."}{" "}
-                    Change it below if it has moved.
-                  </span>
-                  <p>{lastAddress}</p>
-                </>
-              ) : lookingUp ? (
-                <span className="faint">Checking for a previous delivery address…</span>
-              ) : (
-                <p className="muted" style={{ fontSize: "1rem" }}>
-                  Enter the address you&apos;d like this delivered to.
-                </p>
-              )}
-            </div>
-          </div>
+          {step === 1 ? (
+            <>
+              <h2>Delivery</h2>
 
-          <div className="field">
-            <label className="label" htmlFor="address">
-              Delivery address
-            </label>
-            <AddressField
-              id="address"
-              placeholder="123 Main St, Apt 4, City, State ZIP"
-              value={address}
-              onChange={(v) => {
-                setAddressTouched(true);
-                setAddress(v);
-              }}
-            />
-          </div>
+              {/* Where this is going — never who is ordering. */}
+              <div className="field">
+                <span className="label" id="deliver-to-label">
+                  Deliver to
+                </span>
+                <div className="plain-address" aria-labelledby="deliver-to-label">
+                  {lastAddress ? (
+                    <>
+                      <span className="faint">
+                        {lastAddressSource === "order"
+                          ? "Your last order went here."
+                          : "Your saved address."}{" "}
+                        Change it below if it has moved.
+                      </span>
+                      <p>{lastAddress}</p>
+                    </>
+                  ) : lookingUp ? (
+                    <span className="faint">Checking for a previous delivery address…</span>
+                  ) : (
+                    <p className="muted" style={{ fontSize: "1rem" }}>
+                      Enter the address you&apos;d like this delivered to.
+                    </p>
+                  )}
+                </div>
+              </div>
 
-          <div className="field">
-            <label className="label" htmlFor="notes">
-              Delivery notes (optional)
-            </label>
-            <textarea
-              id="notes"
-              className="textarea"
-              placeholder="Gate code, buzzer, where to meet…"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-            />
-          </div>
+              <div className="field">
+                <label className="label" htmlFor="address">
+                  Delivery address
+                </label>
+                <AddressField
+                  id="address"
+                  placeholder="123 Main St, Apt 4, City, State ZIP"
+                  value={address}
+                  onChange={(v) => {
+                    setAddressTouched(true);
+                    setAddress(v);
+                  }}
+                />
+              </div>
 
-          <label className="check mb-2">
-            <input
-              type="checkbox"
-              checked={saveAddress}
-              onChange={(e) => setSaveAddress(e.target.checked)}
-            />
-            Save this address for next time
-          </label>
+              <div className="field">
+                <label className="label" htmlFor="notes">
+                  Delivery notes (optional)
+                </label>
+                <textarea
+                  id="notes"
+                  className="textarea"
+                  placeholder="Gate code, buzzer, where to meet…"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                />
+              </div>
 
-          <div className="notice mb-2">
-            <strong>Cash on delivery.</strong> Nothing is charged now — pay the driver when your
-            order arrives. Please have a valid ID ready.
-          </div>
+              <label className="check mb-2">
+                <input
+                  type="checkbox"
+                  checked={saveAddress}
+                  onChange={(e) => setSaveAddress(e.target.checked)}
+                />
+                Save this address for next time
+              </label>
 
-          {/* Delivery hours are a fact the customer needs before they commit, not a
+              <div className="notice mb-2">
+                <strong>Cash on delivery.</strong> Nothing is charged now — pay the driver when your
+                order arrives. Please have a valid ID ready.
+              </div>
+
+              {/* Delivery hours are a fact the customer needs before they commit, not a
               block on the button: 4 CCR § 15403 caps DELIVERY at 06:00–22:00
               Pacific, and whether an order may be PLACED outside it is unsettled.
               So we state it, and state it louder when it currently bites. */}
-          <div
-            className={`notice mb-2${withinDeliveryWindow ? "" : " notice-error"}`}
-            role={withinDeliveryWindow ? undefined : "status"}
-          >
-            {withinDeliveryWindow ? null : <strong>Outside delivery hours. </strong>}
-            {deliveryNotice}
-          </div>
+              <div
+                className={`notice mb-2${withinDeliveryWindow ? "" : " notice-error"}`}
+                role={withinDeliveryWindow ? undefined : "status"}
+              >
+                {withinDeliveryWindow ? null : <strong>Outside delivery hours. </strong>}
+                {deliveryNotice}
+              </div>
 
-          {/* 4 CCR §§ 15404 / 15415(g): the delivery employee verifies identity
+              {/* 4 CCR §§ 15404 / 15415(g): the delivery employee verifies identity
               and age IN PERSON before handing anything over, and § 15415(c)
               forbids an unstaffed delivery. The website is not the compliance
               boundary for age — the driver is — so checkout must never leave a
               customer expecting otherwise. */}
-          <div className="notice mb-2">
-            <strong>ID is checked at the door.</strong> The driver has to see a valid, unexpired,
-            government-issued photo ID and cannot complete the delivery without it. Someone{" "}
-            {minAge} or older must be there to receive the order in person — we cannot leave
-            cannabis at a door, with a neighbour, or in a locker.
-          </div>
+              <div className="notice mb-2">
+                <strong>ID is checked at the door.</strong> The driver has to see a valid,
+                unexpired, government-issued photo ID and cannot complete the delivery without it.
+                Someone {minAge} or older must be there to receive the order in person — we cannot
+                leave cannabis at a door, with a neighbour, or in a locker.
+              </div>
 
-          {cart ? <DailyLimitReadout assessment={cart.dailyLimit} className="mb-2" /> : null}
+              <button
+                type="button"
+                className="btn btn-block"
+                disabled={!addressReady}
+                onClick={() => setStep(2)}
+              >
+                {addressReady ? "Next — check your ID" : "Enter a delivery address"}
+              </button>
+            </>
+          ) : null}
 
-          {/* 27 CCR § 25602(b)(1)(C) and B&P § 26152.1, on the last screen
+          {step === 2 ? (
+            <>
+              <h2>ID check</h2>
+              {/* EVERY order, not just the first. Cannabis is handed over
+                  against a valid ID at the door; asking once at signup and
+                  trusting forever after is not an ID check. */}
+              <p className="faint mt-0 mb-2">
+                Required on every order. Scan the front and back of your government ID — we read the
+                barcode on the back to confirm your age. Your driver checks the physical card at the
+                door as well.
+              </p>
+              <IdScanner onChange={setIdImages} disabled={submitting} />
+
+              <button
+                type="button"
+                className="btn btn-block mt-2"
+                disabled={!idImages}
+                onClick={() => setStep(3)}
+              >
+                {idImages ? "Next — review your order" : "Scan both sides to continue"}
+              </button>
+              <button
+                type="button"
+                className="btn btn-ghost btn-block mt-1"
+                onClick={() => setStep(1)}
+              >
+                Back to delivery
+              </button>
+            </>
+          ) : null}
+
+          {step === 3 ? (
+            <>
+              <h2>Review &amp; place order</h2>
+
+              {cart ? <DailyLimitReadout assessment={cart.dailyLimit} className="mb-2" /> : null}
+
+              {/* 27 CCR § 25602(b)(1)(C) and B&P § 26152.1, on the last screen
               before the order is placed. Plain styling, deliberately — this
               page is a form, and the warnings read as statements rather than as
               design. */}
-          <BasketComplianceNotices
-            routes={routes}
-            vapeHardware={vapeHardware}
-            className="basket-warnings"
-          />
+              <BasketComplianceNotices
+                routes={routes}
+                vapeHardware={vapeHardware}
+                className="basket-warnings"
+              />
 
-          {/* ── SB 540 safer-use brochure — B&P § 26070.3(b) ────────────────
+              {/* ── SB 540 safer-use brochure — B&P § 26070.3(b) ────────────────
               "On and after March 1, 2025, a retailer … shall prominently
               display the brochure, including printed copies, at the point of
               sale or final delivery in person AND ONLINE AT TIME OF ONLINE
@@ -462,52 +547,55 @@ export function CheckoutView({
               not the exception. And ⚠️ the STATUTE ALSO REQUIRES PRINTED COPIES
               at final delivery; that is a driver-runbook task no website can
               discharge. */}
-          {brochureUrl ? (
-            <div className="notice mb-2">
-              <strong>Before you order: California&apos;s safer-use guide.</strong> The Department
-              of Cannabis Control publishes a short guide to the effects of cannabis, high-potency
-              products, mental health, and use while pregnant or breastfeeding. Please read it —
-              you are also given a printed copy at delivery.
-              <p className="mt-1 mb-0">
-                <a className="link" href={brochureUrl} target="_blank" rel="noopener noreferrer">
-                  Open the DCC safer-use guide (PDF)
-                </a>
+              {brochureUrl ? (
+                <div className="notice mb-2">
+                  <strong>Before you order: California&apos;s safer-use guide.</strong> The
+                  Department of Cannabis Control publishes a short guide to the effects of cannabis,
+                  high-potency products, mental health, and use while pregnant or breastfeeding.
+                  Please read it — you are also given a printed copy at delivery.
+                  <p className="mt-1 mb-0">
+                    <a
+                      className="link"
+                      href={brochureUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Open the DCC safer-use guide (PDF)
+                    </a>
+                  </p>
+                </div>
+              ) : (
+                <div className="notice notice-error mb-2" role="alert">
+                  <strong>SET NEXT_PUBLIC_SAFER_USE_BROCHURE_URL.</strong> B&amp;P § 26070.3(b) has
+                  required this store to display the DCC safer-use brochure online at the time of
+                  purchase since 1 March 2025. Host the current PDF on this origin and set the
+                  variable. This store is not launch-ready until you do.
+                </div>
+              )}
+
+              <div className="notice mb-2">
+                <strong>ID ready.</strong> Both sides captured — we&apos;ll check them as your order
+                is placed.
+              </div>
+
+              <button className="btn btn-block" disabled={!canSubmit}>
+                {submitting ? "Checking your ID…" : "Place order"}
+              </button>
+              <button
+                type="button"
+                className="btn btn-ghost btn-block mt-1"
+                disabled={submitting}
+                onClick={() => setStep(2)}
+              >
+                Back to ID check
+              </button>
+
+              <p className="faint mt-2 mb-0">
+                We&apos;ll text order updates to the mobile number you verified. Transactional
+                messages only — this store does not send marketing texts.
               </p>
-            </div>
-          ) : (
-            <div className="notice notice-error mb-2" role="alert">
-              <strong>SET NEXT_PUBLIC_SAFER_USE_BROCHURE_URL.</strong> B&amp;P § 26070.3(b) has
-              required this store to display the DCC safer-use brochure online at the time of
-              purchase since 1 March 2025. Host the current PDF on this origin and set the
-              variable. This store is not launch-ready until you do.
-            </div>
-          )}
-
-          {/* EVERY order, not just the first. Cannabis is handed over against a
-              valid ID at the door; asking once at signup and trusting forever
-              after is not an ID check. */}
-          <div className="field">
-            <span className="label">ID check</span>
-            <p className="faint mt-0 mb-1">
-              Required on every order. Scan the front and back of your government ID — we read
-              the barcode to confirm your age, and your driver checks the physical card at the
-              door.
-            </p>
-            <IdScanner onChange={setIdImages} disabled={submitting} />
-          </div>
-
-          <button className="btn btn-block" disabled={!canSubmit}>
-            {submitting
-              ? "Checking your ID…"
-              : idImages
-                ? "Place order"
-                : "Scan your ID to continue"}
-          </button>
-
-          <p className="faint mt-2 mb-0">
-            We&apos;ll text order updates to the mobile number you verified. Transactional messages
-            only — this store does not send marketing texts.
-          </p>
+            </>
+          ) : null}
         </form>
 
         <aside className="plain-box">
@@ -544,9 +632,7 @@ export function CheckoutView({
                 Apply
               </button>
             </div>
-            {cart?.couponMessage ? (
-              <p className="faint mt-1 mb-0">{cart.couponMessage}</p>
-            ) : null}
+            {cart?.couponMessage ? <p className="faint mt-1 mb-0">{cart.couponMessage}</p> : null}
           </div>
 
           <div className="totals">
@@ -596,8 +682,8 @@ export function CheckoutView({
           <p className="faint mt-2 mb-0">
             Store-wide deals and any delivery minimum are applied when the order is confirmed, so
             the final amount can be lower than this estimate. The itemised receipt you get at the
-            door states the California cannabis excise tax separately, as required by R&amp;TC
-            § 34011.2(d).
+            door states the California cannabis excise tax separately, as required by R&amp;TC §
+            34011.2(d).
           </p>
         </aside>
       </div>
