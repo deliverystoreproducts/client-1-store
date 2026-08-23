@@ -8,7 +8,8 @@ import { useCart } from "@/components/CartProvider";
 import { AddressField } from "@/components/AddressField";
 import { DailyLimitReadout } from "@/components/DailyLimitReadout";
 import { SignInFlow } from "@/components/SignInFlow";
-import { apiGet, apiPost, ClientApiError } from "@/lib/client-api";
+import { IdScanner } from "@/components/IdScanner";
+import { apiGet, apiPost, apiPostForm, ClientApiError } from "@/lib/client-api";
 import { TAX_LINE_LABELS } from "@/lib/compliance/tax";
 import { formatUsd } from "@/lib/money";
 import type {
@@ -86,6 +87,9 @@ export function CheckoutView({
   }, []);
   const [saveAddress, setSaveAddress] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  // Held only for the life of this page. Cleared by the redirect to the
+  // confirmation screen, so the next order scans again — which is the point.
+  const [idImages, setIdImages] = useState<{ front: File; back: File } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const loadSession = useCallback(async () => {
@@ -196,17 +200,22 @@ export function CheckoutView({
     setSubmitting(true);
     setError(null);
     try {
-      const res = await apiPost<{
+      // Multipart, because the ID photographs ride along with the order and are
+      // checked in the same request that places it — see /api/checkout.
+      const form = new FormData();
+      form.set(
+        "payload",
+        JSON.stringify({ items, address, notes, couponCode: appliedCoupon || null, saveAddress }),
+      );
+      if (idImages) {
+        form.set("idFront", idImages.front);
+        form.set("idBack", idImages.back);
+      }
+      const res = await apiPostForm<{
         orderId: number;
         orderNumber: string | null;
         trackingToken: string | null;
-      }>("/api/checkout", {
-        items,
-        address,
-        notes,
-        couponCode: appliedCoupon || null,
-        saveAddress,
-      });
+      }>("/api/checkout", form);
       clear();
       const qs = new URLSearchParams();
       if (res.orderNumber) qs.set("order", res.orderNumber);
@@ -250,7 +259,12 @@ export function CheckoutView({
           <div className="mt-2">
             <SignInFlow
               onSignedIn={onSignedIn}
-              requireIdPhoto={requireIdPhoto}
+              // Never here, whatever the store setting says: checkout scans the
+              // ID unconditionally a few steps below, and asking a brand-new
+              // customer to photograph both sides of their licence twice in one
+              // sitting is how a signup gets abandoned. The setting still
+              // governs the standalone /signin form.
+              requireIdPhoto={false}
               initialStep={session.pendingRegistration ? "profile" : "phone"}
             />
           </div>
@@ -296,7 +310,11 @@ export function CheckoutView({
   const overLimit = (cart?.dailyLimit.exceeded.length ?? 0) > 0;
 
   const canSubmit =
-    address.trim().length >= 6 && !submitting && (cart?.lines.length ?? 0) > 0 && !overLimit;
+    address.trim().length >= 6 &&
+    !submitting &&
+    (cart?.lines.length ?? 0) > 0 &&
+    !overLimit &&
+    !!idImages;
 
   return (
     <div className="plain">
@@ -465,8 +483,25 @@ export function CheckoutView({
             </div>
           )}
 
+          {/* EVERY order, not just the first. Cannabis is handed over against a
+              valid ID at the door; asking once at signup and trusting forever
+              after is not an ID check. */}
+          <div className="field">
+            <span className="label">ID check</span>
+            <p className="faint mt-0 mb-1">
+              Required on every order. Scan the front and back of your government ID — we read
+              the barcode to confirm your age, and your driver checks the physical card at the
+              door.
+            </p>
+            <IdScanner onChange={setIdImages} disabled={submitting} />
+          </div>
+
           <button className="btn btn-block" disabled={!canSubmit}>
-            {submitting ? "Placing your order…" : "Place order"}
+            {submitting
+              ? "Checking your ID…"
+              : idImages
+                ? "Place order"
+                : "Scan your ID to continue"}
           </button>
 
           <p className="faint mt-2 mb-0">

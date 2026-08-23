@@ -1,10 +1,11 @@
 import { isSameOriginRequest } from "@/lib/csrf";
 import * as api from "@/lib/kamui/client";
 import { UpstreamError } from "@/lib/kamui/errors";
-import { fail, failFromUpstream, json, readJson } from "@/lib/http";
+import { fail, failFromUpstream, json } from "@/lib/http";
+import { looksLikeJpeg, MAX_ID_IMAGE_BYTES, verifyId } from "@/lib/identity";
 import { formatUsd } from "@/lib/money";
 import { readCustomerToken, readPendingToken } from "@/lib/session";
-import { assessDailyLimitsForCheckout, sanitizeCartLines } from "@/lib/store";
+import { assessDailyLimitsForCheckout, getStoreProfile, sanitizeCartLines } from "@/lib/store";
 import { describeBreach } from "@/lib/compliance/limits";
 
 /**
@@ -19,9 +20,45 @@ import { describeBreach } from "@/lib/compliance/limits";
  * anything we send for those, so a tampered body cannot order in someone else's
  * name. We forward items, address, notes and an optional promo code — nothing
  * more.
+ *
+ * THE ID CHECK RUNS ON EVERY ORDER, and this is multipart rather than JSON so
+ * that it can. It used to live only in the signup form, which meant a returning
+ * customer was never asked again — verified once in their life and trusted
+ * forever after. That is not what "we check ID" means for a cannabis retailer,
+ * and it is not what the owner asked for.
+ *
+ * DELIBERATELY NOT WIRED TO A SETTING. The store's `requireIdVerification` flag
+ * still governs the signup form, but this check is unconditional, exactly like
+ * the age gate in src/proxy.ts and for the same reason: a legal control that a
+ * toggle can silently switch off is a control that will one day be off without
+ * anyone noticing. That is precisely how it was discovered missing.
+ *
+ * Verifying INLINE, rather than minting a "this customer is verified" token at
+ * a separate endpoint, is the point: there is no token to replay, no lifetime
+ * to reason about, and no window in which one scan covers two orders. The
+ * photos are checked in the same request that places the order or not at all.
  */
 
 export const dynamic = "force-dynamic";
+
+/** One line per refusal, deliberately incurious: someone probing with forged
+ *  cards should learn nothing from the wording. */
+const ID_REFUSALS: Record<string, string> = {
+  underage: "The ID you provided shows you are under the minimum age for this store.",
+  expired: "That ID has expired. Please use a current, unexpired government ID.",
+  fraud: "We couldn't verify that ID. Please try again with a valid government ID.",
+};
+
+async function readIdImage(
+  form: FormData,
+  field: string,
+): Promise<{ bytes: Uint8Array; mimeType: string } | null> {
+  const value = form.get(field);
+  if (!(value instanceof File) || value.size === 0) return null;
+  if (value.size > MAX_ID_IMAGE_BYTES) return null;
+  const bytes = new Uint8Array(await value.arrayBuffer());
+  return looksLikeJpeg(bytes) ? { bytes, mimeType: "image/jpeg" } : null;
+}
 
 interface Body {
   items?: unknown;
@@ -80,8 +117,46 @@ export async function POST(req: Request): Promise<Response> {
     });
   }
 
-  const body = await readJson<Body>(req);
+  // Multipart: a JSON `payload` part alongside the two ID photographs.
+  let form: FormData;
+  try {
+    form = await req.formData();
+  } catch {
+    return fail(400, "invalid_request", { message: "Malformed request." });
+  }
+
+  let body: Body | null = null;
+  try {
+    const raw = form.get("payload");
+    body = typeof raw === "string" ? (JSON.parse(raw) as Body) : null;
+  } catch {
+    body = null;
+  }
   if (!body) return fail(400, "invalid_request", { message: "Malformed request." });
+
+  const front = await readIdImage(form, "idFront");
+  const back = await readIdImage(form, "idBack");
+  if (!front || !back) {
+    return fail(400, "id_required", {
+      message: "Please scan the front and back of your ID to place this order.",
+    });
+  }
+
+  const { minAge } = await getStoreProfile();
+  const verdict = await verifyId({ front, back }, { minAge });
+  if (verdict.status === "rejected") {
+    return fail(403, `id_${verdict.reason}`, {
+      message: ID_REFUSALS[verdict.reason] ?? ID_REFUSALS.fraud,
+    });
+  }
+  // "review" proceeds on purpose: an unreadable barcode is our failure to parse
+  // a photograph, not evidence about the customer, and the driver checks the
+  // physical card at the door regardless (4 CCR § 15413). Refusing here would
+  // turn a scratched licence into a lost order.
+  console.info(
+    `[identity] checkout verdict=${verdict.status}` +
+      (verdict.status === "verified" ? ` method=${verdict.method}` : ` reason=${verdict.reason}`),
+  );
 
   const items = sanitizeCartLines(body.items);
   if (items.length === 0) return fail(400, "empty_cart", { message: "Your cart is empty." });
