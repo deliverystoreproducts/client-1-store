@@ -282,3 +282,94 @@ export interface TrackingOrderV1 {
   driverProxyPhone: string | null;
   hasFeedback: boolean;
 }
+
+/**
+ * A promotion, as the platform stores it.
+ *
+ * `rules` is deliberately `unknown` here and never parsed on this side.
+ * `rules.matchId` names ids in the PLATFORM's id space; a storefront that
+ * resolved them against its own catalogue would match nothing, and silently,
+ * because "no products in this deal" is a legal answer. That is exactly how
+ * every bundle quietly stopped applying after a catalogue cutover once. Ask
+ * `GET /deals/[id]` for the membership instead — it resolves server-side.
+ *
+ * `image` and `video` may be RELATIVE upload paths; both go through
+ * toPublicImageUrl like every other media reference.
+ */
+export interface StoreDealV1 {
+  id: number;
+  name: string;
+  type: string;
+  rules: unknown;
+  active: boolean;
+  startsAt: string | null;
+  expiresAt: string | null;
+  image: string | null;
+  video: string | null;
+  description: string | null;
+}
+
+/** Route response shape: a bare array. Upstream already filters to live deals. */
+export type ListDealsResponse = StoreDealV1[];
+
+export interface DealDetailResponse {
+  deal: StoreDealV1;
+  products: StoreProductV1[];
+}
+
+/**
+ * A coupon row, as the platform sends it.
+ *
+ * This is a RAW database row and it carries two things the browser must never
+ * see. `note` on a referral coupon reads "Referral reward: <name> (<phone>)
+ * ordered" — a DIFFERENT customer's name and phone number. `tenantId` names the
+ * backend's tenancy. `toPublicCoupon` drops both; they are typed here precisely
+ * so that dropping them is visible rather than accidental.
+ */
+export interface StoreCouponV1 {
+  id: number;
+  tenantId?: string;
+  code: string;
+  type: string;
+  value: number;
+  phone: string | null;
+  source: string;
+  note: string | null;
+  used: boolean;
+  reusable: boolean;
+  useCount: number;
+  targeting: unknown;
+  expiresAt: string;
+  createdAt: string;
+}
+
+export interface MyCouponsResponse {
+  coupons: StoreCouponV1[];
+  /**
+   * A promo that applies WITHOUT being tapped (the 4/20 enrollment). Surfaced
+   * separately upstream on purpose: shown in the tap-to-apply list, a customer
+   * would think they lost it by not tapping.
+   */
+  autoPromo: {
+    code: string;
+    type: string;
+    value: number;
+    note: string | null;
+    source: string;
+    expiresAt: string;
+  } | null;
+}
+
+/**
+ * `GET /delivery-zone?address=…`. `zone: null` means the address did not match
+ * any configured zone — which is NOT the same as "we don't deliver there": a
+ * shop with no zones configured at all also returns null for everything.
+ *
+ * `deliveryFee` is on the wire and is deliberately NOT mapped through. It is
+ * synced from Weedmaps and shown in the operator's settings, but no order path
+ * ever adds it to a total — so putting it in front of a customer would
+ * advertise a charge the driver will not collect.
+ */
+export interface DeliveryZoneResponse {
+  zone: { city: string; name: string; minimumOrder: number; deliveryFee: number } | null;
+}

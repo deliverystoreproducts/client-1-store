@@ -13,6 +13,8 @@ import {
 import type {
   StoreBrandV1,
   StoreCategoryV1,
+  StoreCouponV1,
+  StoreDealV1,
   StoreOrderV1,
   StoreProductV1,
   TenantProfileV1,
@@ -22,7 +24,9 @@ import type {
 import type {
   PublicBrand,
   PublicCategory,
+  PublicCoupon,
   PublicCustomer,
+  PublicDeal,
   PublicOrderSummary,
   PublicProduct,
   PublicStoreProfile,
@@ -58,6 +62,20 @@ export function toPublicProduct(p: StoreProductV1): PublicProduct {
     thcPercentage: p.thcPercentage,
     cbdPercentage: p.cbdPercentage,
     featured: !!p.featured,
+  };
+}
+
+export function toPublicDeal(d: StoreDealV1): PublicDeal {
+  return {
+    id: d.id,
+    name: d.name,
+    type: typeof d.type === "string" ? d.type : "",
+    description: d.description,
+    // Both go through the proxy; the upload path allows a `video/` sub-path and
+    // the proxy's allowed content types already include mp4/webm.
+    image: toPublicImageUrl(d.image),
+    video: toPublicImageUrl(d.video),
+    endsAt: d.expiresAt,
   };
 }
 
@@ -109,6 +127,49 @@ export function toPublicCustomer(c: CustomerProfileV1): PublicCustomer {
   // customerId and referredFrom are upstream bookkeeping; the browser has no
   // use for either and an id is a handle we would rather not publish.
   return { name: c.name, phone: c.phone, address: c.address };
+}
+
+/**
+ * Where a coupon came from, in words a customer recognises.
+ *
+ * Derived from `source` — an enum-ish column we control — rather than passed
+ * through from `note`, which is free text written by the platform for STAFF and
+ * contains third-party PII on referral coupons.
+ */
+function couponLabel(source: string): string {
+  switch (source) {
+    case "spin":
+      return "Spin & win";
+    case "catch":
+      return "Catch & save";
+    case "quiz":
+      return "Strain quiz";
+    case "promo_420":
+      return "4/20 promo";
+    case "referral":
+      return "Referral reward";
+    case "tenant_promo":
+      return "Store promo";
+    case "signup":
+      return "Welcome offer";
+    default:
+      return "Offer";
+  }
+}
+
+export function toPublicCoupon(c: StoreCouponV1, autoApplied = false): PublicCoupon {
+  return {
+    code: c.code,
+    type: typeof c.type === "string" ? c.type : "",
+    value: Number(c.value) || 0,
+    label: couponLabel(c.source),
+    expiresAt: c.expiresAt,
+    autoApplied,
+    // Only whether it is restricted, never to WHAT. The restriction is enforced
+    // upstream at redemption; naming the products here would leak merchandising
+    // decisions and cannot change the outcome.
+    targeted: c.targeting != null,
+  };
 }
 
 export function toPublicOrderSummary(o: StoreOrderV1): PublicOrderSummary {

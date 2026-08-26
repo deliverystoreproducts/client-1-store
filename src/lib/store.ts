@@ -5,6 +5,7 @@ import { UpstreamError } from "@/lib/kamui/errors";
 import {
   toPublicBrand,
   toPublicCategory,
+  toPublicDeal,
   toPublicProduct,
   toPublicStoreProfile,
 } from "@/lib/kamui/map";
@@ -34,6 +35,7 @@ import type {
   PricedCartLine,
   PublicBrand,
   PublicCategory,
+  PublicDeal,
   PublicProduct,
   PublicProductPage,
   PublicStoreProfile,
@@ -123,6 +125,13 @@ export interface CatalogQuery {
   search?: string;
   categoryId?: number;
   brandId?: number;
+  /** "indica" | "sativa" | "hybrid" — matched upstream against a free-text column. */
+  genetics?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  /** THC percentage bounds, 0–100. Products with a null THC drop out of a bounded query. */
+  minThc?: number;
+  maxThc?: number;
   sort?: "price_asc" | "price_desc" | "name_asc" | "newest";
   page?: number;
   limit?: number;
@@ -174,6 +183,28 @@ export async function getBrands(): Promise<PublicBrand[]> {
   }
 }
 
+/**
+ * One category / one brand, by id.
+ *
+ * There is no single-record endpoint upstream for either, and adding one would
+ * be a platform change for a lookup the list already answers — both lists are
+ * small (a shop has tens of categories, low hundreds of brands) and both are
+ * cached for 300s by the client, so this costs nothing per request.
+ *
+ * Returns null for "no such id" AND for an unreachable backend. The landing
+ * page renders a not-found either way, which is the honest answer to a visitor
+ * and reveals nothing about which it was — same rule as getProductDetail.
+ */
+export async function getCategory(id: number): Promise<PublicCategory | null> {
+  const rows = await getCategories();
+  return rows.find((c) => c.id === id) ?? null;
+}
+
+export async function getBrand(id: number): Promise<PublicBrand | null> {
+  const rows = await getBrands();
+  return rows.find((b) => b.id === id) ?? null;
+}
+
 /** Product detail. Returns null for "no such product" AND for an unreachable
  *  backend — the page renders a not-found either way, which is the honest
  *  answer to a visitor and reveals nothing about which it was. */
@@ -189,6 +220,53 @@ export async function getProductDetail(
   } catch (e) {
     if (!(e instanceof UpstreamError) || e.code !== "not_found") {
       logPageFailure("product-detail", e);
+    }
+    return null;
+  }
+}
+
+// ───────────────────────────── deals ─────────────────────────────
+
+/**
+ * Live promotions. Upstream filters by `active` and the start/expiry window, so
+ * everything here is running now — we do not second-guess it against our own
+ * clock.
+ *
+ * An unreachable backend yields an empty list, not an error: a deal carousel is
+ * merchandising. Its absence should cost the customer nothing, and it must
+ * never take the page down with it.
+ */
+export async function getDeals(): Promise<PublicDeal[]> {
+  try {
+    const rows = await api.listDeals();
+    return Array.isArray(rows) ? rows.map(toPublicDeal) : [];
+  } catch (e) {
+    logPageFailure("deals", e);
+    return [];
+  }
+}
+
+/**
+ * One deal plus the products it covers.
+ *
+ * The membership is resolved UPSTREAM on purpose and must stay that way:
+ * `rules.matchId` names ids in the platform's id space, so resolving them here
+ * would match nothing — and silently, because "no products in this deal" is a
+ * legal answer. Every bundle on a legacy shop quietly stopped applying that
+ * way once, with every page still returning 200.
+ */
+export async function getDealDetail(
+  id: number,
+): Promise<{ deal: PublicDeal; products: PublicProduct[] } | null> {
+  try {
+    const res = await api.getDeal(id);
+    return {
+      deal: toPublicDeal(res.deal),
+      products: (res.products ?? []).map(toPublicProduct),
+    };
+  } catch (e) {
+    if (!(e instanceof UpstreamError) || e.code !== "not_found") {
+      logPageFailure("deal-detail", e);
     }
     return null;
   }

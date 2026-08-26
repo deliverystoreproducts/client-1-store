@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ProductCard } from "@/components/ProductCard";
-import { getCatalogPage, getCategories, getStoreProfile } from "@/lib/store";
+import { DealCard } from "@/components/DealCard";
+import { getCatalogPage, getCategories, getDeals, getStoreProfile } from "@/lib/store";
 import { toPublicImageUrl } from "@/lib/kamui/images";
 import { DELIVERY_WINDOW_SHORT, deliveryWindowNotice, isWithinDeliveryWindow } from "@/lib/hours";
 
@@ -54,9 +55,12 @@ export default async function HomePage({
   const page = Math.max(1, Number(param(sp, "page")) || 1);
   const browsing = !!(search || categoryId || sort || page > 1);
 
-  const [profile, categories, results] = await Promise.all([
+  const [profile, categories, deals, results] = await Promise.all([
     getStoreProfile(),
     getCategories(),
+    // Only worth fetching for the shop window — a customer who is already
+    // filtering has told us what they came for.
+    browsing ? Promise.resolve([]) : getDeals(),
     getCatalogPage({ search, categoryId, sort: sort ?? "newest", page, limit: PAGE_SIZE }),
   ]);
 
@@ -70,13 +74,23 @@ export default async function HomePage({
     return s ? `/?${s}#catalogue` : "/#catalogue";
   };
 
+  /**
+   * A category is a PLACE now (/category/5), not a query param on the home
+   * page. It gets a URL a shop can print on a flyer, its own <title>, and its
+   * own filter rail. The home page keeps `?category=` working for anyone
+   * holding an old link — `categoryId` above still reads it — but nothing here
+   * mints one any more.
+   *
+   * A search in progress rides along, so narrowing to a category does not throw
+   * away what the customer typed.
+   */
   const categoryHref = (id?: number) => {
+    if (!id) return search ? `/?q=${encodeURIComponent(search)}` : "/";
     const qs = new URLSearchParams();
     if (search) qs.set("q", search);
-    if (id) qs.set("category", String(id));
     if (sortRaw) qs.set("sort", sortRaw);
     const s = qs.toString();
-    return s ? `/?${s}` : "/";
+    return s ? `/category/${id}?${s}` : `/category/${id}`;
   };
 
   // 4 CCR § 15403 caps delivery at 06:00–22:00 Pacific. We do not block ordering
@@ -162,6 +176,25 @@ export default async function HomePage({
         </div>
       ) : null}
 
+      {deals.length > 0 ? (
+        <section className="deals-strip" aria-labelledby="deals-head">
+          <div className="section-head">
+            <span className="eyebrow" id="deals-head">
+              On offer
+            </span>
+            <hr />
+            <Link className="btn btn-link btn-sm" href="/deals">
+              All deals →
+            </Link>
+          </div>
+          <div className="deals-row">
+            {deals.slice(0, 3).map((d, i) => (
+              <DealCard key={d.id} deal={d} index={i + 1} />
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       <section id="catalogue">
         <div className="section-head" data-reveal style={{ "--i": 5 } as React.CSSProperties}>
           <span className="eyebrow">
@@ -173,6 +206,9 @@ export default async function HomePage({
               {results.total} item{results.total === 1 ? "" : "s"}
             </span>
           ) : null}
+          <Link className="btn btn-link btn-sm" href="/products">
+            Shop all &amp; filter →
+          </Link>
         </div>
 
         <form className="rail" method="get" action="/" data-reveal style={{ "--i": 6 } as React.CSSProperties}>

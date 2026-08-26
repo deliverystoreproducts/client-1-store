@@ -52,6 +52,33 @@ export interface PublicProduct {
   featured: boolean;
 }
 
+/**
+ * A promotion, as the UI is allowed to see it.
+ *
+ * Note what is NOT here: `rules`. This storefront deliberately does not compute
+ * discounts. The platform's deal engine runs at CHECKOUT and is the only thing
+ * that decides what a cart costs; a second engine here would eventually
+ * disagree with it, and the customer would be shown one price and charged
+ * another. Deals are merchandising on this side — a name, a picture, and the
+ * products they cover.
+ *
+ * `endsAt` is carried only so the UI can say "ends Friday". It is never used to
+ * decide whether a deal is live: upstream already filtered by its own clock,
+ * and re-deciding here on a different machine's clock is how a running deal
+ * disappears from the page.
+ */
+export interface PublicDeal {
+  id: number;
+  name: string;
+  /** "bundle" | "bogo" | whatever the shop configured. Free text, shown as a label. */
+  type: string;
+  description: string | null;
+  /** Our own proxied URL, or null. */
+  image: string | null;
+  video: string | null;
+  endsAt: string | null;
+}
+
 export interface PublicProductPage {
   products: PublicProduct[];
   total: number;
@@ -188,6 +215,40 @@ export interface PricedCart {
    * server-side, where the customer's order history is reachable.
    */
   dailyLimit: DailyLimitAssessment;
+}
+
+/**
+ * A coupon the signed-in customer can use.
+ *
+ * Note what is absent, and why each absence is deliberate:
+ *
+ *   note      — on a referral coupon the upstream row reads "Referral reward:
+ *               <name> (<phone>) ordered". That is a DIFFERENT customer's name
+ *               and phone number. It never crosses into this type. `label`
+ *               below is derived from `source` instead, so the customer still
+ *               learns where the coupon came from without learning who else
+ *               shops here.
+ *   phone     — the wallet is already scoped to the session's own phone;
+ *               echoing it back adds nothing and puts a phone number in a page
+ *               that gets opened in public.
+ *   tenantId  — names the backend. Never leaves the server.
+ *
+ * `autoApplied` marks a coupon that works without being tapped. It is rendered
+ * distinctly for a practical reason: shown as a tappable code, a customer who
+ * did not tap it believes they lost it.
+ */
+export interface PublicCoupon {
+  code: string;
+  /** "percent" | "fixed" | "delivery" — what the value means. */
+  type: string;
+  value: number;
+  /** Human-readable provenance, derived from `source`. Never the raw note. */
+  label: string;
+  expiresAt: string;
+  /** Applies on its own at checkout; nothing for the customer to do. */
+  autoApplied: boolean;
+  /** Restricted to certain products or brands rather than the whole order. */
+  targeted: boolean;
 }
 
 export interface PublicOrderSummary {

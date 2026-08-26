@@ -14,8 +14,20 @@ const config: NextConfig = {
   // as an import and the standalone tracer would leave it behind. Without this
   // the ID check still works — it degrades to "a human should look" — but it
   // degrades everywhere, silently, which is the worst way to lose a feature.
+  //
+  // EVERY route that decodes must be listed. `/api/checkout` was added when the
+  // ID check moved from once-at-signup to once-per-order and this list was not
+  // updated with it — so on a standalone build the per-order check, which is
+  // the one that actually gates a sale, would have been the one running without
+  // its decoder. Silently, and only in production, because dev reads the file
+  // straight out of node_modules.
+  //
+  // Adding a decode site? Add it here. There is no test that will tell you.
   outputFileTracingIncludes: {
     "/api/auth/register": [
+      "./node_modules/.pnpm/zxing-wasm@*/node_modules/zxing-wasm/dist/reader/*.wasm",
+    ],
+    "/api/checkout": [
       "./node_modules/.pnpm/zxing-wasm@*/node_modules/zxing-wasm/dist/reader/*.wasm",
     ],
   },

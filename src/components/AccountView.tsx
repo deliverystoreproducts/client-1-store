@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { apiGet, apiPatch, apiPost, ClientApiError } from "@/lib/client-api";
+import { CouponWallet } from "@/components/CouponWallet";
 import { formatUsd } from "@/lib/money";
 import { formatPhone } from "@/lib/phone";
 import type { PublicOrderSummary, SessionState } from "@/lib/public-types";
@@ -192,6 +193,11 @@ export function AccountView() {
           </button>
         </aside>
       </div>
+
+      {/* Below the fold on purpose: orders are why someone opens this page.
+          The wallet renders nothing at all when there are no offers, so it
+          never leaves an empty heading behind. */}
+      <CouponWallet />
     </>
   );
 }

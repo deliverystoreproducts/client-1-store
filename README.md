@@ -823,7 +823,11 @@ same seams:
   reduce them to a boolean rather than publish a person's position to anyone
   holding a forwarded SMS link.
 - Automated tests. The types and flows were verified against a stub of the
-  upstream API during development, but no test suite ships in this repo.
+  upstream API during development. A unit suite ships and CI runs it
+  (`pnpm test`): the AAMVA parse and a real-WASM barcode decode against real
+  images, the wire→browser mappers, the age-gate allowlist, and the
+  browse-filter round-trip. Components are still verified in a real browser
+  against the production build — see the checklist below.
 - `robots` is set to `noindex` in `src/app/layout.tsx`. Flip it when the real
   domain, hours and legal pages are in place — see §7.7. `/privacy` and `/terms`
   set `noindex` in their own metadata as well; drop those lines too if the

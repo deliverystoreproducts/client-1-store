@@ -98,6 +98,20 @@ export function CheckoutView({
    * camera is not mounted until it is actually needed.
    */
   const [step, setStep] = useState<1 | 2 | 3>(1);
+
+  /**
+   * The delivery minimum for the address being typed.
+   *
+   * ADVISORY ONLY. The real enforcement is server-side in POST /api/checkout,
+   * which compares the SUBTOTAL (pre-tax, pre-discount) against the zone —
+   * this mirrors that comparison so the two cannot say different things, but a
+   * failed lookup means "no opinion", never "blocked".
+   *
+   * The point is purely the ORDER OF EVENTS. Without it a customer types an
+   * address, photographs both sides of their licence, and learns on the last
+   * step that they are $20 short. Same fact, three steps too late.
+   */
+  const [zone, setZone] = useState<{ city: string; minimumOrder: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const loadSession = useCallback(async () => {
@@ -319,6 +333,33 @@ export function CheckoutView({
 
   // Warnings and limits were both decided on the SERVER when the cart was
   // priced; this view only groups and renders them. The daily-limit refusal is
+  useEffect(() => {
+    const a = address.trim();
+    if (a.length < 6) {
+      setZone(null);
+      return;
+    }
+    // Debounced: this fires per keystroke otherwise, and each one is an
+    // upstream geocode against a customer's home address.
+    let stop = false;
+    const timer = window.setTimeout(() => {
+      apiGet<{ zone: { city: string; minimumOrder: number } | null }>(
+        `/api/delivery-zone?address=${encodeURIComponent(a)}`,
+      )
+        .then((r) => {
+          if (!stop) setZone(r.zone);
+        })
+        .catch(() => {
+          // No opinion. Checkout still enforces it.
+          if (!stop) setZone(null);
+        });
+    }, 500);
+    return () => {
+      stop = true;
+      window.clearTimeout(timer);
+    };
+  }, [address]);
+
   // enforced again in POST /api/checkout — a disabled button is a courtesy, not
   // a control.
   const routes = (cart?.lines ?? [])
@@ -328,6 +369,17 @@ export function CheckoutView({
   const overLimit = (cart?.dailyLimit.exceeded.length ?? 0) > 0;
 
   const addressReady = address.trim().length >= 6;
+
+  /**
+   * Below the zone's minimum. Compared against SUBTOTAL to match the
+   * server-side check exactly (checkout.ts compares pre-tax, pre-discount) —
+   * comparing against the estimated total here would let a cart pass this
+   * screen and be refused at the end, which is the failure this exists to
+   * prevent, inverted.
+   */
+  const belowMinimum =
+    zone != null && zone.minimumOrder > 0 && cart != null && cart.subtotal < zone.minimumOrder;
+  const shortBy = belowMinimum && zone ? zone.minimumOrder - cart!.subtotal : 0;
 
   const canSubmit =
     addressReady && !submitting && (cart?.lines.length ?? 0) > 0 && !overLimit && !!idImages;
@@ -438,6 +490,28 @@ export function CheckoutView({
                 />
                 Save this address for next time
               </label>
+
+              {/* Stated here rather than at the end. The same fact arrives from the
+                  server if they proceed anyway — this only moves it to before
+                  they photograph their licence. Not a block: the customer may
+                  well be about to add more to the basket. */}
+              {belowMinimum && zone ? (
+                <div className="notice notice-error mb-2" role="status">
+                  <strong>
+                    Orders to {zone.city} start at {formatUsd(zone.minimumOrder)}.
+                  </strong>{" "}
+                  Your basket is {formatUsd(cart!.subtotal)} — {formatUsd(shortBy)} short.{" "}
+                  <Link className="link" href="/products">
+                    Add something else
+                  </Link>{" "}
+                  and come back; nothing here is lost.
+                </div>
+              ) : zone && zone.minimumOrder > 0 ? (
+                <p className="faint mb-2">
+                  Deliveries to {zone.city} have a {formatUsd(zone.minimumOrder)} minimum — your
+                  basket clears it.
+                </p>
+              ) : null}
 
               <div className="notice mb-2">
                 <strong>Cash on delivery.</strong> Nothing is charged now — pay the driver when your

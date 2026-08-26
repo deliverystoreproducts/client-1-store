@@ -3,6 +3,10 @@ import "server-only";
 import { getUpstreamConfig, UpstreamConfigError } from "./env";
 import { UpstreamError, type UpstreamErrorCode } from "./errors";
 import type {
+  DeliveryZoneResponse,
+  MyCouponsResponse,
+  ListDealsResponse,
+  DealDetailResponse,
   CheckoutErrorBodyV1,
   CheckoutRequestV1,
   CheckoutResponseV1,
@@ -214,6 +218,8 @@ export interface ProductQuery {
   minPrice?: number;
   maxPrice?: number;
   genetics?: string;
+  minThc?: number;
+  maxThc?: number;
   onSale?: boolean;
   featured?: boolean;
   page?: number;
@@ -230,6 +236,8 @@ function productQueryString(q: ProductQuery): string {
   if (q.minPrice != null) sp.set("minPrice", String(q.minPrice));
   if (q.maxPrice != null) sp.set("maxPrice", String(q.maxPrice));
   if (q.genetics) sp.set("genetics", q.genetics);
+  if (q.minThc != null) sp.set("minThc", String(q.minThc));
+  if (q.maxThc != null) sp.set("maxThc", String(q.maxThc));
   if (q.onSale) sp.set("onSale", "true");
   if (q.featured) sp.set("featured", "true");
   if (q.page) sp.set("page", String(q.page));
@@ -283,6 +291,62 @@ export function listBrands(q: { page?: number; limit?: number; search?: string }
     revalidate: 300,
     tags: ["catalog"],
   });
+}
+
+/**
+ * GET /deals — the live promotions.
+ *
+ * Upstream already filters by `active` AND the start/expiry window, so anything
+ * returned here is running right now. Do not re-filter on dates in the UI: the
+ * two clocks are different machines, and the shop's answer is the one that
+ * counts at checkout.
+ */
+export function listDeals(): Promise<ListDealsResponse> {
+  return call<ListDealsResponse>("GET", `${API_PREFIX}/deals`, {}, {
+    revalidate: 120,
+    tags: ["deals"],
+  });
+}
+
+/** GET /deals/[id] — one deal plus the products it applies to, priced for us. */
+export function getDeal(id: number): Promise<DealDetailResponse> {
+  return call<DealDetailResponse>("GET", `${API_PREFIX}/deals/${id}`, {}, {
+    revalidate: 120,
+    tags: ["deals"],
+  });
+}
+
+/**
+ * GET /coupon/mine?phone=… — the coupons this phone can use now.
+ *
+ * ⚠ The upstream authenticates the STORE, not the customer: it will answer for
+ * ANY phone the caller names. The phone therefore must never come from a
+ * request — see src/app/api/coupons/route.ts, which reads it from the verified
+ * session. Do not add a caller that passes a client-supplied value.
+ */
+export function listMyCoupons(phone: string): Promise<MyCouponsResponse> {
+  return call<MyCouponsResponse>(
+    "GET",
+    `${API_PREFIX}/coupon/mine?phone=${encodeURIComponent(phone)}`,
+    {},
+    { revalidate: false }, // a wallet must not be served from another request's cache
+  );
+}
+
+/**
+ * GET /delivery-zone — the minimum order for an address, before the customer
+ * has spent any more effort on the checkout.
+ *
+ * Not cached: zones are per-address, and a cache keyed on a full street address
+ * is both useless and a small pile of customer addresses in a shared store.
+ */
+export function lookupDeliveryZone(address: string): Promise<DeliveryZoneResponse> {
+  return call<DeliveryZoneResponse>(
+    "GET",
+    `${API_PREFIX}/delivery-zone?address=${encodeURIComponent(address)}`,
+    {},
+    { revalidate: false },
+  );
 }
 
 export function getTenantProfile(): Promise<TenantProfileV1> {

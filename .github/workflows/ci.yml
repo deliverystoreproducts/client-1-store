@@ -40,3 +40,10 @@ jobs:
       # After build: `next build` generates next-env.d.ts, which is gitignored
       # and which tsconfig.json includes.
       - run: pnpm typecheck
+
+      # The suite covers the parts where being wrong is expensive and silent:
+      # the AAMVA parse and the real-WASM barcode decode, the wire->browser
+      # mappers (one asserts a referral coupon's note — another customer's name
+      # and phone — never crosses), the age-gate allowlist, and the browse-filter
+      # round-trip. `vitest run` is non-watch; it exits.
+      - run: pnpm test

@@ -2945,3 +2945,786 @@ body::after {
   border-color: var(--fern);
   color: var(--fern);
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THE SHELF — filter rail + results, shared by /products, /category, /brand
+   ═══════════════════════════════════════════════════════════════════════════
+   One column on small screens with the rail first: a customer who arrives on a
+   filtered URL must SEE what is narrowing their results before the grid, or
+   "only 3 items" reads as an empty shop. Two columns from 900px up, where the
+   rail can sit alongside without stealing the shelf's width.
+*/
+
+.shelf {
+  display: grid;
+  gap: clamp(1.4rem, 3vw, 2.4rem);
+}
+
+@media (min-width: 900px) {
+  .shelf {
+    grid-template-columns: 232px minmax(0, 1fr);
+    align-items: start;
+  }
+  .shelf-rail {
+    position: sticky;
+    /* clears the sticky site header; the rail is taller than the viewport on
+       small laptops, so it scrolls internally rather than trapping the page */
+    top: 88px;
+    max-height: calc(100vh - 108px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    padding-right: 4px;
+  }
+}
+
+.shelf-body {
+  min-width: 0; /* lets the grid shrink instead of forcing a page-wide scroll */
+}
+
+/* ── the rail itself ─────────────────────────────────────────────────────── */
+
+.filters {
+  border-top: 2px solid var(--rule-hi);
+  padding-top: 0.9rem;
+}
+
+.filters-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.9rem;
+}
+
+.filters .search {
+  margin-bottom: 1.1rem;
+}
+
+/* Rule 5 of the toolbar: resting controls are quiet, focus brings the accent. */
+.filter-group {
+  border-top: 1px solid var(--rule);
+  padding: 0.55rem 0 0.75rem;
+}
+
+.filter-group > summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 0.5rem 0;
+  font-size: var(--t--2);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--pine-3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: color 0.18s var(--ease);
+}
+
+.filter-group > summary::-webkit-details-marker {
+  display: none;
+}
+
+.filter-group > summary::after {
+  content: "+";
+  font-size: 1.1em;
+  line-height: 1;
+  color: var(--pine-3);
+}
+
+.filter-group[open] > summary::after {
+  content: "–";
+}
+
+.filter-group > summary:hover,
+.filter-group[open] > summary {
+  color: var(--pine);
+}
+
+.filter-group > summary:focus-visible {
+  outline: 2px solid var(--fern);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+.range-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.range-row .input {
+  min-height: 44px;
+  padding: 0.5rem 0.6rem;
+  text-align: center;
+}
+
+.range-dash {
+  color: var(--pine-3);
+}
+
+.radio-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+}
+
+/* A radio drawn as a pill. The input stays in the DOM and keeps its semantics —
+   it is only visually replaced, so keyboard, screen readers and the no-JS form
+   submission all still work. */
+.radio {
+  position: relative;
+  cursor: pointer;
+}
+
+.radio input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.radio span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 0 0.85rem;
+  border: 1px solid var(--rule-hi);
+  border-radius: 999px;
+  font-size: var(--t--2);
+  letter-spacing: 0.06em;
+  text-transform: capitalize;
+  color: var(--pine-2);
+  background: var(--ground);
+  transition: border-color 0.18s var(--ease), color 0.18s var(--ease),
+    background 0.18s var(--ease);
+}
+
+.radio:hover span {
+  border-color: var(--fern);
+  color: var(--pine);
+}
+
+.radio input:checked + span {
+  border-color: var(--fern);
+  background: var(--fern);
+  color: var(--ground);
+}
+
+.radio input:focus-visible + span {
+  outline: 2px solid var(--fern);
+  outline-offset: 2px;
+}
+
+.filters .check {
+  padding: 0.7rem 0;
+  border-top: 1px solid var(--rule);
+  margin-bottom: 0.9rem;
+}
+
+/* ── applied filters, above the grid ─────────────────────────────────────── */
+
+/* Overrides .chips' single-row scroll: these WRAP. A customer with five filters
+   applied must see all five — the fifth hidden past a fade is the one they
+   wanted to remove. */
+.chips-active {
+  flex-wrap: wrap;
+  overflow: visible;
+  gap: 0.45rem;
+  mask-image: none;
+  -webkit-mask-image: none;
+}
+
+/* Tabs are places; pills are commands (toolbar rule 3). These remove a filter,
+   so they are pills — deliberately NOT the underlined .chip tab above. */
+.chip-remove {
+  border: 1px solid var(--rule-hi);
+  border-radius: 999px;
+  padding: 0.5rem 0.75rem;
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  font-size: var(--t--1);
+  font-weight: 500;
+  color: var(--pine-2);
+  background: var(--ground);
+}
+
+.chip-remove i {
+  font-style: normal;
+  font-size: 1.15em;
+  line-height: 1;
+  color: var(--pine-3);
+}
+
+.chip-remove:hover {
+  border-color: var(--coral);
+  color: var(--pine);
+}
+
+.chip-remove:hover i {
+  color: var(--coral);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   BRAND INDEX — /brands
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.alpha-jump {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+  margin-bottom: clamp(1.4rem, 3vw, 2rem);
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 0.5rem;
+}
+
+.alpha-group {
+  margin-bottom: clamp(1.8rem, 4vw, 2.8rem);
+}
+
+.alpha-head {
+  font-family: var(--font-display);
+  font-size: var(--t-2);
+  font-weight: 400;
+  color: var(--pine-3);
+  border-bottom: 2px solid var(--rule-hi);
+  padding-bottom: 0.3rem;
+  margin: 0 0 0.4rem;
+  /* offset so an #anchor jump doesn't hide the heading under the sticky header */
+  scroll-margin-top: 96px;
+}
+
+.brand-index {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+}
+
+.brand-index a {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 48px;
+  padding: 0.7rem 0.2rem;
+  border-bottom: 1px solid var(--rule);
+  color: var(--pine);
+  transition: color 0.18s var(--ease), border-color 0.18s var(--ease);
+}
+
+.brand-index a:hover {
+  color: var(--fern);
+  border-bottom-color: var(--fern);
+}
+
+.brand-index-name {
+  /* the leaders that make a directory read as a directory */
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.brand-index-n {
+  color: var(--pine-3);
+  font-size: var(--t--1);
+  flex: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DEALS — /deals, /deal/[id], and the home strip
+   ═══════════════════════════════════════════════════════════════════════════
+   A deal is a poster, so it gets the one thing a product tile deliberately does
+   not: a picture that fills its frame. The tile stays an index entry; this is
+   the thing pinned next to the index.
+*/
+
+.deals-strip {
+  margin-bottom: clamp(2rem, 5vw, 3.4rem);
+}
+
+.deals-row,
+.deals-grid {
+  display: grid;
+  gap: clamp(1rem, 2.4vw, 1.6rem);
+}
+
+.deals-row {
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 620px) {
+  .deals-row {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.deals-grid {
+  grid-template-columns: repeat(auto-fill, minmax(272px, 1fr));
+}
+
+.deal {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.deal-frame {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--ground-raise);
+  border: 1px solid var(--rule);
+}
+
+.deal-media {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.5s var(--ease);
+}
+
+.deal-media-empty {
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--ground-raise),
+    var(--ground-raise) 10px,
+    var(--ground-deep) 10px,
+    var(--ground-deep) 20px
+  );
+}
+
+.deal-frame:hover .deal-media {
+  transform: scale(1.03);
+}
+
+.deal-frame:focus-visible {
+  outline: 2px solid var(--fern);
+  outline-offset: 3px;
+}
+
+.deal-type {
+  position: absolute;
+  left: 0.7rem;
+  top: 0.7rem;
+  background: var(--pine);
+  color: var(--ground);
+  border: 0;
+}
+
+.deal-body {
+  padding-top: 0.7rem;
+}
+
+.deal-name {
+  font-family: var(--font-display);
+  font-size: var(--t-0);
+  font-weight: 400;
+  line-height: 1.25;
+  margin: 0 0 0.25rem;
+}
+
+.deal-name a {
+  color: var(--pine);
+  transition: color 0.18s var(--ease);
+}
+
+.deal-name a:hover {
+  color: var(--fern);
+}
+
+.deal-copy {
+  font-size: var(--t--1);
+  color: var(--pine-2);
+  line-height: 1.5;
+  margin: 0 0 0.3rem;
+  /* two lines, then stop — a long description must not push the row out of
+     alignment with its neighbours */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.deal-ends {
+  color: var(--clay);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+/* ── deal detail ─────────────────────────────────────────────────────────── */
+
+.deal-head {
+  margin-bottom: clamp(1.6rem, 4vw, 2.6rem);
+}
+
+.deal-hero {
+  width: 100%;
+  max-height: 380px;
+  object-fit: cover;
+  display: block;
+  border-radius: 10px;
+  border: 1px solid var(--rule);
+  background: var(--ground-raise);
+  margin-bottom: clamp(1rem, 2.5vw, 1.6rem);
+}
+
+.deal-head-body {
+  max-width: var(--measure);
+}
+
+.deal-head-body .display-sm {
+  margin: 0.2rem 0 0.5rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .deal-media,
+  .deal-frame:hover .deal-media {
+    transition: none;
+    transform: none;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   COUPON WALLET — account page
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.coupon-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.coupon {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem 1rem;
+  align-items: center;
+  padding: 0.95rem 1.1rem;
+  border: 1px solid var(--rule-hi);
+  border-radius: 8px;
+  background: var(--ground-raise);
+}
+
+/* An auto-applied promo is not a code to use — it is a fact about the account.
+   The dashed edge says "this is not the same kind of thing" without a legend. */
+.coupon[data-auto] {
+  border-style: dashed;
+  border-color: var(--fern);
+  background: var(--ground);
+}
+
+.coupon-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.coupon-value {
+  font-family: var(--font-display);
+  font-size: var(--t-0);
+  color: var(--pine);
+  line-height: 1.2;
+}
+
+.coupon-label {
+  color: var(--pine-3);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.coupon-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.3rem;
+  text-align: right;
+}
+
+.coupon-code {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 42px;
+  padding: 0.35rem 0.7rem;
+  border: 1px dashed var(--rule-hi);
+  border-radius: 6px;
+  background: var(--ground);
+  cursor: pointer;
+  transition: border-color 0.18s var(--ease);
+}
+
+.coupon-code:hover {
+  border-color: var(--fern);
+}
+
+.coupon-code:focus-visible {
+  outline: 2px solid var(--fern);
+  outline-offset: 2px;
+}
+
+.coupon-code code {
+  font-family: var(--font-body);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--pine);
+}
+
+.coupon-copy {
+  color: var(--fern);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.coupon-exp {
+  color: var(--pine-3);
+}
+
+.coupon-note {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+@media (max-width: 520px) {
+  .coupon {
+    grid-template-columns: 1fr;
+  }
+  .coupon-side {
+    align-items: flex-start;
+    text-align: left;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TRACKING MAP
+   ═══════════════════════════════════════════════════════════════════════════
+   Reserves its aspect ratio before the image arrives so the details below do
+   not jump when it loads — the block is on a page that reloads every 20s, and
+   a layout shift on each poll would be unbearable.
+*/
+
+.track-map {
+  margin: clamp(1rem, 2.5vw, 1.4rem) 0;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--sunk, var(--ground-raise));
+  aspect-ratio: 2 / 1;
+  /* Until the first paint the frame is a quiet placeholder, not a white hole. */
+  opacity: 0.55;
+  transition: opacity 0.3s var(--ease);
+}
+
+.track-map[data-ready] {
+  opacity: 1;
+}
+
+.track-map img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .track-map {
+    transition: none;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   HEADER SEARCH
+   ═══════════════════════════════════════════════════════════════════════════
+   Toolbar rule: quiet at rest, accent on focus. The shelf below is the loudest
+   thing on the page — the search never competes with it.
+*/
+
+.hdr-search {
+  position: relative;
+  flex: 1 1 auto;
+  max-width: 340px;
+  margin: 0 clamp(0.6rem, 2vw, 1.4rem);
+  display: flex;
+  align-items: center;
+}
+
+.hdr-search input {
+  width: 100%;
+  min-height: 42px;
+  background: transparent;
+  color: var(--pine);
+  border: 0;
+  border-bottom: 1px solid var(--rule-hi);
+  border-radius: 0;
+  padding: 0.4rem 2.1rem 0.4rem 0.1rem;
+  font-size: var(--t--1);
+  outline: none;
+  transition: border-color 0.18s var(--ease);
+}
+
+.hdr-search input::placeholder {
+  color: var(--pine-3);
+}
+
+.hdr-search input:focus {
+  border-bottom-color: var(--fern);
+}
+
+/* Ghost weight — Enter submits, so the button is for discoverability only. */
+.hdr-search-go {
+  position: absolute;
+  right: 0;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  color: var(--pine-3);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  transition: color 0.18s var(--ease);
+}
+
+.hdr-search-go svg {
+  width: 17px;
+  height: 17px;
+}
+
+.hdr-search-go:hover {
+  color: var(--fern);
+}
+
+.hdr-search-go:focus-visible {
+  outline: 2px solid var(--fern);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.hdr-pop {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 60;
+  background: var(--ground);
+  border: 1px solid var(--rule-hi);
+  border-radius: 8px;
+  box-shadow: 0 10px 34px rgba(20, 30, 22, 0.13);
+  max-height: min(70vh, 460px);
+  overflow-y: auto;
+  padding: 0.3rem 0;
+}
+
+.hdr-group + .hdr-group {
+  border-top: 1px solid var(--rule);
+  margin-top: 0.25rem;
+  padding-top: 0.25rem;
+}
+
+.hdr-group-head {
+  display: block;
+  padding: 0.45rem 0.85rem 0.2rem;
+  font-size: var(--t--2);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--pine-3);
+}
+
+.hdr-opt {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.5rem 0.85rem;
+  min-height: 44px;
+  cursor: pointer;
+  color: var(--pine);
+}
+
+.hdr-opt[aria-selected="true"] {
+  background: var(--ground-raise);
+}
+
+.hdr-thumb {
+  width: 34px;
+  height: 34px;
+  object-fit: cover;
+  border-radius: 4px;
+  flex: none;
+  background: var(--ground-raise);
+}
+
+.hdr-thumb-empty {
+  border: 1px dashed var(--rule-hi);
+}
+
+.hdr-opt-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--t--1);
+}
+
+.hdr-opt-meta {
+  color: var(--pine-3);
+  font-size: var(--t--2);
+  flex: none;
+}
+
+.hdr-all {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.65rem 0.85rem;
+  min-height: 44px;
+  border: 0;
+  border-top: 1px solid var(--rule);
+  margin-top: 0.25rem;
+  background: none;
+  color: var(--fern);
+  font-size: var(--t--1);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.hdr-all:hover {
+  background: var(--ground-raise);
+}
+
+/* On a phone the header has no room for it — it moves into the burger menu,
+   where it is the first thing in the sheet. */
+@media (max-width: 720px) {
+  .site-header .hdr-search {
+    display: none;
+  }
+  .mobile-menu .hdr-search {
+    display: flex;
+    max-width: none;
+    margin: 0 0 0.5rem;
+  }
+  .mobile-menu .hdr-pop {
+    position: static;
+    box-shadow: none;
+    margin-top: 6px;
+  }
+}

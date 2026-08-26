@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { TrackMap } from "@/components/TrackMap";
 import { apiGet } from "@/lib/client-api";
 import type { PublicTracking } from "@/lib/public-types";
 
@@ -46,6 +47,10 @@ const STAGE_OF: Record<string, number> = {
 export function TrackView({ token }: { token: string }) {
   const [data, setData] = useState<PublicTracking | null>(null);
   const [missing, setMissing] = useState(false);
+  // Bumped on every successful poll. The map re-fetches on the parent's clock
+  // rather than running a second timer that could drift out of step with the
+  // status text beside it.
+  const [tick, setTick] = useState(0);
 
   useEffect(() => {
     let stop = false;
@@ -54,7 +59,10 @@ export function TrackView({ token }: { token: string }) {
         const res = await apiGet<PublicTracking>(
           `/api/orders/track/${encodeURIComponent(token)}`,
         );
-        if (!stop) setData(res);
+        if (!stop) {
+          setData(res);
+          setTick((n) => n + 1);
+        }
       } catch {
         if (!stop) setMissing(true);
       }
@@ -128,6 +136,11 @@ export function TrackView({ token }: { token: string }) {
           it out.
         </p>
       )}
+
+      {/* Placed after the status, before the details: a customer looks for
+          "where is it" first and the map answers that faster than prose. It
+          renders nothing at all when there is no position to draw. */}
+      <TrackMap token={token} refreshKey={tick} />
 
       <div className="stack" style={{ gap: "0.6rem" }}>
         {data.arrivedAt ? (

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { SearchSuggest } from "@/components/SearchSuggest";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useCart } from "@/components/CartProvider";
@@ -65,12 +66,26 @@ export function SiteHeader({
           <span className="brand-name">{storeName}</span>
         </Link>
 
+        {/* Between the mark and the nav, on every page. The gap this closes is
+            that from a product page or the cart there was previously no way to
+            search at all. */}
+        <SearchSuggest />
+
         <nav className="nav" aria-label="Main">
           {/* Text links live in a wrapper the phone hides; the burger replaces
               them. Cart and the burger always stay reachable. */}
           <span className="nav-links">
             <Link href="/" className="nav-wide">
               Shop
+            </Link>
+            <Link href="/products" className="nav-wide">
+              Shop all
+            </Link>
+            <Link href="/brands" className="nav-wide">
+              Brands
+            </Link>
+            <Link href="/deals" className="nav-wide">
+              Deals
             </Link>
             <Link href="/track">Track</Link>
             {session?.authenticated ? (
@@ -103,7 +118,11 @@ export function SiteHeader({
 
       {menuOpen ? (
         <div id="mobile-menu" className="mobile-menu">
+          <SearchSuggest id="menu-q" />
           <Link href="/">Shop</Link>
+          <Link href="/products">Shop all &amp; filter</Link>
+          <Link href="/brands">Brands</Link>
+          <Link href="/deals">Deals</Link>
           <Link href="/track">Track an order</Link>
           {session?.authenticated ? (
             <Link href="/account">Your account</Link>
