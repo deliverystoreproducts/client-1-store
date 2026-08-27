@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ProductCard } from "@/components/ProductCard";
+import { InfiniteShelf } from "@/components/InfiniteShelf";
 import { BrandRail } from "@/components/BrandRail";
 import { MediaSlot } from "@/components/MediaSlot";
 import { CategoryFeature } from "@/components/CategoryFeature";
@@ -74,15 +74,6 @@ export default async function HomePage({
   // entirely while browsing — the bands are shop-window furniture.
   const bands = browsing ? [] : await getCategoryBands(categories, { bands: 6, perBand: 4 });
 
-  const pageHref = (n: number) => {
-    const qs = new URLSearchParams();
-    if (search) qs.set("q", search);
-    if (categoryId) qs.set("category", String(categoryId));
-    if (sortRaw) qs.set("sort", sortRaw);
-    if (n > 1) qs.set("page", String(n));
-    const s = qs.toString();
-    return s ? `/?${s}#catalogue` : "/#catalogue";
-  };
 
   /**
    * A category is a PLACE now (/category/5), not a query param on the home
@@ -110,7 +101,6 @@ export default async function HomePage({
   const hoursNotice = deliveryWindowNotice();
 
   const activeCategory = categories.find((c) => c.id === categoryId);
-  const firstOnPage = (page - 1) * PAGE_SIZE;
 
   // No stand-in photograph. This used to fall back to a stock Unsplash image,
   // which is the worst of both worlds: a real photograph of someone else's shop,
@@ -370,31 +360,18 @@ export default async function HomePage({
             )}
           </div>
         ) : (
-          <>
-            <div className="catalogue">
-              {results.products.map((p, i) => (
-                <ProductCard key={p.id} product={p} index={firstOnPage + i + 1} />
-              ))}
-            </div>
-
-            {results.totalPages > 1 ? (
-              <nav className="pager" aria-label="Pagination">
-                {page > 1 ? (
-                  <Link className="btn btn-ghost btn-sm" href={pageHref(page - 1)}>
-                    ← Previous
-                  </Link>
-                ) : null}
-                <span className="eyebrow num">
-                  Page {page} / {results.totalPages}
-                </span>
-                {page < results.totalPages ? (
-                  <Link className="btn btn-ghost btn-sm" href={pageHref(page + 1)}>
-                    Next →
-                  </Link>
-                ) : null}
-              </nav>
-            ) : null}
-          </>
+          <InfiniteShelf
+            initial={results}
+            query={(() => {
+              const qs = new URLSearchParams();
+              if (search) qs.set("q", search);
+              if (categoryId) qs.set("category", String(categoryId));
+              if (sortRaw) qs.set("sort", sortRaw);
+              const q = qs.toString();
+              return q ? `?${q}` : "";
+            })()}
+            pageSize={PAGE_SIZE}
+          />
         )}
       </section>
     </>

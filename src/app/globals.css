@@ -5997,3 +5997,11 @@ body::after {
   color: var(--pine-3);
   margin-top: -0.35rem;
 }
+
+.feed-foot {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 3.5rem;
+  margin-top: 1.2rem;
+}
