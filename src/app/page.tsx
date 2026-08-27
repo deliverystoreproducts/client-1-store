@@ -4,6 +4,7 @@ import { BrandRail } from "@/components/BrandRail";
 import { CategoryFeature } from "@/components/CategoryFeature";
 import { CategoryRow } from "@/components/CategoryRow";
 import { DealCard } from "@/components/DealCard";
+import { DeliveryAreas, HighlightStrip } from "@/components/ShopWindow";
 import {
   getBrands,
   getCatalogPage,
@@ -191,6 +192,12 @@ export default async function HomePage({
           the window opens.
         </div>
       ) : null}
+
+      {/* Directly under the hero: the three promises, then where we go. Both
+          render nothing when the operator has not set them, so the page simply
+          tightens up rather than showing empty furniture. */}
+      {!browsing ? <HighlightStrip items={profile.highlights} /> : null}
+      {!browsing ? <DeliveryAreas cities={profile.deliveryCities} /> : null}
 
       {/* The shop window, in the order a customer shops it: who makes it, what
           kind it is, what's on offer, then everything else. Hidden the moment

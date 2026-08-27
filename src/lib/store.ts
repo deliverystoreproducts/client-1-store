@@ -54,6 +54,14 @@ export const FALLBACK_PROFILE: PublicStoreProfile = {
   heroTitle: null,
   heroSubtitle: null,
   heroImage: null,
+  // Unreachable backend = no shop window. Every one of these is decoration; a
+  // storefront that invents a promo or a delivery city while it cannot read the
+  // catalogue would be advertising something it cannot honour.
+  promoText: null,
+  promoBadge: null,
+  promoHref: null,
+  highlights: [],
+  deliveryCities: [],
   open: true,
   // Fail SAFE on the threshold too: if we cannot read the store's configuration
   // we still ask for 21+. The gate itself is unconditional (see app/layout.tsx),

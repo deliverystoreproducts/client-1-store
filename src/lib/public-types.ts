@@ -130,6 +130,15 @@ export interface PublicStoreProfile {
   requireIdVerification: boolean;
   couponsEnabled: boolean;
 
+  /** Top promo strip. Null hides it — an empty bar is worse than none. */
+  promoText: string | null;
+  promoBadge: string | null;
+  promoHref: string | null;
+  /** The three promises under the hero. Empty hides the strip. */
+  highlights: { icon: string; title: string; body: string }[];
+  /** Cities the shop actually delivers to. */
+  deliveryCities: string[];
+
   /** Shop logo, ALREADY proxied through /api/img — safe to put in an <img>. */
   logo: string | null;
 
