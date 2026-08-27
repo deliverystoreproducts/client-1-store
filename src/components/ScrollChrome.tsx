@@ -26,10 +26,18 @@ export function ScrollChrome() {
     if (hasBanner) root.setAttribute("data-hero-overlay", "1");
     else root.removeAttribute("data-hero-overlay");
 
+    // On phones the SHELL scrolls, not the window (globals.css "THE SHELL
+    // SCROLLS"); on desktop it is the window. Watch both, read whichever moved.
+    const shell = document.querySelector<HTMLElement>(".shell");
+    const scrollTop = () => Math.max(window.scrollY, shell?.scrollTop ?? 0);
+    // A new route starts at the top — the window does this by itself, an inner
+    // scroller does not.
+    shell?.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
+
     let raf = 0;
     const apply = () => {
       raf = 0;
-      if (window.scrollY > 12) root.setAttribute("data-scrolled", "1");
+      if (scrollTop() > 12) root.setAttribute("data-scrolled", "1");
       else root.removeAttribute("data-scrolled");
     };
     const onScroll = () => {
@@ -37,6 +45,7 @@ export function ScrollChrome() {
     };
     apply();
     window.addEventListener("scroll", onScroll, { passive: true });
+    shell?.addEventListener("scroll", onScroll, { passive: true });
 
     // ?debug=chrome — a small badge with the numbers that decide whether the
     // bar can paint under the phone's status bar. Nothing else on the page
@@ -59,7 +68,7 @@ export function ScrollChrome() {
         badge!.textContent =
           `safe-area-inset-top: ${inset}\n` +
           `stack top: ${r ? Math.round(r.top) : "?"}px  h: ${r ? Math.round(r.height) : "?"}px\n` +
-          `scrollY: ${Math.round(window.scrollY)}  overlay: ${root.hasAttribute("data-hero-overlay")}  scrolled: ${root.hasAttribute("data-scrolled")}\n` +
+          `scrollY: ${Math.round(scrollTop())}  overlay: ${root.hasAttribute("data-hero-overlay")}  scrolled: ${root.hasAttribute("data-scrolled")}\n` +
           `inner: ${window.innerWidth}x${window.innerHeight}  screen: ${screen.width}x${screen.height}\n` +
           `viewport: ${meta}`;
         tick = window.requestAnimationFrame(render);
@@ -69,6 +78,7 @@ export function ScrollChrome() {
 
     return () => {
       window.removeEventListener("scroll", onScroll);
+      shell?.removeEventListener("scroll", onScroll);
       if (raf) window.cancelAnimationFrame(raf);
       if (tick) window.cancelAnimationFrame(tick);
       badge?.remove();

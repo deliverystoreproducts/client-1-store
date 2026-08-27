@@ -6033,7 +6033,7 @@ body::after {
     .hero[data-banner="true"] .hero-media,
     .hero[data-banner="true"] .hero-video {
       animation: hero-parallax linear both;
-      animation-timeline: scroll(root);
+      animation-timeline: scroll(); /* nearest scroller: .shell on phones, root on desktop */
       animation-range: 0 70vh;
       will-change: transform;
     }
@@ -6053,5 +6053,45 @@ body::after {
   .hero[data-banner="true"] .hero-media,
   .hero[data-banner="true"] .hero-video {
     animation: none;
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PHONE: THE SHELL SCROLLS, NOT THE PAGE (2026-08-27)
+   ═══════════════════════════════════════════════════════════════════════════
+   iOS in-app browsers (Telegram, Instagram, …) never give a page the status-bar
+   area — safe-area-inset-top is 0 there — and Safari fills that strip with a
+   live blur of whatever page content sits at the document's top edge. When the
+   PAGE scrolls, that edge is the hero sliding under the header: the "see-through
+   strip". So on phones the document does not scroll at all; `.shell` is a
+   100dvh scroll container and the header is pinned at the document's top edge —
+   which is therefore always the header's own colour, and so is the blur. */
+@media (max-width: 860px) {
+  html,
+  body {
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  .shell {
+    height: 100dvh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+    scroll-behavior: smooth;
+  }
+
+  /* the header is pinned INSIDE the scroller now — same look, but it lives in
+     the element whose top edge Safari samples */
+  .hdr-stack {
+    position: sticky;
+  }
+
+  /* the fixed sheet + spacer below the bar came from `.main` padding; keep it */
+  .main {
+    padding-top: calc(var(--mob-hdr) + 0.75rem);
   }
 }
