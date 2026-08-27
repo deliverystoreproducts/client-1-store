@@ -80,7 +80,20 @@ export function toPublicDeal(d: StoreDealV1): PublicDeal {
 }
 
 export function toPublicCategory(c: StoreCategoryV1): PublicCategory {
-  return { id: c.id, name: c.name, productCount: c.productCount };
+  const image = toPublicImageUrl(c.image ?? null);
+  return {
+    id: c.id,
+    name: c.name,
+    productCount: c.productCount,
+    image,
+    video: toPublicImageUrl(c.video ?? null),
+    sortOrder: typeof c.sortOrder === "number" ? c.sortOrder : 0,
+    // Featured IS "has artwork" — see the note on PublicCategory. Note this
+    // reads the PROXIED url, not the raw one: a picture on a host our proxy
+    // refuses is not a picture we can show, so it must not promote the category
+    // into a feature tile that would then render an empty frame.
+    featured: image != null,
+  };
 }
 
 export function toPublicBrand(b: StoreBrandV1): PublicBrand {

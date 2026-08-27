@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { ProductCard } from "@/components/ProductCard";
+import { BrandRail } from "@/components/BrandRail";
+import { CategoryFeature } from "@/components/CategoryFeature";
 import { DealCard } from "@/components/DealCard";
-import { getCatalogPage, getCategories, getDeals, getStoreProfile } from "@/lib/store";
+import { getBrands, getCatalogPage, getCategories, getDeals, getStoreProfile } from "@/lib/store";
 import { toPublicImageUrl } from "@/lib/kamui/images";
 import { DELIVERY_WINDOW_SHORT, deliveryWindowNotice, isWithinDeliveryWindow } from "@/lib/hours";
 
@@ -55,9 +57,11 @@ export default async function HomePage({
   const page = Math.max(1, Number(param(sp, "page")) || 1);
   const browsing = !!(search || categoryId || sort || page > 1);
 
-  const [profile, categories, deals, results] = await Promise.all([
+  const [profile, categories, brands, deals, results] = await Promise.all([
     getStoreProfile(),
     getCategories(),
+    // Only for the shop window — a customer mid-search has told us what they came for.
+    browsing ? Promise.resolve([]) : getBrands(),
     // Only worth fetching for the shop window — a customer who is already
     // filtering has told us what they came for.
     browsing ? Promise.resolve([]) : getDeals(),
@@ -176,6 +180,12 @@ export default async function HomePage({
         </div>
       ) : null}
 
+      {/* The shop window, in the order a customer shops it: who makes it, what
+          kind it is, what's on offer, then everything else. Hidden the moment
+          they start filtering — at that point they are shopping, not browsing. */}
+      {!browsing ? <BrandRail brands={brands} /> : null}
+      {!browsing ? <CategoryFeature categories={categories} /> : null}
+
       {deals.length > 0 ? (
         <section className="deals-strip" aria-labelledby="deals-head">
           <div className="section-head">
@@ -198,7 +208,7 @@ export default async function HomePage({
       <section id="catalogue">
         <div className="section-head" data-reveal style={{ "--i": 5 } as React.CSSProperties}>
           <span className="eyebrow">
-            {activeCategory ? activeCategory.name : search ? "Search" : "The shelf"}
+            {activeCategory ? activeCategory.name : search ? "Search" : "Everything else"}
           </span>
           <hr />
           {!results.unavailable && results.products.length > 0 ? (
@@ -242,7 +252,10 @@ export default async function HomePage({
           </div>
         </form>
 
-        {categories.length > 0 ? (
+        {/* While browsing, the compact chip row stays — someone narrowing wants
+            controls, not a shop window. The full brand rail and the category
+            tiles live above, and only on the unfiltered page. */}
+        {browsing && categories.length > 0 ? (
           <div className="chips" data-reveal style={{ "--i": 7 } as React.CSSProperties}>
             <Link className="chip" href={categoryHref()} data-active={!categoryId}>
               All
