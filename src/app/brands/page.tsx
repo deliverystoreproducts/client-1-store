@@ -3,47 +3,29 @@ import Link from "next/link";
 import { getBrands } from "@/lib/store";
 
 /**
- * The brand index — an A–Z directory, grouped by first character.
- *
- * Counts are shown next to every name on purpose. A directory of bare names
- * makes a customer click to find out whether a brand has two products or forty;
- * the count answers that before the click, and it tells them the shop is deep
- * before they have committed to anything.
+ * The brand index — a wall of logo tiles, biggest shelf first, the same tile as
+ * the home page's "Featured brands" rail so the two read as one thing. A brand
+ * with no logo yet (the platform's or the bundled table's) shows its name as
+ * the mark, so the wall is never a mix of pictures and holes.
  */
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Brands",
-  description: "Every brand on the shelf, A–Z.",
+  description: "Every brand on the shelf.",
 };
-
-/** Anything that isn't A–Z (a number, a symbol) files under "#". */
-function initial(name: string): string {
-  const c = name.trim().charAt(0).toUpperCase();
-  return c >= "A" && c <= "Z" ? c : "#";
-}
 
 export default async function BrandsPage() {
   const brands = await getBrands();
-
-  const groups = new Map<string, typeof brands>();
-  for (const b of [...brands].sort((a, b) => a.name.localeCompare(b.name))) {
-    const k = initial(b.name);
-    const g = groups.get(k);
-    if (g) g.push(b);
-    else groups.set(k, [b]);
-  }
-  // "#" last, letters in order — a directory reads A→Z, with the oddities after.
-  const letters = [...groups.keys()].sort((a, b) =>
-    a === "#" ? 1 : b === "#" ? -1 : a.localeCompare(b),
+  const ordered = [...brands].sort(
+    (a, b) => b.productCount - a.productCount || a.name.localeCompare(b.name),
   );
 
   return (
     <section>
-      <div className="section-head">
-        <span className="eyebrow">Brands</span>
-        <hr />
+      <div className="wm-head">
+        <h1 className="wm-title">Brands</h1>
         {brands.length > 0 ? (
           <span className="faint num">
             {brands.length} brand{brands.length === 1 ? "" : "s"}
@@ -65,35 +47,26 @@ export default async function BrandsPage() {
           </p>
         </div>
       ) : (
-        <>
-          {letters.length > 1 ? (
-            <nav className="alpha-jump" aria-label="Jump to letter">
-              {letters.map((l) => (
-                <a className="chip" key={l} href={`#letter-${l === "#" ? "other" : l}`}>
-                  {l}
-                </a>
-              ))}
-            </nav>
-          ) : null}
-
-          {letters.map((l) => (
-            <div className="alpha-group" key={l}>
-              <h2 className="alpha-head" id={`letter-${l === "#" ? "other" : l}`}>
-                {l}
-              </h2>
-              <ul className="brand-index">
-                {(groups.get(l) ?? []).map((b) => (
-                  <li key={b.id}>
-                    <Link href={`/brand/${b.id}`}>
-                      <span className="brand-index-name">{b.name}</span>
-                      <span className="brand-index-n num">{b.productCount}</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
+        <ul className="brand-grid">
+          {ordered.map((b) => (
+            <li key={b.id}>
+              <Link href={`/brand/${b.id}`} className="brand-tile">
+                <span className="brand-tile-art" data-empty={!b.image || undefined}>
+                  {b.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={b.image} alt="" loading="lazy" />
+                  ) : (
+                    <span className="brand-tile-word" aria-hidden>
+                      {b.name}
+                    </span>
+                  )}
+                </span>
+                <span className="brand-tile-name">{b.name}</span>
+                <span className="brand-tile-n num">{b.productCount} items</span>
+              </Link>
+            </li>
           ))}
-        </>
+        </ul>
       )}
     </section>
   );

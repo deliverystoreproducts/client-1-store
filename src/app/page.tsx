@@ -261,7 +261,7 @@ export default async function HomePage({
         <section className="cat-row" aria-labelledby="featured-head">
           <div className="cat-row-head">
             <h2 className="cat-row-name" id="featured-head">
-              Our picks
+              Featured items
             </h2>
             <Link className="cat-row-all" href="/products">
               View all →

@@ -5841,223 +5841,6 @@ body::after {
 
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   PHONE CHROME (2026-08-27) — the Weedmaps store-page pattern on phones
-   ═══════════════════════════════════════════════════════════════════════════
-   ≤860px only; desktop keeps the black bar. The header is FIXED and white,
-   padded for the status bar so the top of the phone reads as one white surface.
-   On a page that opens with a banner hero (<html data-hero-overlay>) the bar
-   starts transparent — burger and icons float in white circles over the
-   picture — and goes solid white, with the green ticker tucked under it, once
-   the page scrolls (<html data-scrolled>, set by components/ScrollChrome.tsx).
-   The hero runs edge to edge under the bar, the content "sheet" rounds over
-   its bottom edge, and the picture parallaxes behind it (CSS scroll-driven
-   animation; browsers without it simply scroll normally). */
-
-@media (max-width: 860px) {
-  :root {
-    --mob-bar: 60px;
-    --mob-ticker: 28px;
-    --mob-hdr: calc(var(--mob-bar) + var(--mob-ticker) + env(safe-area-inset-top, 0px));
-  }
-
-  .hdr-stack {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    display: flex;
-    flex-direction: column-reverse; /* bar on top, ticker under it */
-    background: var(--ground-raise);
-    color: var(--pine);
-    border-bottom: 1px solid var(--rule);
-    transition: background 0.25s var(--ease), border-color 0.25s var(--ease);
-  }
-
-  .hdr-stack:has(.promo-bar) {
-    background: var(--ground-raise);
-  }
-
-  /* The header's desktop rule paints it black; on the phone the STACK is the
-     surface and the bar itself is see-through to it. */
-  .hdr-stack .site-header {
-    background: transparent;
-    box-shadow: none;
-    border-bottom: 0;
-  }
-
-  /* The status-bar strip is ALWAYS white — including when the bar floats
-     transparent over a banner. Painted as a pseudo-element so the two states
-     only differ below it (the Weedmaps store page: white strip, picture
-     starts under it). */
-  .hdr-stack::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: env(safe-area-inset-top, 0px);
-    background: var(--ground-raise);
-    z-index: 1;
-  }
-
-  .main {
-    padding-top: calc(var(--mob-hdr) + 0.75rem);
-  }
-
-  /* the bar itself, white */
-  .site-header .hdr {
-    min-height: var(--mob-bar);
-  }
-
-  .site-header .brand,
-  .site-header .brand-name,
-  .site-header .hdr-icon,
-  .site-header .burger {
-    color: var(--pine);
-  }
-
-  .site-header .burger i {
-    background: var(--pine);
-  }
-
-  .site-header .hdr-search input {
-    background: var(--ground-deep);
-    border-color: transparent;
-    color: var(--pine);
-  }
-
-  .site-header .hdr-search input::placeholder {
-    color: var(--pine-3);
-  }
-
-  .site-header .hdr-search-go {
-    color: var(--pine-3);
-  }
-
-  .site-header .hdr-icon:hover,
-  .site-header .burger:hover {
-    background: var(--ground-deep);
-  }
-
-  .site-header .cart-count {
-    border-color: var(--ground-raise);
-  }
-
-  .promo-bar {
-    min-height: var(--mob-ticker);
-  }
-
-  .promo-inner {
-    min-height: var(--mob-ticker);
-    padding-block: 0.2rem;
-  }
-
-  /* the burger sheet, white */
-  .mobile-menu {
-    background: var(--ground-raise);
-    border-top-color: var(--rule);
-  }
-
-  .mobile-menu a {
-    color: var(--pine);
-    border-bottom-color: var(--rule);
-  }
-
-  .mobile-menu a:active {
-    background: var(--ground-deep);
-  }
-
-  .theme-toggle {
-    color: var(--pine);
-  }
-
-  .theme-toggle:hover {
-    background: var(--ground-deep);
-  }
-
-  /* ── overlay state: banner page, not yet scrolled ─────────────────────── */
-  html[data-hero-overlay]:not([data-scrolled]) .hdr-stack {
-    background: transparent;
-    border-color: transparent;
-  }
-
-  html[data-hero-overlay]:not([data-scrolled]) .hdr-stack .promo-bar,
-  html[data-hero-overlay]:not([data-scrolled]) .site-header .brand,
-  html[data-hero-overlay]:not([data-scrolled]) .site-header .hdr-search {
-    display: none !important;
-  }
-
-  html[data-hero-overlay]:not([data-scrolled]) .site-header .hdr {
-    justify-content: space-between;
-  }
-
-  html[data-hero-overlay]:not([data-scrolled]) .site-header .burger,
-  html[data-hero-overlay]:not([data-scrolled]) .site-header .hdr-icon {
-    background: color-mix(in srgb, var(--ground-raise) 92%, transparent);
-    border-radius: 50%;
-    box-shadow: 0 2px 10px rgb(0 0 0 / 0.12);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-  }
-
-  html[data-hero-overlay]:not([data-scrolled]) .hdr-icons {
-    gap: 0.5rem;
-  }
-
-  /* ── the banner hero: edge to edge, under the bar, sheet rounding over it ── */
-  .hero[data-banner="true"] {
-    position: relative;
-    margin-inline: calc(-1 * var(--gutter));
-    margin-top: calc(-1 * (var(--mob-bar) + var(--mob-ticker) + 0.75rem));
-    border-radius: 0;
-    aspect-ratio: 4 / 3;
-    max-height: 62vh;
-    margin-bottom: 1rem;
-  }
-
-  /* the white "sheet" curving over the picture's bottom edge */
-  .hero[data-banner="true"]::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: -1px;
-    height: 28px;
-    background: var(--ground);
-    border-radius: 28px 28px 0 0;
-    z-index: 2;
-  }
-
-  /* parallax: the picture drifts at ~40 % of scroll speed and grows a touch */
-  @supports (animation-timeline: scroll()) {
-    .hero[data-banner="true"] .hero-media,
-    .hero[data-banner="true"] .hero-video {
-      animation: hero-parallax linear both;
-      animation-timeline: scroll(); /* nearest scroller: .shell on phones, root on desktop */
-      animation-range: 0 70vh;
-      will-change: transform;
-    }
-  }
-}
-
-@keyframes hero-parallax {
-  from {
-    transform: translateY(0) scale(1);
-  }
-  to {
-    transform: translateY(28vh) scale(1.08);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hero[data-banner="true"] .hero-media,
-  .hero[data-banner="true"] .hero-video {
-    animation: none;
-  }
-}
-
-
-/* ═══════════════════════════════════════════════════════════════════════════
    PHONE: THE SHELL SCROLLS, NOT THE PAGE (2026-08-27)
    ═══════════════════════════════════════════════════════════════════════════
    iOS in-app browsers (Telegram, Instagram, …) never give a page the status-bar
@@ -6084,14 +5867,81 @@ body::after {
     scroll-behavior: smooth;
   }
 
-  /* the header is pinned INSIDE the scroller now — same look, but it lives in
-     the element whose top edge Safari samples */
+  /* the header is sticky INSIDE the scroller — it lives in the element whose
+     top edge Safari samples, so the status-bar blur is always the bar's own
+     black */
   .hdr-stack {
     position: sticky;
   }
 
-  /* the fixed sheet + spacer below the bar came from `.main` padding; keep it */
-  .main {
-    padding-top: calc(var(--mob-hdr) + 0.75rem);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PHONE HEADER (2026-08-27) — the reference shop's bar: small, black, plain.
+   ═══════════════════════════════════════════════════════════════════════════
+   Same black bar as desktop, just tighter. No transparent/solid switching, no
+   hero underneath it. Every form control is 16px on a phone — anything smaller
+   makes iOS zoom the page when the field is focused. */
+@media (max-width: 860px) {
+  .site-header .hdr {
+    min-height: 52px;
+    gap: 0.5rem;
   }
+
+  .site-header .brand-logo {
+    height: 30px;
+    max-width: 104px;
+  }
+
+  .site-header .brand-name {
+    font-size: 1rem;
+  }
+
+  .site-header .burger,
+  .site-header .hdr-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .site-header .hdr-icon svg {
+    width: 21px;
+    height: 21px;
+  }
+
+  .site-header .hdr-search input {
+    min-height: 38px;
+    padding: 0.35rem 2.2rem 0.35rem 0.85rem;
+  }
+
+  .site-header .hdr-search-go {
+    width: 30px;
+    height: 30px;
+  }
+
+  input,
+  select,
+  textarea,
+  .site-header .hdr-search input {
+    font-size: 16px;
+  }
+
+  .promo-inner {
+    min-height: 26px;
+    font-size: 0.68rem;
+  }
+}
+
+/* the /brands wall — same tile as the home rail, wrapping */
+.brand-grid {
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: clamp(0.8rem, 2vw, 1.3rem);
+}
+
+.brand-grid .brand-tile {
+  width: 100%;
 }
