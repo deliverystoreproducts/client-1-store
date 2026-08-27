@@ -1,6 +1,7 @@
 import "server-only";
 
 import { toPublicImageUrl } from "./images";
+import { brandLogoUrl } from "@/lib/brand-art";
 import {
   LEGAL_ENTITY_NAME,
   LICENSE_NUMBER,
@@ -101,7 +102,10 @@ export function toPublicBrand(b: StoreBrandV1): PublicBrand {
     id: b.id,
     name: b.name,
     productCount: b.productCount,
-    image: toPublicImageUrl(b.image ?? null),
+    // The operator's own logo first; failing that, the bundled table matched by
+    // name (lib/brand-art.ts). Both go through the proxy — the browser never
+    // learns where either came from.
+    image: toPublicImageUrl(b.image ?? null) ?? toPublicImageUrl(brandLogoUrl(b.name)),
   };
 }
 
