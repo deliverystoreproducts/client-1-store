@@ -7,6 +7,7 @@ import { CartProvider } from "@/components/CartProvider";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { SiteHeader } from "@/components/SiteHeader";
 import { PromoBar } from "@/components/PromoBar";
+import { ScrollChrome } from "@/components/ScrollChrome";
 import { StoreUnavailable } from "@/components/StoreUnavailable";
 import { SwRegister } from "@/components/SwRegister";
 import { isUpstreamConfigured } from "@/lib/kamui/env";
@@ -140,6 +141,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <div className="shell">
               {/* One sticky block — promo strip + header — padded for the
                   phone's status bar so the black reaches the top edge. */}
+              <ScrollChrome />
+              {/* Desktop: ticker above the bar. Phone: white bar first, ticker
+                  under it, and both float transparent over a banner hero until
+                  the page scrolls (globals.css "PHONE CHROME"). */}
               <div className="hdr-stack">
                 <PromoBar text={profile.promoText} badge={profile.promoBadge} href={profile.promoHref} />
                 <SiteHeader storeName={storeName} logo={profile.logo} />
