@@ -85,8 +85,16 @@ export function HighlightStrip({ items }: { items: PublicStoreProfile["highlight
   );
 }
 
+/** Shown before the list collapses. Two rows on a laptop, three on a phone. */
+const AREAS_VISIBLE = 12;
+
 export function DeliveryAreas({ cities }: { cities: string[] }) {
   if (cities.length === 0) return null;
+
+  const overflow = cities.length > AREAS_VISIBLE;
+  const head = overflow ? cities.slice(0, AREAS_VISIBLE) : cities;
+  const rest = overflow ? cities.slice(AREAS_VISIBLE) : [];
+
   return (
     <section className="areas" aria-labelledby="areas-head">
       <p className="areas-head" id="areas-head">
@@ -104,15 +112,43 @@ export function DeliveryAreas({ cities }: { cities: string[] }) {
         </svg>
         Now delivering across {cities.length} area{cities.length === 1 ? "" : "s"}
       </p>
+
       {/* Plain text, not links: a city is not a page here, and making it look
           clickable when it is not is the kind of small lie that costs trust. */}
       <ul className="areas-list">
-        {cities.map((c) => (
+        {head.map((c) => (
           <li className="area-pill" key={c}>
             {c}
           </li>
         ))}
       </ul>
+
+      {/*
+        A shop with forty zones was pushing the entire shelf below the fold —
+        the panel is reassurance, and reassurance should not cost a screen.
+
+        <details> rather than a JS toggle: it works with no script, is
+        keyboard-operable and screen-reader-announced for free, and the closed
+        state still renders the hidden cities into the DOM, so a visitor using
+        find-in-page for their own suburb still finds it. A JS toggle that
+        unmounts them would answer "no" to someone the shop actually delivers
+        to.
+      */}
+      {overflow ? (
+        <details className="areas-more">
+          <summary>
+            <span className="areas-more-open">+ {rest.length} more areas</span>
+            <span className="areas-more-shut">Show fewer</span>
+          </summary>
+          <ul className="areas-list mt-1">
+            {rest.map((c) => (
+              <li className="area-pill" key={c}>
+                {c}
+              </li>
+            ))}
+          </ul>
+        </details>
+      ) : null}
     </section>
   );
 }

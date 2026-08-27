@@ -10,6 +10,7 @@ import {
   getCatalogPage,
   getCategories,
   getCategoryBands,
+  getFeaturedProducts,
   getDeals,
   getStoreProfile,
 } from "@/lib/store";
@@ -66,7 +67,7 @@ export default async function HomePage({
   const page = Math.max(1, Number(param(sp, "page")) || 1);
   const browsing = !!(search || categoryId || sort || page > 1);
 
-  const [profile, categories, brands, deals, results] = await Promise.all([
+  const [profile, categories, brands, deals, featured, results] = await Promise.all([
     getStoreProfile(),
     getCategories(),
     // Only for the shop window — a customer mid-search has told us what they came for.
@@ -74,6 +75,7 @@ export default async function HomePage({
     // Only worth fetching for the shop window — a customer who is already
     // filtering has told us what they came for.
     browsing ? Promise.resolve([]) : getDeals(),
+    browsing ? Promise.resolve([]) : getFeaturedProducts(8),
     getCatalogPage({ search, categoryId, sort: sort ?? "newest", page, limit: PAGE_SIZE }),
   ]);
 
@@ -120,12 +122,34 @@ export default async function HomePage({
   const firstOnPage = (page - 1) * PAGE_SIZE;
 
   const heroSrc = profile.heroImage ?? toPublicImageUrl(DEFAULT_HERO_IMAGE);
+  // Desktop cut if the operator supplied one, else the single video. One <video>
+  // either way — swapping sources by breakpoint needs JS and would download
+  // both on the crossover.
+  const heroVideo = profile.heroVideoDesktop ?? profile.heroVideo;
 
   return (
     <>
       {!browsing ? (
         <section className="hero" data-media="true">
-          {heroSrc ? (
+          {heroVideo ? (
+            /* Video wins over the still when the operator has set one.
+               muted + playsInline + autoPlay is the only combination a phone
+               will start without a tap; `poster` keeps the frame from being
+               empty while it buffers, so a slow connection degrades to the
+               image rather than to a black box. No controls and aria-hidden:
+               it is scenery, not media anyone came to watch. */
+            <video
+              className="hero-media hero-video"
+              src={heroVideo}
+              poster={heroSrc ?? undefined}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              aria-hidden
+            />
+          ) : heroSrc ? (
             <>
               {/* The hero is a CSS background, invisible to the preload
                   scanner until style resolution — this link starts the fetch
@@ -198,6 +222,27 @@ export default async function HomePage({
           tightens up rather than showing empty furniture. */}
       {!browsing ? <HighlightStrip items={profile.highlights} /> : null}
       {!browsing ? <DeliveryAreas cities={profile.deliveryCities} /> : null}
+
+      {/* Featured leads the shelf — hand-picked when the operator has picked,
+          a spread of the catalogue when they have not, so the row is never an
+          empty band under a promise. */}
+      {featured.length > 0 ? (
+        <section className="cat-row" aria-labelledby="featured-head">
+          <div className="cat-row-head">
+            <h2 className="cat-row-name" id="featured-head">
+              Featured
+            </h2>
+            <Link className="cat-row-all" href="/products">
+              View all →
+            </Link>
+          </div>
+          <div className="catalogue catalogue-row">
+            {featured.map((p, i) => (
+              <ProductCard key={p.id} product={p} index={i + 1} />
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       {/* The shop window, in the order a customer shops it: who makes it, what
           kind it is, what's on offer, then everything else. Hidden the moment

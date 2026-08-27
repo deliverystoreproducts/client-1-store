@@ -118,6 +118,13 @@ export interface PublicStoreProfile {
   heroTitle: string | null;
   heroSubtitle: string | null;
   heroImage: string | null;
+  /**
+   * Hero video, proxied. Two of them because a phone and a desktop want
+   * different crops of the same idea, and shipping a 16:9 desktop cut to a
+   * portrait screen wastes most of the frame and most of the bytes.
+   */
+  heroVideo: string | null;
+  heroVideoDesktop: string | null;
   open: boolean;
   /**
    * The legal-age THRESHOLD. There is deliberately no `ageGate` boolean here:

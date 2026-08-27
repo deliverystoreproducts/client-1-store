@@ -54,6 +54,8 @@ export const FALLBACK_PROFILE: PublicStoreProfile = {
   heroTitle: null,
   heroSubtitle: null,
   heroImage: null,
+  heroVideo: null,
+  heroVideoDesktop: null,
   // Unreachable backend = no shop window. Every one of these is decoration; a
   // storefront that invents a promo or a delivery city while it cannot read the
   // catalogue would be advertising something it cannot honour.
@@ -269,6 +271,57 @@ export async function getCategoryBands(
     // A band with nothing in it is worse than no band: an empty strip under a
     // big heading reads as a broken shop.
     .filter((b) => b.products.length > 0);
+}
+
+/**
+ * The Featured row — hand-picked if the operator has picked any, otherwise a
+ * varied sample so the shelf is never headed by an empty band.
+ *
+ * WHY A FALLBACK AT ALL: `featured` is a flag somebody has to remember to set,
+ * and on a fresh tenant nobody has. Leading the page with "Featured" over
+ * nothing is the worst version of a shop window, so the row falls back rather
+ * than disappearing — the section is doing a job (here is what we sell) that
+ * survives the flag being unset.
+ *
+ * The fallback is NOT random per request. A grid that reshuffles on every load
+ * makes a customer feel the shop is unstable and destroys any chance of "the
+ * thing I saw a minute ago". It samples across the catalogue by walking pages
+ * with a fixed stride, which varies the selection between shops and between
+ * catalogue changes while staying stable for any given catalogue.
+ */
+export async function getFeaturedProducts(limit = 8): Promise<PublicProduct[]> {
+  const picked = await getCatalogPage({ featured: true, limit, sort: "newest" });
+  if (picked.products.length > 0) return picked.products.slice(0, limit);
+
+  // Nothing hand-picked. Take a spread rather than the first N, which on a
+  // name-sorted catalogue would be an aisle of near-identical neighbours.
+  const first = await getCatalogPage({ limit, sort: "newest" });
+  if (first.totalPages <= 1 || first.products.length === 0) {
+    return first.products.slice(0, limit);
+  }
+  const stride = Math.max(2, Math.floor(first.totalPages / 3));
+  const extra = await Promise.all(
+    [1 + stride, 1 + stride * 2]
+      .filter((pg) => pg <= first.totalPages)
+      .map((page) => getCatalogPage({ limit, page, sort: "newest" }).catch(() => null)),
+  );
+
+  const seen = new Set<number>();
+  const out: PublicProduct[] = [];
+  // Interleave the pages so the row is not three products from page 1 followed
+  // by three from page 9 — it should read as a sample, not as three clumps.
+  const pages = [first.products, ...extra.map((e) => e?.products ?? [])];
+  for (let i = 0; i < limit; i++) {
+    for (const pg of pages) {
+      const p = pg[i];
+      if (p && !seen.has(p.id)) {
+        seen.add(p.id);
+        out.push(p);
+        if (out.length === limit) return out;
+      }
+    }
+  }
+  return out;
 }
 
 // ───────────────────────────── deals ─────────────────────────────

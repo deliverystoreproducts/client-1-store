@@ -109,6 +109,11 @@ export function toPublicStoreProfile(t: TenantProfileV1): PublicStoreProfile {
     heroTitle: t.heroTitle,
     heroSubtitle: t.heroSubtitle,
     heroImage: toPublicImageUrl(t.heroBgImage),
+    // These were dropped on the floor: the operator could set them in the
+    // dashboard and no storefront ever asked. The upload path and the settings
+    // have existed the whole time.
+    heroVideo: toPublicImageUrl(t.heroBgVideo),
+    heroVideoDesktop: toPublicImageUrl(t.heroDesktopVideo),
     open: t.storeEnabled !== false,
     // `t.ageGate` is INTENTIONALLY NOT MAPPED. The age gate is a legal control
     // and is unconditional in the layout; letting a dashboard toggle reach the
