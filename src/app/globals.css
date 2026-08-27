@@ -3911,3 +3911,74 @@ body::after {
     transform: none;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CATEGORY BANDS — a row per category on the home page
+   ═══════════════════════════════════════════════════════════════════════════
+   The pattern the reference storefront is built from: Flower, Pre Roll, Vape
+   Pens, each its own band with a loud heading and a way through. For a shop
+   whose customers arrive knowing the FORM they want, the category name IS the
+   wayfinding — so it is the loudest type on the page after the hero, and it has
+   to win over the product names beneath it.
+*/
+
+.cat-row {
+  margin-bottom: clamp(2.2rem, 5vw, 3.6rem);
+}
+
+.cat-row-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: clamp(0.9rem, 2vw, 1.3rem);
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--rule-hi);
+}
+
+.cat-row-name {
+  font-family: var(--font-display);
+  font-weight: 400;
+  /* Deliberately large. This is the wayfinding, not a label. */
+  font-size: clamp(1.6rem, 5vw, 2.6rem);
+  line-height: 1.02;
+  letter-spacing: -0.015em;
+  color: var(--pine);
+  margin: 0;
+  text-wrap: balance;
+}
+
+.cat-row-all {
+  flex: none;
+  font-size: var(--t--2);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fern);
+  white-space: nowrap;
+  /* real tap target without pushing the baseline off the heading */
+  padding: 0.6rem 0;
+  transition: color 0.18s var(--ease);
+}
+
+.cat-row-all:hover {
+  color: var(--pine);
+}
+
+.cat-row-all:focus-visible {
+  outline: 2px solid var(--fern);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+/* Four across on a wide screen so a band reads as a ROW rather than as another
+   page of grid — the whole point is that it ends and the next category starts. */
+.catalogue-row {
+  row-gap: clamp(1.4rem, 2.6vw, 2rem);
+}
+
+@media (min-width: 760px) {
+  .catalogue-row {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}

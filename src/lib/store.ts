@@ -225,6 +225,44 @@ export async function getProductDetail(
   }
 }
 
+/**
+ * The home page's category bands: N categories, each with its first few
+ * products.
+ *
+ * ONE REQUEST PER CATEGORY, fired together. That is deliberate rather than
+ * lazy: there is no upstream endpoint that returns products grouped by
+ * category, and the alternative — pull 200 products and group them here — gives
+ * a band its products only if they happen to fall in the first page, so a
+ * category whose stock sorts late renders empty under a big heading. These are
+ * cached 60s upstream and run in parallel.
+ *
+ * Bands are capped because the page is a shop window, not the whole catalogue;
+ * "everything else" sits below and /products holds the full shelf.
+ */
+export async function getCategoryBands(
+  categories: PublicCategory[],
+  opts: { bands?: number; perBand?: number } = {},
+): Promise<{ category: PublicCategory; products: PublicProduct[] }[]> {
+  const bands = opts.bands ?? 6;
+  const perBand = opts.perBand ?? 4;
+
+  // The operator's order decides which categories get a band — same reasoning
+  // as the feature tiles: they chose it, we do not re-rank it by stock count.
+  const chosen = [...categories].sort((a, b) => a.sortOrder - b.sortOrder).slice(0, bands);
+
+  const pages = await Promise.all(
+    chosen.map((c) =>
+      getCatalogPage({ categoryId: c.id, limit: perBand, sort: "newest" }).catch(() => null),
+    ),
+  );
+
+  return chosen
+    .map((category, i) => ({ category, products: pages[i]?.products ?? [] }))
+    // A band with nothing in it is worse than no band: an empty strip under a
+    // big heading reads as a broken shop.
+    .filter((b) => b.products.length > 0);
+}
+
 // ───────────────────────────── deals ─────────────────────────────
 
 /**
