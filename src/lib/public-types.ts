@@ -187,6 +187,8 @@ export interface PublicCustomer {
   name: string | null;
   phone: string;
   address: string | null;
+  /** Whether a government-ID photo is on file. The photo itself never crosses. */
+  hasId: boolean;
 }
 
 /** What `GET /api/auth/me` answers. Never carries a token. */

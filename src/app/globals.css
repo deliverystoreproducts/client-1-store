@@ -76,9 +76,8 @@
                        text ON an amber fill measures the same 5.1 : 1) */
   --amber-deep: #b91c1c;
   --sage: #16a34a; /* open / delivered / affirmative (5.9 : 1) */
-  --fern: #7c3aed; /* THE action green — brighter per theme "Sunset
-                      Apothecary" (4.6 : 1 both directions; measured) */
-  --fern-lit: #6d28d9; /* hover fill — deeper green (6.2 : 1 with porcelain) */
+  --fern: #16a34a; /* THE action colour — the reference site's green */
+  --fern-lit: #15803d; /* hover fill — deeper green */
   --marigold: #ffb054; /* tint fills only — dark text rides on it */
   --coral: #dc2626; /* non-text accent: active-tab rule, seals (3.4 : 1 UI) */
   /* Ceramic plate gradient stops, so the product plates re-glaze per theme. */
@@ -146,8 +145,8 @@
   --amber-deep: #ef4444;
   --sage: #4ade80;
   --alarm: #ff7a66;
-  --fern: #a78bfa; /* the act stays GREEN in every theme (7.2 : 1 with ink) */
-  --fern-lit: #c4b5fd; /* hover fill — brighter green (9.3 : 1 with ink) */
+  --fern: #22c55e; /* the act stays green in every theme */
+  --fern-lit: #4ade80; /* hover fill — brighter green */
   --marigold: #c4a6ff; /* lavender tint (9.4 : 1 as text) */
   --coral: #f87171;
   --plate-a: #221743;
@@ -174,8 +173,8 @@
   --amber-deep: #ef4444;
   --sage: #4ade80;
   --alarm: #ff7a66;
-  --fern: #a78bfa; /* the act stays GREEN in every theme (7.2 : 1 with ink) */
-  --fern-lit: #c4b5fd; /* hover fill — brighter green (9.3 : 1 with ink) */
+  --fern: #22c55e; /* the act stays green in every theme */
+  --fern-lit: #4ade80; /* hover fill — brighter green */
   --marigold: #c4a6ff; /* lavender tint (9.4 : 1 as text) */
   --coral: #f87171;
   --plate-a: #221743;
@@ -706,7 +705,7 @@ body::after {
 .footer-mark {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: clamp(1.8rem, 5vw, 2.8rem);
+  font-size: 1.3rem;
   line-height: 1;
   letter-spacing: -0.03em;
   color: var(--pine);
@@ -5386,4 +5385,205 @@ body::after {
   font-size: var(--t--2);
   color: var(--pine-3);
   margin-top: -0.35rem;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SIGN-IN + ACCOUNT v2 (2026-08-27) — the reference site's compact cards
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* the sign-in card sits alone in the middle of the page, dark like the header */
+.auth-wrap {
+  display: grid;
+  place-items: center;
+  min-height: 52vh;
+  padding-block: clamp(1rem, 4vw, 3rem);
+}
+
+.panel.auth {
+  width: 100%;
+  max-width: 30rem;
+  background: #0c0c0e;
+  border-color: #27272a;
+  color: #fafafa;
+  border-radius: 16px;
+  box-shadow: 0 24px 60px -30px rgb(0 0 0 / 0.55);
+  padding: clamp(1.4rem, 3vw, 2.2rem);
+}
+
+.auth-head {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: 0.35rem;
+  margin-bottom: 1.4rem;
+}
+
+.auth-glyph {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--fern) 18%, transparent);
+  color: var(--fern);
+  margin-bottom: 0.4rem;
+}
+
+.auth-glyph svg {
+  width: 24px;
+  height: 24px;
+}
+
+.auth-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.5rem;
+  letter-spacing: -0.02em;
+  margin: 0;
+  color: #fafafa;
+}
+
+.auth-sub {
+  margin: 0;
+  color: #a1a1aa;
+  font-size: var(--t--1);
+}
+
+.panel.auth .steps span {
+  color: #71717a;
+}
+
+.panel.auth .steps span[data-on="true"] {
+  color: var(--fern);
+}
+
+.panel.auth .steps i {
+  background: #27272a;
+}
+
+.panel.auth .label,
+.panel.auth .muted,
+.panel.auth .faint {
+  color: #a1a1aa;
+}
+
+.panel.auth .muted strong {
+  color: #fafafa;
+}
+
+.panel.auth .input {
+  background: #18181b;
+  border-color: #3f3f46;
+  color: #fafafa;
+}
+
+.panel.auth .input::placeholder {
+  color: #71717a;
+}
+
+.panel.auth .input:focus {
+  border-color: var(--fern);
+}
+
+.panel.auth .link,
+.panel.auth .btn-link {
+  color: #d4d4d8;
+}
+
+.panel.auth .btn {
+  color: #fff;
+}
+
+.panel.auth .notice {
+  background: #18181b;
+  color: #d4d4d8;
+}
+
+/* the account page: one column of plain cards, as the reference site */
+.acct {
+  max-width: 880px;
+}
+
+.acct-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(1.7rem, 4vw, 2.3rem);
+  letter-spacing: -0.03em;
+  margin: 0 0 1.2rem;
+}
+
+.acct-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.acct-card {
+  margin-bottom: 1.1rem;
+}
+
+.acct-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.9rem;
+}
+
+.acct-card-head h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.15rem;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.kv {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+}
+
+.kv div {
+  display: flex;
+  gap: 0.5rem;
+  font-size: var(--t-0);
+}
+
+.kv dt {
+  color: var(--pine-3);
+  min-width: 5.5rem;
+}
+
+.kv dd {
+  margin: 0;
+  color: var(--pine);
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.acct-orders .order-row:last-child {
+  border-bottom: 0;
+}
+
+.id-ok {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--sage);
+  font-weight: 600;
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--pine);
+  border-color: var(--rule-hi);
+}
+
+.btn-outline:hover {
+  background: var(--ground-deep);
+  border-color: var(--pine-3);
+  color: var(--pine);
 }

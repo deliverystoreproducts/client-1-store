@@ -169,7 +169,7 @@ export function toPublicStoreProfile(t: TenantProfileV1): PublicStoreProfile {
 export function toPublicCustomer(c: CustomerProfileV1): PublicCustomer {
   // customerId and referredFrom are upstream bookkeeping; the browser has no
   // use for either and an id is a handle we would rather not publish.
-  return { name: c.name, phone: c.phone, address: c.address };
+  return { name: c.name, phone: c.phone, address: c.address, hasId: !!c.hasId };
 }
 
 /**
