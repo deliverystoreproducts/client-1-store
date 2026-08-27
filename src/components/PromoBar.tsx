@@ -22,15 +22,21 @@ export function PromoBar({
 }) {
   if (!text) return null;
 
+  // The line strolls across inside its own window (the reference site's
+  // ticker); badge and arrow stay put. Repeated once so the loop has no gap.
   const body = (
     <>
       {badge ? <span className="promo-badge">{badge}</span> : null}
-      <span className="promo-text">{text}</span>
-      {href ? (
-        <span className="promo-go" aria-hidden>
-          →
+      <span className="promo-track" aria-hidden>
+        <span className="promo-text">
+          {text}
+          {href ? " →" : ""}
+          <span className="promo-gap" />
+          {text}
+          {href ? " →" : ""}
         </span>
-      ) : null}
+      </span>
+      <span className="sr-only">{text}</span>
     </>
   );
 

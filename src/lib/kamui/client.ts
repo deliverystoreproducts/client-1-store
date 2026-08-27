@@ -276,7 +276,7 @@ export function getProduct(id: number): Promise<ProductDetailResponse> {
 
 export function listCategories(): Promise<ListCategoriesResponse> {
   return call<ListCategoriesResponse>("GET", `${API_PREFIX}/categories`, {}, {
-    revalidate: 300,
+    revalidate: 60, // a dashboard reorder or new picture shows within a minute,
     tags: ["catalog"],
   });
 }

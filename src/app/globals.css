@@ -4123,15 +4123,46 @@ body::after {
 .promo-inner {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 0.7rem;
-  min-height: 46px;
-  padding-block: 0.5rem;
-  font-size: var(--t--1);
+  min-height: 30px;
+  padding-block: 0.3rem;
+  font-size: var(--t--2);
   font-weight: 700;
-  letter-spacing: 0.02em;
-  text-align: center;
+  letter-spacing: 0.06em;
   color: #fff;
+}
+
+/* the ticker window — the text walks from right to left, seamlessly looped */
+.promo-track {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+}
+
+.promo-text {
+  display: inline-block;
+  white-space: nowrap;
+  animation: promo-ticker 28s linear infinite;
+}
+
+.promo-gap {
+  display: inline-block;
+  width: clamp(6rem, 20vw, 16rem);
+}
+
+@keyframes promo-ticker {
+  to { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .promo-text {
+    animation: none;
+  }
+  .promo-track {
+    text-align: center;
+  }
 }
 
 .promo-link:hover .promo-go {
@@ -4156,14 +4187,6 @@ body::after {
   text-transform: uppercase;
 }
 
-@media (max-width: 620px) {
-  .promo-text {
-    /* one line on a phone — a wrapping promo bar eats the whole first screen */
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-}
 
 /* ── the header goes black ───────────────────────────────────────────────── */
 
@@ -5001,13 +5024,20 @@ body::after {
   border-color: transparent;
 }
 
+.site-header .hdr-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
 .site-header .cart-count {
   position: absolute;
-  top: 3px;
-  right: 1px;
-  min-width: 1.15rem;
-  height: 1.15rem;
-  font-size: 0.68rem;
+  top: 1px;
+  right: 2px;
+  min-width: 1rem;
+  height: 1rem;
+  padding-inline: 0.2rem;
+  line-height: 1;
+  font-size: 0.62rem;
   background: var(--sage);
   color: #fff;
   border: 2px solid #09090b;
