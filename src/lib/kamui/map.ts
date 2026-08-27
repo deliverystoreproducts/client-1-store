@@ -97,7 +97,12 @@ export function toPublicCategory(c: StoreCategoryV1): PublicCategory {
 }
 
 export function toPublicBrand(b: StoreBrandV1): PublicBrand {
-  return { id: b.id, name: b.name, productCount: b.productCount };
+  return {
+    id: b.id,
+    name: b.name,
+    productCount: b.productCount,
+    image: toPublicImageUrl(b.image ?? null),
+  };
 }
 
 export function toPublicStoreProfile(t: TenantProfileV1): PublicStoreProfile {

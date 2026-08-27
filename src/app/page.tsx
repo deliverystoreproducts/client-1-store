@@ -4,6 +4,7 @@ import { BrandRail } from "@/components/BrandRail";
 import { MediaSlot } from "@/components/MediaSlot";
 import { CategoryFeature } from "@/components/CategoryFeature";
 import { CategoryRow } from "@/components/CategoryRow";
+import { FeaturedCarousel } from "@/components/FeaturedCarousel";
 import { DealCard } from "@/components/DealCard";
 import { DeliveryAreas, HighlightStrip } from "@/components/ShopWindow";
 import {
@@ -239,11 +240,7 @@ export default async function HomePage({
               View all →
             </Link>
           </div>
-          <div className="catalogue catalogue-row">
-            {featured.map((p, i) => (
-              <ProductCard key={p.id} product={p} index={i + 1} />
-            ))}
-          </div>
+          <FeaturedCarousel products={featured} />
         </section>
       ) : null}
 

@@ -45,6 +45,13 @@ export interface PublicBrand {
   id: number;
   name: string;
   productCount: number;
+  /**
+   * Our own proxied URL, or null.
+   *
+   * Null is the NORMAL case, not a failure: most shops carry more brands than
+   * they have logos for. The rail has to look deliberate without one.
+   */
+  image: string | null;
 }
 
 export interface PublicProduct {

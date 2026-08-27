@@ -4432,9 +4432,15 @@ body::after {
   background: var(--ground-raise);
   border: 1px solid var(--rule);
   border-radius: 999px;
-  padding: 0.45rem 0.85rem;
+  padding: 0 0.85rem;
   font-size: var(--t--1);
   color: var(--pine-2);
+  /* Pinned, not derived from line-height + padding: the two-row clamp above is
+     `--area-row × 2`, and an approximate row height cuts the second row in
+     half. Change this and change --area-row with it. */
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
 }
 
 /* ── footer ──────────────────────────────────────────────────────────────── */
@@ -4475,44 +4481,82 @@ body::after {
   color: #71717a;
 }
 
-/* ── delivery areas: the overflow disclosure ─────────────────────────────── */
+/* ── delivery areas: a visual two-row clamp ──────────────────────────────── */
 
-.areas-more {
-  margin-top: 0.6rem;
+/*
+   The list is clipped to two rows by HEIGHT, not by counting pills. A count is
+   right at one viewport width and wrong at every other; a height is right at
+   all of them, and both rows always fill.
+
+   --area-row is one pill's outer height (line-box + padding + border). Keep it
+   in step with .area-pill or the clamp will cut a row in half.
+*/
+.areas-fold {
+  --area-row: 38px;
+  --area-gap: 0.45rem;
 }
 
-.areas-more > summary {
+.areas-fold > .areas-list {
+  max-height: calc(var(--area-row) * 2 + var(--area-gap));
+  overflow: hidden;
+  /* Fades the clipped edge so a half-hidden third row reads as "there is more"
+     rather than as a rendering fault. */
+  mask-image: linear-gradient(to bottom, #000 72%, transparent);
+  -webkit-mask-image: linear-gradient(to bottom, #000 72%, transparent);
+  transition: max-height 0.25s var(--ease);
+}
+
+.areas-fold[open] > .areas-list {
+  max-height: none;
+  mask-image: none;
+  -webkit-mask-image: none;
+}
+
+.areas-fold > summary {
   cursor: pointer;
   list-style: none;
   display: inline-flex;
   align-items: center;
   min-height: 42px;
+  margin-top: 0.35rem;
   padding: 0.35rem 0;
   font-size: var(--t--1);
   font-weight: 700;
   color: var(--fern);
 }
 
-.areas-more > summary::-webkit-details-marker {
+.areas-fold > summary::-webkit-details-marker {
   display: none;
 }
 
-.areas-more > summary:focus-visible {
+.areas-fold > summary:focus-visible {
   outline: 2px solid var(--fern);
   outline-offset: 3px;
   border-radius: 4px;
 }
 
-/* One label per state, swapped by [open] — no JS, and the button never says
-   the wrong thing while the panel animates. */
+/* One label per state, swapped by [open] — no JS, and the control never says
+   the wrong thing. */
 .areas-more-shut,
-.areas-more[open] .areas-more-open {
+.areas-fold[open] .areas-more-open {
   display: none;
 }
 
-.areas-more[open] .areas-more-shut {
+.areas-fold[open] .areas-more-shut {
   display: inline;
 }
+
+/* A shop with few enough areas to fit two rows should not be offered a
+   pointless "show all". Nothing is clipped, so the control has no work to do —
+   but it cannot be hidden from CSS alone (we do not know if it wrapped), so it
+   stays and simply reads as a no-op. Kept deliberately over a JS measurement. */
+
+@media (prefers-reduced-motion: reduce) {
+  .areas-fold > .areas-list {
+    transition: none;
+  }
+}
+
 
 /* Hero video fills the frame the still image used to. object-fit rather than a
    background so the poster and the video share one box and cannot disagree. */
@@ -4631,4 +4675,134 @@ body::after {
 .tile-frame .slot-words,
 .cat-tile .slot-words {
   font-size: 0.9em;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FEATURED CAROUSEL — one line, looping
+   ═══════════════════════════════════════════════════════════════════════════
+   A native scroll container, not a transformed track: momentum, trackpad,
+   touch and the scrollbar all behave the way the platform's own do. The loop is
+   three copies of the list with an invisible reposition — see the component.
+*/
+
+.carousel {
+  position: relative;
+}
+
+.carousel-track {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  /* Room for the arrows to sit over the edge without covering a card. */
+  padding-block: 2px;
+}
+
+.carousel-track::-webkit-scrollbar {
+  display: none;
+}
+
+.carousel-run {
+  display: flex;
+  flex: none;
+  gap: clamp(0.8rem, 2.4vw, 1.6rem);
+  padding-right: clamp(0.8rem, 2.4vw, 1.6rem);
+}
+
+.carousel-cell {
+  flex: none;
+  scroll-snap-align: start;
+  /* Two-and-a-bit on a phone, four-and-a-bit on a laptop — the fractional card
+     is the affordance: it says the row continues without needing an arrow. */
+  width: clamp(150px, 42vw, 230px);
+}
+
+@media (min-width: 760px) {
+  .carousel-cell {
+    width: 230px;
+  }
+}
+
+.carousel-arrow {
+  position: absolute;
+  top: 38%;
+  z-index: 3;
+  display: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid var(--rule-hi);
+  background: var(--ground-raise);
+  color: var(--pine);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 3px 12px rgba(9, 9, 11, 0.14);
+  transition: border-color 0.18s var(--ease), color 0.18s var(--ease);
+}
+
+/* Pointer devices only. On touch the swipe IS the control, and two buttons
+   floating over the cards just cover product. */
+@media (hover: hover) and (pointer: fine) {
+  .carousel-arrow {
+    display: grid;
+  }
+}
+
+.carousel-arrow:hover {
+  border-color: var(--fern);
+  color: var(--fern);
+}
+
+.carousel-arrow:focus-visible {
+  outline: 2px solid var(--fern);
+  outline-offset: 3px;
+}
+
+.carousel-prev {
+  left: -14px;
+}
+
+.carousel-next {
+  right: -14px;
+}
+
+/* ── brand rail with artwork ─────────────────────────────────────────────── */
+
+.brand-chip[data-art] {
+  padding-left: 0.45rem;
+}
+
+.brand-chip-art {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--ground-deep);
+  display: grid;
+  place-items: center;
+}
+
+.brand-chip-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* The slot inside a 30px circle has no room to speak — glyph only. */
+.brand-chip-art .slot {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+}
+
+.brand-chip-art .slot-words {
+  display: none;
+}
+
+.brand-chip-art .slot-mark {
+  width: 16px;
+  height: 16px;
 }

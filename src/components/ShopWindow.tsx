@@ -85,15 +85,8 @@ export function HighlightStrip({ items }: { items: PublicStoreProfile["highlight
   );
 }
 
-/** Shown before the list collapses. Two rows on a laptop, three on a phone. */
-const AREAS_VISIBLE = 12;
-
 export function DeliveryAreas({ cities }: { cities: string[] }) {
   if (cities.length === 0) return null;
-
-  const overflow = cities.length > AREAS_VISIBLE;
-  const head = overflow ? cities.slice(0, AREAS_VISIBLE) : cities;
-  const rest = overflow ? cities.slice(AREAS_VISIBLE) : [];
 
   return (
     <section className="areas" aria-labelledby="areas-head">
@@ -113,42 +106,40 @@ export function DeliveryAreas({ cities }: { cities: string[] }) {
         Now delivering across {cities.length} area{cities.length === 1 ? "" : "s"}
       </p>
 
-      {/* Plain text, not links: a city is not a page here, and making it look
-          clickable when it is not is the kind of small lie that costs trust. */}
-      <ul className="areas-list">
-        {head.map((c) => (
-          <li className="area-pill" key={c}>
-            {c}
-          </li>
-        ))}
-      </ul>
-
       {/*
-        A shop with forty zones was pushing the entire shelf below the fold —
-        the panel is reassurance, and reassurance should not cost a screen.
+        EVERY city is rendered; the CLAMP IS VISUAL — two rows, done in CSS.
 
-        <details> rather than a JS toggle: it works with no script, is
-        keyboard-operable and screen-reader-announced for free, and the closed
-        state still renders the hidden cities into the DOM, so a visitor using
-        find-in-page for their own suburb still finds it. A JS toggle that
-        unmounts them would answer "no" to someone the shop actually delivers
-        to.
+        The previous version cut the list at a fixed count of twelve, which is
+        the right number at exactly one viewport width and wrong at all the
+        others: on a wide screen twelve fitted one row and left the second empty,
+        on a narrow one it spilled to four. A row count cannot be decided by a
+        server that does not know the width, so it is not decided there.
+
+        Because nothing is withheld from the DOM, find-in-page still locates a
+        visitor's own suburb even while the list is collapsed — the rows past
+        the clamp are clipped, not absent. A JS toggle that unmounted them would
+        answer "no" to a customer the shop actually delivers to.
+
+        Plain text, not links: a city is not a page here, and making it look
+        clickable when it is not is the kind of small lie that costs trust.
       */}
-      {overflow ? (
-        <details className="areas-more">
-          <summary>
-            <span className="areas-more-open">+ {rest.length} more areas</span>
-            <span className="areas-more-shut">Show fewer</span>
-          </summary>
-          <ul className="areas-list mt-1">
-            {rest.map((c) => (
-              <li className="area-pill" key={c}>
-                {c}
-              </li>
-            ))}
-          </ul>
-        </details>
-      ) : null}
+      <details className="areas-fold">
+        <ul className="areas-list">
+          {cities.map((c) => (
+            <li className="area-pill" key={c}>
+              {c}
+            </li>
+          ))}
+        </ul>
+
+        {/* After the list, so opening it does not shove the pills down. The
+            label cannot state a remainder — how many are hidden depends on the
+            width — so it names the total, which is true at every size. */}
+        <summary>
+          <span className="areas-more-open">Show all {cities.length} areas</span>
+          <span className="areas-more-shut">Show fewer</span>
+        </summary>
+      </details>
     </section>
   );
 }

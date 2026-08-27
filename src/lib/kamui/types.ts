@@ -85,6 +85,8 @@ export interface StoreCategoryV1 {
 export type ListCategoriesResponse = StoreCategoryV1[];
 
 export interface StoreBrandV1 {
+  /** Brand artwork, set by the operator. May be a RELATIVE upload path. */
+  image?: string | null;
   id: number;
   name: string;
   productCount: number;
