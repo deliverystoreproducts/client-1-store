@@ -8,7 +8,6 @@ import { useCart } from "@/components/CartProvider";
 import { AddressField } from "@/components/AddressField";
 import { DailyLimitReadout } from "@/components/DailyLimitReadout";
 import { SignInFlow } from "@/components/SignInFlow";
-import { IdScanner } from "@/components/IdScanner";
 import { apiGet, apiPost, apiPostForm, ClientApiError } from "@/lib/client-api";
 import { TAX_LINE_LABELS } from "@/lib/compliance/tax";
 import { formatUsd } from "@/lib/money";
@@ -99,15 +98,25 @@ export function CheckoutView({
   }, []);
   const [saveAddress, setSaveAddress] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  // Held only for the life of this page. Cleared by the redirect to the
-  // confirmation screen, so the next order scans again — which is the point.
-  const [idImages, setIdImages] = useState<{ front: File; back: File } | null>(null);
   /**
-   * Checkout is three steps: where it goes, who is receiving it, then what is
-   * being bought. One long scroll put the ID scanner between the delivery
-   * notices and the place-order button, where it read as one more disclosure to
-   * skim past rather than a thing to stop and do. Splitting it also means the
-   * camera is not mounted until it is actually needed.
+   * ID photo — the ORIGINAL flow, restored 2026-08-27 at the owner's request:
+   * ONE photo, asked for ONCE, SAVED to the customer's account on the platform
+   * (`hasId`). A customer who already has one on file is never asked again; the
+   * driver checks the physical card at the door on every order regardless.
+   *
+   * The two-sided "scan front and back on every order" step that replaced it
+   * verified the barcode inline and then threw both photos away — nothing was
+   * ever stored, so the account page said "No ID photo on file" after two
+   * orders and the customer was asked again next time. Two photos per order
+   * was also simply too much.
+   */
+  const [idFile, setIdFile] = useState<File | null>(null);
+  const [idPreview, setIdPreview] = useState<string | null>(null);
+  const [idUploading, setIdUploading] = useState(false);
+  const [idError, setIdError] = useState<string | null>(null);
+  /**
+   * Checkout is up to three steps: where it goes, (your ID, if the store needs
+   * one and you have none on file), then what is being bought.
    */
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
@@ -238,8 +247,8 @@ export function CheckoutView({
     setSubmitting(true);
     setError(null);
     try {
-      // Multipart, because the ID photographs ride along with the order and are
-      // checked in the same request that places it — see /api/checkout.
+      // Multipart payload kept for compatibility with /api/checkout; the ID
+      // photo is saved to the account beforehand (step 2), not sent per order.
       const form = new FormData();
       form.set(
         "payload",
@@ -251,10 +260,6 @@ export function CheckoutView({
           saveAddress,
         }),
       );
-      if (idImages) {
-        form.set("idFront", idImages.front);
-        form.set("idBack", idImages.back);
-      }
       const res = await apiPostForm<{
         orderId: number;
         orderNumber: string | null;
@@ -398,8 +403,32 @@ export function CheckoutView({
     zone != null && zone.minimumOrder > 0 && cart != null && cart.subtotal < zone.minimumOrder;
   const shortBy = belowMinimum && zone ? zone.minimumOrder - cart!.subtotal : 0;
 
+  // The store wants an ID photo on file and this customer has none yet.
+  const needsId = requireIdPhoto && !session?.customer?.hasId;
   const canSubmit =
-    addressReady && !submitting && (cart?.lines.length ?? 0) > 0 && !overLimit && !!idImages;
+    addressReady && !submitting && (cart?.lines.length ?? 0) > 0 && !overLimit && !needsId;
+
+  async function saveIdPhoto() {
+    if (!idFile) return;
+    setIdUploading(true);
+    setIdError(null);
+    try {
+      const form = new FormData();
+      form.set("photo", idFile);
+      const s = await apiPostForm<SessionState>("/api/account/id-photo", form);
+      setSession(s);
+      setStep(3);
+    } catch (e) {
+      setIdError(e instanceof ClientApiError ? e.message : "We couldn't save that photo. Please try again.");
+    } finally {
+      setIdUploading(false);
+    }
+  }
+
+  /** Delivery → (ID) → Review. Skips the ID step when there is nothing to ask. */
+  function afterDelivery() {
+    setStep(needsId ? 2 : 3);
+  }
 
   return (
     <div className="plain">
@@ -421,24 +450,31 @@ export function CheckoutView({
             // final step's button is a submit, but a keyboard user pressing
             // Enter in the address field expects to move on.
             if (step === 1) {
-              if (addressReady) setStep(2);
+              if (addressReady) afterDelivery();
             } else if (step === 3 && canSubmit) {
               void placeOrder();
             }
           }}
         >
           <ol className="steps" aria-label="Checkout progress">
-            {(["Delivery", "ID check", "Review"] as const).map((label, i) => (
-              <li
-                key={label}
-                className="steps-item"
-                data-state={step === i + 1 ? "current" : step > i + 1 ? "done" : "todo"}
-                aria-current={step === i + 1 ? "step" : undefined}
-              >
-                <span className="steps-num">{step > i + 1 ? "✓" : i + 1}</span>
-                {label}
-              </li>
-            ))}
+            {(needsId ? (["Delivery", "Your ID", "Review"] as const) : (["Delivery", "Review"] as const)).map(
+              (label, i) => {
+                // With no ID step, "Review" is step 3 internally but shows as 2.
+                const n = needsId ? i + 1 : i === 0 ? 1 : 3;
+                const shown = i + 1;
+                return (
+                  <li
+                    key={label}
+                    className="steps-item"
+                    data-state={step === n ? "current" : step > n ? "done" : "todo"}
+                    aria-current={step === n ? "step" : undefined}
+                  >
+                    <span className="steps-num">{step > n ? "✓" : shown}</span>
+                    {label}
+                  </li>
+                );
+              },
+            )}
           </ol>
 
           {step === 1 ? (
@@ -563,7 +599,7 @@ export function CheckoutView({
                 type="button"
                 className="btn btn-block"
                 disabled={!addressReady}
-                onClick={() => setStep(2)}
+                onClick={afterDelivery}
               >
                 {addressReady ? "Next — check your ID" : "Enter a delivery address"}
               </button>
@@ -572,24 +608,54 @@ export function CheckoutView({
 
           {step === 2 ? (
             <>
-              <h2>ID check</h2>
-              {/* EVERY order, not just the first. Cannabis is handed over
-                  against a valid ID at the door; asking once at signup and
-                  trusting forever after is not an ID check. */}
+              <h2>Your ID</h2>
               <p className="faint mt-0 mb-2">
-                Required on every order. Scan the front and back of your government ID — we read the
-                barcode on the back to confirm your age. Your driver checks the physical card at the
-                door as well.
+                This store needs one photo of your government-issued ID on file before your first
+                delivery. We ask once and keep it with your account — your driver still checks the
+                physical card at the door.
               </p>
-              <IdScanner onChange={setIdImages} disabled={submitting} />
+
+              {idError ? (
+                <div className="notice notice-error mb-2" role="alert">
+                  {idError}
+                </div>
+              ) : null}
+
+              {idPreview ? (
+                <div className="mb-2" style={{ borderRadius: 10, overflow: "hidden", border: "1px solid var(--rule)" }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={idPreview} alt="Your ID photo" style={{ display: "block", width: "100%", maxHeight: 260, objectFit: "contain", background: "#000" }} />
+                </div>
+              ) : null}
+
+              <label className="btn btn-outline btn-block" style={{ cursor: "pointer" }}>
+                {idFile ? "Retake photo" : "Take a photo of your ID"}
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  className="sr-only"
+                  disabled={idUploading || submitting}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0] ?? null;
+                    setIdError(null);
+                    setIdFile(f);
+                    setIdPreview((prev) => {
+                      if (prev) URL.revokeObjectURL(prev);
+                      return f ? URL.createObjectURL(f) : null;
+                    });
+                    e.target.value = "";
+                  }}
+                />
+              </label>
 
               <button
                 type="button"
                 className="btn btn-block mt-2"
-                disabled={!idImages}
-                onClick={() => setStep(3)}
+                disabled={!idFile || idUploading}
+                onClick={() => void saveIdPhoto()}
               >
-                {idImages ? "Next — review your order" : "Scan both sides to continue"}
+                {idUploading ? "Saving…" : idFile ? "Save and continue" : "Add a photo to continue"}
               </button>
               <button
                 type="button"
@@ -676,7 +742,7 @@ export function CheckoutView({
                 type="button"
                 className="btn btn-ghost btn-block mt-1"
                 disabled={submitting}
-                onClick={() => setStep(2)}
+                onClick={() => setStep(needsId ? 2 : 1)}
               >
                 Back to ID check
               </button>

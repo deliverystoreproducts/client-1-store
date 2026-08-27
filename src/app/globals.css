@@ -5876,6 +5876,29 @@ body::after {
     background: #fff;
   }
 
+  /* The header's desktop rule paints it black; on the phone the STACK is the
+     surface and the bar itself is see-through to it. */
+  .hdr-stack .site-header {
+    background: transparent;
+    box-shadow: none;
+    border-bottom: 0;
+  }
+
+  /* The status-bar strip is ALWAYS white — including when the bar floats
+     transparent over a banner. Painted as a pseudo-element so the two states
+     only differ below it (the Weedmaps store page: white strip, picture
+     starts under it). */
+  .hdr-stack::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: env(safe-area-inset-top, 0px);
+    background: #fff;
+    z-index: 1;
+  }
+
   .main {
     padding-top: calc(var(--mob-hdr) + 0.75rem);
   }
@@ -5960,7 +5983,7 @@ body::after {
   html[data-hero-overlay]:not([data-scrolled]) .hdr-stack .promo-bar,
   html[data-hero-overlay]:not([data-scrolled]) .site-header .brand,
   html[data-hero-overlay]:not([data-scrolled]) .site-header .hdr-search {
-    display: none;
+    display: none !important;
   }
 
   html[data-hero-overlay]:not([data-scrolled]) .site-header .hdr {
@@ -5984,7 +6007,7 @@ body::after {
   .hero[data-banner="true"] {
     position: relative;
     margin-inline: calc(-1 * var(--gutter));
-    margin-top: calc(-1 * (var(--mob-hdr) + 0.75rem));
+    margin-top: calc(-1 * (var(--mob-bar) + var(--mob-ticker) + 0.75rem));
     border-radius: 0;
     aspect-ratio: 4 / 3;
     max-height: 62vh;
