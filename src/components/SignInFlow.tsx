@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { AddressField } from "@/components/AddressField";
-import { IdScanner } from "@/components/IdScanner";
 import { apiPost, apiPostForm, ClientApiError } from "@/lib/client-api";
 import { formatPhone } from "@/lib/phone";
 import type { PublicCustomer } from "@/lib/public-types";
@@ -75,7 +74,7 @@ export function SignInFlow({ onSignedIn, requireIdPhoto, initialStep = "phone" }
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
-  const [idImages, setIdImages] = useState<{ front: File; back: File } | null>(null);
+  const [idPhoto, setIdPhoto] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
@@ -138,10 +137,7 @@ export function SignInFlow({ onSignedIn, requireIdPhoto, initialStep = "phone" }
       const form = new FormData();
       form.set("name", name);
       if (address) form.set("address", address);
-      if (idImages) {
-        form.set("idFront", idImages.front);
-        form.set("idBack", idImages.back);
-      }
+      if (idPhoto) form.set("idPhoto", idPhoto);
       const res = await apiPostForm<{ status: string; customer?: PublicCustomer }>(
         "/api/auth/register",
         form,
@@ -308,18 +304,28 @@ export function SignInFlow({ onSignedIn, requireIdPhoto, initialStep = "phone" }
           {requireIdPhoto ? (
             <div className="field">
               <span className="label">Your government-issued ID</span>
-              <IdScanner onChange={setIdImages} disabled={busy} />
+              <label className="btn btn-outline btn-block" style={{ cursor: "pointer" }}>
+                {idPhoto ? `Photo added — ${idPhoto.name || "retake"}` : "Take a photo of your ID"}
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  className="sr-only"
+                  disabled={busy}
+                  onChange={(e) => setIdPhoto(e.target.files?.[0] ?? null)}
+                />
+              </label>
               <p className="faint mt-1 mb-0">
-                Required before your first delivery. We read the barcode on the back to confirm
-                your age — your driver still checks the physical card at the door.
+                One photo, kept with your account — you will not be asked again. Your driver still
+                checks the physical card at the door.
               </p>
             </div>
           ) : null}
           <button
             className="btn btn-block"
-            disabled={busy || !name.trim() || (requireIdPhoto && !idImages)}
+            disabled={busy || !name.trim() || (requireIdPhoto && !idPhoto)}
           >
-            {busy ? "Checking your ID…" : "Create account"}
+            {busy ? "Creating…" : "Create account"}
           </button>
         </form>
       ) : null}
