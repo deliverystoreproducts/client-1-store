@@ -5814,3 +5814,26 @@ body::after {
   color: var(--pine-3);
   font-size: var(--t--1);
 }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   STICKY HEADER STACK (2026-08-27) — promo strip + header stick together and
+   extend under the iPhone status bar (viewport-fit=cover + safe-area inset).
+   ═══════════════════════════════════════════════════════════════════════════ */
+.hdr-stack {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  background: #09090b;
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* the header itself no longer sticks on its own — the stack does */
+.site-header {
+  position: static;
+}
+
+/* the promo strip's gradient continues into the safe-area strip above it */
+.hdr-stack:has(.promo-bar) {
+  background: #16a34a;
+}

@@ -60,6 +60,10 @@ export const viewport: Viewport = {
   themeColor: "#fafafa",
   width: "device-width",
   initialScale: 1,
+  // Lets the sticky header paint up under the iPhone status bar. Without it,
+  // Safari scrolls the page beneath a translucent bar and the header appears to
+  // float below a strip of blurred product photos.
+  viewportFit: "cover",
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
@@ -134,8 +138,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         ) : (
           <CartProvider>
             <div className="shell">
-              <PromoBar text={profile.promoText} badge={profile.promoBadge} href={profile.promoHref} />
-              <SiteHeader storeName={storeName} logo={profile.logo} />
+              {/* One sticky block — promo strip + header — padded for the
+                  phone's status bar so the black reaches the top edge. */}
+              <div className="hdr-stack">
+                <PromoBar text={profile.promoText} badge={profile.promoBadge} href={profile.promoHref} />
+                <SiteHeader storeName={storeName} logo={profile.logo} />
+              </div>
               <main className="main">
                 <div className="wrap">{children}</div>
               </main>
