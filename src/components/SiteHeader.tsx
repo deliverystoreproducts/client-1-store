@@ -9,9 +9,20 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import type { SessionState } from "@/lib/public-types";
 
 /**
- * Header. Client-side because the cart count lives in the browser and the
- * session badge is fetched from our own /api/auth/me (never from a token the
- * page can read — there isn't one).
+ * Header — the reference storefront's bar, on one black strip:
+ *
+ *   desktop:  [logo] Home · All Products · Brands · More ▾  [ search ……… ]  👤 🛒
+ *   phone:    [☰] [logo]  [ search ……………… ]  👤 🛒
+ *
+ * Two decisions worth stating. The SEARCH IS ALWAYS IN THE BAR — on a phone it
+ * used to live inside the burger sheet, which is the one place a customer who
+ * wants to type a strain name will never look. And the account and cart are
+ * ICONS, not words: two labelled buttons plus a search field do not fit a
+ * 375px phone, and a cart glyph with a count needs no label.
+ *
+ * Client-side because the cart count lives in the browser and the session
+ * badge is fetched from our own /api/auth/me (never from a token the page can
+ * read — there isn't one). The dark-mode switch is in the menus, not the bar.
  */
 export function SiteHeader({
   storeName,
@@ -51,70 +62,71 @@ export function SiteHeader({
   }, [pathname]);
 
   const showCount = ready && count > 0;
+  const accountHref = session?.authenticated ? "/account" : "/signin";
+  const accountLabel = session?.authenticated ? "Your account" : "Sign in";
 
   return (
     <header className="site-header">
-      <div className="wrap">
-        <Link href="/" className="brand">
+      <div className="wrap hdr">
+        <button
+          className="burger"
+          aria-expanded={menuOpen}
+          aria-controls="mobile-menu"
+          aria-label={menuOpen ? "Close menu" : "Open menu"}
+          onClick={() => setMenuOpen((v) => !v)}
+        >
+          <i />
+          <i />
+          <i />
+        </button>
+
+        <Link href="/" className="brand" aria-label={`${storeName} — home`}>
           {logo ? (
             // eslint-disable-next-line @next/next/no-img-element -- same-origin
             // proxied asset; next/image's optimizer would round-trip it again.
-            <img className="brand-logo" src={logo} alt="" height={28} />
+            <img className="brand-logo" src={logo} alt="" />
           ) : (
-            <span className="brand-seal" aria-hidden />
+            <span className="brand-name">{storeName}</span>
           )}
-          <span className="brand-name">{storeName}</span>
         </Link>
 
-        {/* Between the mark and the nav, on every page. The gap this closes is
-            that from a product page or the cart there was previously no way to
-            search at all. */}
+        <nav className="nav-links" aria-label="Main">
+          <Link href="/">Home</Link>
+          <Link href="/products">All Products</Link>
+          <Link href="/brands">Brands</Link>
+          {/* A disclosure, not a dropdown: <details> needs no JavaScript, is
+              keyboard-operable for free, and closes on Escape. */}
+          <details className="nav-more">
+            <summary>More</summary>
+            <div className="nav-more-pop">
+              <Link href="/deals">Deals</Link>
+              <Link href="/track">Track an order</Link>
+              <Link href="/faq">FAQ</Link>
+              <Link href="/contact">Contact</Link>
+              <div className="nav-more-row">
+                <ThemeToggle />
+              </div>
+            </div>
+          </details>
+        </nav>
+
+        {/* The search sits between the nav and the icons on every page and at
+            every width. */}
         <SearchSuggest />
 
-        <nav className="nav" aria-label="Main">
-          {/* Text links live in a wrapper the phone hides; the burger replaces
-              them. Cart and the burger always stay reachable. */}
-          <span className="nav-links">
-            <Link href="/" className="nav-wide">
-              Home
-            </Link>
-            <Link href="/products" className="nav-wide">
-              All Products
-            </Link>
-            <Link href="/brands" className="nav-wide">
-              Brands
-            </Link>
-            {/* A disclosure, not a dropdown: <details> needs no JavaScript, is
-                keyboard-operable for free, and closes on Escape. The links
-                inside are the ones a shopper needs occasionally — putting them
-                in the bar would crowd out the search. */}
-            <details className="nav-more nav-wide">
-              <summary>More</summary>
-              <div className="nav-more-pop">
-                <Link href="/deals">Deals</Link>
-                <Link href="/track">Track an order</Link>
-                <Link href="/faq">FAQ</Link>
-                <Link href="/contact">Contact</Link>
-              </div>
-            </details>
-            {session?.authenticated ? (
-              <Link href="/account">Account</Link>
-            ) : (
-              <Link href="/signin">Sign in</Link>
-            )}
-            <ThemeToggle />
-          </span>
-          <button
-            className="burger"
-            aria-expanded={menuOpen}
-            aria-controls="mobile-menu"
-            aria-label={menuOpen ? "Close menu" : "Open menu"}
-            onClick={() => setMenuOpen((v) => !v)}
-          >
-            <i /><i /><i />
-          </button>
-          <Link href="/cart" className="cart-link">
-            Cart
+        <div className="hdr-icons">
+          <Link href={accountHref} className="hdr-icon" aria-label={accountLabel} title={accountLabel}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <circle cx="12" cy="8" r="4" />
+              <path d="M4 21c0-4.2 3.6-7 8-7s8 2.8 8 7" />
+            </svg>
+          </Link>
+          <Link href="/cart" className="hdr-icon cart-link" aria-label="Cart">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M2.5 3.5h2.3l2.4 12.2a1.6 1.6 0 0 0 1.6 1.3h9.6a1.6 1.6 0 0 0 1.6-1.2L21.5 8H6" />
+              <circle cx="9.5" cy="20.5" r="1.3" />
+              <circle cx="17.5" cy="20.5" r="1.3" />
+            </svg>
             {showCount ? (
               <span key={count} className="cart-count" aria-hidden>
                 {count}
@@ -122,26 +134,20 @@ export function SiteHeader({
             ) : null}
             {showCount ? <span className="sr-only">{count} items in cart</span> : null}
           </Link>
-        </nav>
+        </div>
       </div>
 
       {menuOpen ? (
         <div id="mobile-menu" className="mobile-menu">
-          <SearchSuggest id="menu-q" />
-          <Link href="/">Shop</Link>
-          <Link href="/products">Shop all &amp; filter</Link>
+          <Link href="/">Home</Link>
+          <Link href="/products">All Products</Link>
           <Link href="/brands">Brands</Link>
           <Link href="/deals">Deals</Link>
           <Link href="/track">Track an order</Link>
-          {session?.authenticated ? (
-            <Link href="/account">Your account</Link>
-          ) : (
-            <Link href="/signin">Sign in</Link>
-          )}
+          <Link href={accountHref}>{accountLabel}</Link>
           <Link href="/faq">FAQ</Link>
           <Link href="/contact">Contact</Link>
           <div className="mobile-menu-row">
-            <span className="eyebrow">Theme</span>
             <ThemeToggle />
           </div>
         </div>

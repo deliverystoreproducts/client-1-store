@@ -127,7 +127,7 @@ export default async function HomePage({
   return (
     <>
       {!browsing ? (
-        <section className="hero" data-media="true">
+        <section className="hero" data-media="true" data-banner={((heroSrc || heroVideo) && !profile.heroTitle) || undefined}>
           {heroVideo ? (
             /* Video wins over the still when the operator has set one.
                muted + playsInline + autoPlay is the only combination a phone
@@ -167,6 +167,12 @@ export default async function HomePage({
             />
           )}
 
+          {/* A banner the operator uploaded WITHOUT a headline is the whole
+              hero — the reference site's logo banner, nothing written over it.
+              The facts strip still shows below the shelf-top in that case (see
+              .hero-facts-only). A headline, or no picture at all, brings the
+              plaque back. */}
+          {(heroSrc || heroVideo) && !profile.heroTitle ? null : (
           <div className="hero-body">
             <div>
               <span className="eyebrow" data-reveal style={{ "--i": 0 } as React.CSSProperties}>
@@ -206,6 +212,7 @@ export default async function HomePage({
               </p>
             </div>
           </div>
+          )}
         </section>
       ) : null}
 

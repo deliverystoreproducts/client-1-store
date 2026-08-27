@@ -56,10 +56,8 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f6fbf2" },
-    { media: "(prefers-color-scheme: dark)", color: "#120b1e" },
-  ],
+  // Light is the default; the in-app toggle rewrites this when a visitor picks dark.
+  themeColor: "#fafafa",
   width: "device-width",
   initialScale: 1,
 };
@@ -120,14 +118,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             the preload must be anonymous or the browser fetches them twice. */}
         <link
           rel="preload"
-          href="/fonts/fraunces-latin-var.woff2"
-          as="font"
-          type="font/woff2"
-          crossOrigin="anonymous"
-        />
-        <link
-          rel="preload"
-          href="/fonts/archivo-latin-var.woff2"
+          href="/fonts/figtree-latin-var.woff2"
           as="font"
           type="font/woff2"
           crossOrigin="anonymous"
