@@ -6,7 +6,6 @@ import { CategoryFeature } from "@/components/CategoryFeature";
 import { CategoryRow } from "@/components/CategoryRow";
 import { FeaturedCarousel } from "@/components/FeaturedCarousel";
 import { DealCard } from "@/components/DealCard";
-import { DeliveryAreas, HighlightStrip } from "@/components/ShopWindow";
 import {
   getBrands,
   getCatalogPage,
@@ -228,15 +227,36 @@ export default async function HomePage({
         </div>
       ) : null}
 
-      {/* Directly under the hero: the three promises, then where we go. Both
-          render nothing when the operator has not set them, so the page simply
-          tightens up rather than showing empty furniture. */}
-      {!browsing ? <HighlightStrip items={profile.highlights} /> : null}
-      {!browsing ? <DeliveryAreas cities={profile.deliveryCities} /> : null}
+      {/* The Weedmaps order, straight under the hero: what KIND (categories),
+          WHOSE (brands), what's ON (deals) — then the shelf. The promise strip
+          and the delivery-area list that used to sit here were removed at the
+          owner's request (2026-08-27); the copy still exists on the profile and
+          the checkout still enforces the zones. All three rails are hidden the
+          moment a customer starts filtering — at that point they are shopping,
+          not browsing. */}
+      {!browsing ? <CategoryFeature categories={categories} /> : null}
+      {!browsing ? <BrandRail brands={brands} /> : null}
 
-      {/* Featured leads the shelf — hand-picked when the operator has picked,
-          a spread of the catalogue when they have not, so the row is never an
-          empty band under a promise. */}
+      {deals.length > 0 ? (
+        <section className="deals-strip" aria-labelledby="deals-head">
+          <div className="wm-head">
+            <h2 className="wm-title" id="deals-head">
+              Deals
+            </h2>
+            <Link className="wm-more" href="/deals" aria-label="All deals">
+              →
+            </Link>
+          </div>
+          <div className="deals-row">
+            {deals.map((d, i) => (
+              <DealCard key={d.id} deal={d} index={i + 1} />
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {/* Featured — hand-picked when the operator has picked, a spread of the
+          catalogue when they have not, so the row is never an empty band. */}
       {featured.length > 0 ? (
         <section className="cat-row" aria-labelledby="featured-head">
           <div className="cat-row-head">
@@ -248,31 +268,6 @@ export default async function HomePage({
             </Link>
           </div>
           <FeaturedCarousel products={featured} />
-        </section>
-      ) : null}
-
-      {/* The shop window, in the order a customer shops it: who makes it, what
-          kind it is, what's on offer, then everything else. Hidden the moment
-          they start filtering — at that point they are shopping, not browsing. */}
-      {!browsing ? <BrandRail brands={brands} /> : null}
-      {!browsing ? <CategoryFeature categories={categories} /> : null}
-
-      {deals.length > 0 ? (
-        <section className="deals-strip" aria-labelledby="deals-head">
-          <div className="section-head">
-            <span className="eyebrow" id="deals-head">
-              On offer
-            </span>
-            <hr />
-            <Link className="btn btn-link btn-sm" href="/deals">
-              All deals →
-            </Link>
-          </div>
-          <div className="deals-row">
-            {deals.slice(0, 3).map((d, i) => (
-              <DealCard key={d.id} deal={d} index={i + 1} />
-            ))}
-          </div>
         </section>
       ) : null}
 
