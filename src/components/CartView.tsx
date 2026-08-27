@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { BasketComplianceNotices } from "@/components/ComplianceNotices";
 import { useCart } from "@/components/CartProvider";
-import { DailyLimitReadout } from "@/components/DailyLimitReadout";
 import { apiPost, ClientApiError } from "@/lib/client-api";
 import { TAX_LINE_LABELS } from "@/lib/compliance/tax";
 import { formatUsd } from "@/lib/money";
@@ -80,7 +79,6 @@ export function CartView() {
     .map((l) => l.consumptionRoute)
     .filter((r): r is NonNullable<typeof r> => r != null);
   const vapeHardware = (cart?.lines ?? []).flatMap((l) => l.vapeHardware);
-  const overLimit = (cart?.dailyLimit.exceeded.length ?? 0) > 0;
 
   return (
     <>
@@ -200,17 +198,9 @@ export function CartView() {
             </div>
           </div>
 
-          {cart ? <DailyLimitReadout assessment={cart.dailyLimit} className="mt-2" /> : null}
-
-          {overLimit ? (
-            <span className="btn btn-block mt-2" aria-disabled="true" data-disabled="true">
-              Checkout
-            </span>
-          ) : (
-            <Link className="btn btn-block mt-2" href="/checkout">
-              Checkout
-            </Link>
-          )}
+          <Link className="btn btn-block mt-2" href="/checkout">
+            Checkout
+          </Link>
 
           <p className="faint mt-2 mb-0">
             Final total is confirmed at checkout. Pay cash when your order arrives.
@@ -227,15 +217,9 @@ export function CartView() {
             <span className="faint">Est. total</span>
             <strong className="num">{formatUsd(cart.estimatedTotal)}</strong>
           </span>
-          {overLimit ? (
-            <span className="btn" aria-disabled="true" data-disabled="true">
-              Checkout
-            </span>
-          ) : (
-            <Link className="btn" href="/checkout">
-              Checkout →
-            </Link>
-          )}
+          <Link className="btn" href="/checkout">
+            Checkout →
+          </Link>
         </div>
         </>
       ) : null}

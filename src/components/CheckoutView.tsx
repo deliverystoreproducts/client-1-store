@@ -6,7 +6,6 @@ import { useCallback, useEffect, useState } from "react";
 import { BasketComplianceNotices } from "@/components/ComplianceNotices";
 import { useCart } from "@/components/CartProvider";
 import { AddressField } from "@/components/AddressField";
-import { DailyLimitReadout } from "@/components/DailyLimitReadout";
 import { SignInFlow } from "@/components/SignInFlow";
 import { apiGet, apiPost, apiPostForm, ClientApiError } from "@/lib/client-api";
 import { TAX_LINE_LABELS } from "@/lib/compliance/tax";
@@ -383,7 +382,6 @@ export function CheckoutView({
     .map((l) => l.consumptionRoute)
     .filter((r): r is NonNullable<typeof r> => r != null);
   const vapeHardware = (cart?.lines ?? []).flatMap((l) => l.vapeHardware);
-  const overLimit = (cart?.dailyLimit.exceeded.length ?? 0) > 0;
 
   const addressReady = address.trim().length >= 6;
 
@@ -401,7 +399,7 @@ export function CheckoutView({
   // The store wants an ID photo on file and this customer has none yet.
   const needsId = requireIdPhoto && !session?.customer?.hasId;
   const canSubmit =
-    addressReady && !submitting && (cart?.lines.length ?? 0) > 0 && !overLimit && !needsId;
+    addressReady && !submitting && (cart?.lines.length ?? 0) > 0 && !needsId;
 
   async function saveIdPhoto() {
     if (!idFile) return;
@@ -638,17 +636,12 @@ export function CheckoutView({
             <>
               <h2>Review &amp; place order</h2>
 
-              {/* The statutory notices — Prop 65 (27 CCR § 25602), the daily
-                  limit (4 CCR § 15409) and the DCC safer-use guide (B&P
-                  § 26070.3(b)) — in ONE fold, its summary always visible with
+              {/* The statutory notices — Prop 65 (27 CCR § 25602) and the DCC
+                  safer-use guide (B&P § 26070.3(b)) — in ONE fold, its summary always visible with
                   the WARNING word and the guide link, so the notices are
                   offered at the point of purchase without being a page of
-                  reading between the customer and the button. Opens by itself
-                  when the daily limit is actually exceeded. */}
-              <details
-                className="info-fold info-fold-warn mb-2"
-                open={overLimit || undefined}
-              >
+                  reading between the customer and the button. */}
+              <details className="info-fold info-fold-warn mb-2">
                 <summary>
                   <span aria-hidden>⚠</span> WARNING — health &amp; legal notices
                   {brochureUrl ? (
@@ -661,7 +654,6 @@ export function CheckoutView({
                   ) : null}
                 </summary>
                 <div className="mt-2">
-                  {cart ? <DailyLimitReadout assessment={cart.dailyLimit} className="mb-2" /> : null}
                   <BasketComplianceNotices
                     routes={routes}
                     vapeHardware={vapeHardware}

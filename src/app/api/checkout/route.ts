@@ -4,8 +4,7 @@ import { UpstreamError } from "@/lib/kamui/errors";
 import { fail, failFromUpstream, json } from "@/lib/http";
 import { formatUsd } from "@/lib/money";
 import { readCustomerToken, readPendingToken } from "@/lib/session";
-import { assessDailyLimitsForCheckout, getStoreProfile, sanitizeCartLines } from "@/lib/store";
-import { describeBreach } from "@/lib/compliance/limits";
+import { getStoreProfile, sanitizeCartLines } from "@/lib/store";
 
 /**
  * POST /api/checkout — place the order.
@@ -144,33 +143,9 @@ export async function POST(req: Request): Promise<Response> {
       ? body.couponCode.trim().slice(0, 64)
       : null;
 
-  // ── 4 CCR § 15409 daily limits, server-side ───────────────────────────
-  //
-  // The cart shows the same numbers, but a cart is browser state and this is
-  // the last point before a sale. § 15409 is per CUSTOMER per DAY, so this also
-  // counts what the customer already bought today — see
-  // `assessDailyLimitsForCheckout`. Refusing here is the only refusal that
-  // means anything.
-  //
-  // ⚠️ It refuses over-limit baskets it can MEASURE. Lines with no published
-  //    net weight contribute zero, so a pass is not a compliance certificate —
-  //    the gap is documented in src/lib/compliance/limits.ts and README.md.
-  try {
-    const limits = await assessDailyLimitsForCheckout(items, token);
-    if (limits.exceeded.length > 0) {
-      return fail(400, "daily_limit_exceeded", {
-        message: limits.exceeded.map((k) => describeBreach(k, limits)).join(" "),
-      });
-    }
-  } catch (e) {
-    // The limit check is a control, not a nicety: if it cannot run we do not
-    // silently sell. The customer gets a neutral retry, the reason goes to the log.
-    console.error("[compliance] § 15409 daily-limit check failed; order refused", e);
-    return fail(503, "limit_check_unavailable", {
-      message: "We couldn't verify the state daily purchase limit just now. Please try again.",
-    });
-  }
-
+  // No purchase-quantity gate here — the owner's decision (2026-08-27): the
+  // storefront never stops a customer from buying. Compliance with per-customer
+  // limits is the retailer's, enforced at fulfilment, not by this form.
   try {
     const res = await api.checkout(token, {
       items,
