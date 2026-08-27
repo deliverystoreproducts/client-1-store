@@ -122,6 +122,17 @@ export function toPublicStoreProfile(t: TenantProfileV1): PublicStoreProfile {
     // mint is what keeps that host out of our HTML.
     logo: toPublicImageUrl(t.shopLogo),
 
+    // Shop-window copy. Upstream already parsed, clamped and icon-checked the
+    // highlights, so this is a pass-through with a shape guard rather than a
+    // second validator — two validators is how they end up disagreeing.
+    promoText: (t.promoText ?? "").trim() || null,
+    promoBadge: (t.promoBadge ?? "").trim() || null,
+    promoHref: (t.promoHref ?? "").trim() || null,
+    highlights: Array.isArray(t.highlights) ? t.highlights.slice(0, 3) : [],
+    deliveryCities: Array.isArray(t.deliveryCities)
+      ? t.deliveryCities.filter((c) => typeof c === "string" && c.trim() !== "")
+      : [],
+
     // Business identity: the dashboard value wins, env is the fallback. A
     // licence-number typo gets fixed in a settings form, not with a redeploy —
     // but a tenant that has configured nothing keeps working exactly as before.

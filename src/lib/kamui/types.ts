@@ -104,6 +104,14 @@ export interface ListBrandsResponse {
  * deliberately dropped by the public mapper and must never reach the browser.
  */
 export interface TenantProfileV1 {
+  /** Shop-window copy the operator controls from the dashboard (STORE-WIN1). */
+  promoText?: string | null;
+  promoBadge?: string | null;
+  promoHref?: string | null;
+  /** Already parsed and clamped upstream — at most three, every one has a title. */
+  highlights?: { icon: string; title: string; body: string }[];
+  /** Cities from the shop's ACTIVE delivery zones — the ones checkout enforces. */
+  deliveryCities?: string[];
   slug: string;
   storeName: string;
   contactPhone: string | null;

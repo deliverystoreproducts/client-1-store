@@ -76,18 +76,27 @@ export function SiteHeader({
               them. Cart and the burger always stay reachable. */}
           <span className="nav-links">
             <Link href="/" className="nav-wide">
-              Shop
+              Home
             </Link>
             <Link href="/products" className="nav-wide">
-              Shop all
+              All Products
             </Link>
             <Link href="/brands" className="nav-wide">
               Brands
             </Link>
-            <Link href="/deals" className="nav-wide">
-              Deals
-            </Link>
-            <Link href="/track">Track</Link>
+            {/* A disclosure, not a dropdown: <details> needs no JavaScript, is
+                keyboard-operable for free, and closes on Escape. The links
+                inside are the ones a shopper needs occasionally — putting them
+                in the bar would crowd out the search. */}
+            <details className="nav-more nav-wide">
+              <summary>More</summary>
+              <div className="nav-more-pop">
+                <Link href="/deals">Deals</Link>
+                <Link href="/track">Track an order</Link>
+                <Link href="/faq">FAQ</Link>
+                <Link href="/contact">Contact</Link>
+              </div>
+            </details>
             {session?.authenticated ? (
               <Link href="/account">Account</Link>
             ) : (

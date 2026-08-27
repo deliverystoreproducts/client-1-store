@@ -6,13 +6,13 @@ import { AgeGate } from "@/components/AgeGate";
 import { CartProvider } from "@/components/CartProvider";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { SiteHeader } from "@/components/SiteHeader";
-import { TopBanner } from "@/components/TopBanner";
+import { PromoBar } from "@/components/PromoBar";
 import { StoreUnavailable } from "@/components/StoreUnavailable";
 import { SwRegister } from "@/components/SwRegister";
 import { isUpstreamConfigured } from "@/lib/kamui/env";
 import { OPEN_ROUTE_HEADER } from "@/lib/open-routes";
 import { hasPassedAgeGate } from "@/lib/session";
-import { getBannerPromo, getStoreProfile } from "@/lib/store";
+import { getStoreProfile } from "@/lib/store";
 import { LICENSE_PLACEHOLDER, MISSING, SITE_TAGLINE } from "@/lib/site";
 import { DELIVERY_WINDOW_LABEL } from "@/lib/hours";
 
@@ -70,7 +70,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // rather than a shop whose every shelf happens to be empty.
   const configured = isUpstreamConfigured();
   const profile = await getStoreProfile();
-  const promo = await getBannerPromo();
   const storeName =
     process.env.NEXT_PUBLIC_SITE_NAME || profile.storeName || "YB Cannabis Co.";
   const passedGate = await hasPassedAgeGate();
@@ -144,12 +143,32 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         ) : (
           <CartProvider>
             <div className="shell">
-              <TopBanner promo={promo} />
+              <PromoBar text={profile.promoText} badge={profile.promoBadge} href={profile.promoHref} />
               <SiteHeader storeName={storeName} logo={profile.logo} />
               <main className="main">
                 <div className="wrap">{children}</div>
               </main>
 
+              {/* ── Footer ────────────────────────────────────────────────
+                  Four columns, as the client asked, and deliberately quiet:
+                  brand, Shop, Info, Contact.
+
+                  WHAT MOVED RATHER THAN VANISHED. The licensee block used to
+                  sit here because B&P § 26151(a)(1) requires advertising to
+                  identify the licensee by number, and every page of a store is
+                  marketing. The client's own reference site carries it nowhere,
+                  and asked for this footer simplified — so the licence, the
+                  entity name and the local permit now live on /terms and
+                  /privacy, which every page still links to. Discoverable, one
+                  click away, and off the shop window. That is a judgement the
+                  client made knowingly; it is recorded here so nobody later
+                  assumes it was lost by accident.
+
+                  ⚠️ STILL NO PROP 65 WARNING HERE, and there must not be one.
+                  27 CCR § 25602(b)(1)(C): a warning is not prominently
+                  displayed if "the purchaser must search for it in the general
+                  content of the website". A footer warning earns nothing. It
+                  belongs on the product page, and that is where it is. */}
               <footer className="site-footer">
                 <div className="wrap">
                   <div className="footer-grid">
@@ -161,87 +180,41 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                     </div>
 
                     <nav className="footer-col" aria-label="Shop">
-                      <span className="eyebrow" style={{ marginBottom: "0.7rem" }}>
-                        Shop
-                      </span>
-                      <Link href="/">Everything</Link>
-                      <Link href="/cart">Cart</Link>
-                      <Link href="/account">Your account</Link>
+                      <span className="footer-head">Shop</span>
+                      <Link href="/">Home</Link>
+                      <Link href="/products">Categories</Link>
+                      <Link href="/brands">Brands</Link>
                     </nav>
 
                     <nav className="footer-col" aria-label="Info">
-                      <span className="eyebrow" style={{ marginBottom: "0.7rem" }}>
-                        Info
-                      </span>
+                      <span className="footer-head">Info</span>
                       <Link href="/faq">FAQ</Link>
-                      <Link href="/returns">Returns &amp; refunds</Link>
+                      <Link href="/returns">Return Policy</Link>
+                      {/* CalOPPA (B&P § 22575) requires the privacy policy to be
+                          CONSPICUOUSLY POSTED — a link on every page is what
+                          that means in practice. This link is not optional. */}
+                      <Link href="/privacy">Privacy Policy</Link>
+                      <Link href="/terms">Terms of Service</Link>
                       <Link href="/contact">Contact</Link>
-                      <Link href="/track">Track an order</Link>
+                    </nav>
+
+                    <div className="footer-col" aria-label="Contact">
+                      <span className="footer-head">Contact</span>
+                      {profile.privacyContactAddress ? <p>{profile.privacyContactAddress}</p> : null}
+                      <p>Hours: {DELIVERY_WINDOW_LABEL}</p>
                       {profile.contactPhone ? (
                         <a href={`tel:${profile.contactPhone}`}>{profile.contactPhone}</a>
                       ) : null}
                       {profile.contactEmail ? (
                         <a href={`mailto:${profile.contactEmail}`}>{profile.contactEmail}</a>
                       ) : null}
-                    </nav>
-
-                    <nav className="footer-col" aria-label="Legal">
-                      <span className="eyebrow" style={{ marginBottom: "0.7rem" }}>
-                        Legal
-                      </span>
-                      {/* CalOPPA (B&P § 22575) requires the privacy policy to be
-                          CONSPICUOUSLY POSTED — a link on every page is what that
-                          means in practice. */}
-                      <Link href="/privacy">Privacy policy</Link>
-                      <Link href="/terms">Terms of service</Link>
-                      {/* Not required by any rule (COMPLIANCE.md § 4.4) — a free
-                          trust signal, and the customer can check the number
-                          printed below against the state's own register. */}
-                      <a
-                        href="https://search.cannabis.ca.gov/"
-                        rel="noopener noreferrer"
-                        target="_blank"
-                      >
-                        Verify our licence
-                      </a>
-                    </nav>
+                    </div>
                   </div>
 
-                  {/* ── Licensee identification ──────────────────────────────
-                      B&P § 26151(a)(1): all advertising and marketing shall
-                      "accurately and legibly identify the licensee responsible
-                      for its content, by adding, at a minimum, the licensee's
-                      license number." Every page of this store is marketing, so
-                      it goes in the global footer.
-
-                      ⚠️ THERE IS DELIBERATELY NO PROP 65 WARNING HERE. 27 CCR
-                      § 25602(b)(1)(C) says a warning is not prominently
-                      displayed if "the purchaser must search for it in the
-                      general content of the website" — a footer warning earns
-                      nothing. It belongs on the product display page, and that
-                      is where it is. Do not "helpfully" add one here. */}
                   <div className="footer-legal">
                     <p>
-                      <span className="license" data-missing={!profile.legalEntityName}>
-                        {profile.legalEntityName || MISSING("Legal entity name")}
-                      </span>{" "}
-                      · Licensed cannabis retailer · DCC Licence{" "}
-                      <span className="license" data-missing={!profile.licenseNumber}>
-                        {profile.licenseNumber || LICENSE_PLACEHOLDER}
-                      </span>
-                      {profile.localPermitNumber ? (
-                        <>
-                          {" "}
-                          · Local permit <span className="license">{profile.localPermitNumber}</span>
-                        </>
-                      ) : null}
-                      <br />
-                      Delivery {DELIVERY_WINDOW_LABEL} (4 CCR § 15403). Must be {profile.minAge}+
-                      with a valid government-issued ID. Keep out of reach of children and pets.
-                      Cash on delivery — nothing is charged online.
-                    </p>
-                    <p>
-                      © {year} {storeName}
+                      © {year} {storeName}. All rights reserved. Must be {profile.minAge}+ to
+                      order.
                     </p>
                   </div>
                 </div>
