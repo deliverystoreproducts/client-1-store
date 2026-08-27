@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { MediaSlot } from "@/components/MediaSlot";
 import type { PublicDeal } from "@/lib/public-types";
 
 /**
@@ -52,7 +53,11 @@ export function DealCard({ deal, index }: { deal: PublicDeal; index?: number }) 
           // eslint-disable-next-line @next/next/no-img-element
           <img className="deal-media" src={deal.image} alt="" loading="lazy" />
         ) : (
-          <span className="deal-media deal-media-empty" aria-hidden />
+          <MediaSlot
+            className="deal-media"
+            label="Deal picture"
+            where="Deals → the deal → Picture"
+          />
         )}
         <span className="deal-type tag">{typeLabel(deal.type)}</span>
       </Link>

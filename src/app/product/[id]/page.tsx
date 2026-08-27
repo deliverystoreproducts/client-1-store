@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { MediaSlot } from "@/components/MediaSlot";
 import { notFound } from "next/navigation";
 import { AddToCartButton } from "@/components/AddToCartButton";
 import { Prop65WarningBox, VapeDisposalBox } from "@/components/ComplianceNotices";
@@ -149,7 +150,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
             // eslint-disable-next-line @next/next/no-img-element
             <img src={product.image} alt={product.name} />
           ) : (
-            <span className="tile-empty">No photo</span>
+            <MediaSlot label="Product photo" where="Catalog → the product" />
           )}
         </div>
 

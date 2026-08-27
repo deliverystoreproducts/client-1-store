@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { MediaSlot } from "@/components/MediaSlot";
+import { MEDIA_HINTS } from "@/lib/site";
 import type { PublicCategory } from "@/lib/public-types";
 
 /**
@@ -16,8 +18,20 @@ import type { PublicCategory } from "@/lib/public-types";
  * product count is overriding a merchandising decision.
  */
 export function CategoryFeature({ categories }: { categories: PublicCategory[] }) {
-  const featured = categories.filter((c) => c.featured).sort((a, b) => a.sortOrder - b.sortOrder);
-  const plain = categories.filter((c) => !c.featured).sort((a, b) => a.sortOrder - b.sortOrder);
+  const byOrder = (a: PublicCategory, b: PublicCategory) => a.sortOrder - b.sortOrder;
+
+  /**
+   * With hints on, EVERY category gets a tile — including the ones with no
+   * artwork, which render an empty slot.
+   *
+   * That is the whole point of the setup mode: a category with no picture
+   * normally drops quietly into the plain row, which is exactly where an
+   * operator looking for "where do I put the picture?" will never find it. On a
+   * live shop it goes back to art-only, because a wall of empty frames is not a
+   * shop window.
+   */
+  const featured = (MEDIA_HINTS ? categories : categories.filter((c) => c.featured)).sort(byOrder);
+  const plain = (MEDIA_HINTS ? [] : categories.filter((c) => !c.featured)).sort(byOrder);
 
   if (categories.length === 0) return null;
 
@@ -54,9 +68,15 @@ export function CategoryFeature({ categories }: { categories: PublicCategory[] }
                   playsInline
                   aria-hidden
                 />
-              ) : (
+              ) : c.image ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img className="cat-tile-media" src={c.image!} alt="" loading="lazy" />
+                <img className="cat-tile-media" src={c.image} alt="" loading="lazy" />
+              ) : (
+                <MediaSlot
+                  className="cat-tile-media"
+                  label={`${c.name} picture`}
+                  where="Catalog → Categories → the category"
+                />
               )}
               <span className="cat-tile-scrim" aria-hidden />
               <span className="cat-tile-body">

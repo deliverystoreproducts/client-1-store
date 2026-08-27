@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { MediaSlot } from "@/components/MediaSlot";
 import { AddToCartButton } from "@/components/AddToCartButton";
 import { formatUsd } from "@/lib/money";
 import type { PublicProduct } from "@/lib/public-types";
@@ -48,7 +49,7 @@ export function ProductCard({
           // eslint-disable-next-line @next/next/no-img-element
           <img src={product.image} alt={product.name} loading="lazy" decoding="async" />
         ) : (
-          <span className="tile-empty">No photo</span>
+          <MediaSlot label="Product photo" where="Catalog → the product" />
         )}
       </Link>
 

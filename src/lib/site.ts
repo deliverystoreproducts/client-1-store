@@ -102,3 +102,17 @@ export const MISSING = (label: string) => `${label} NOT SET — Settings → Bus
 
 /** localStorage key for the browser-side cart. Namespaced to this store. */
 export const CART_STORAGE_KEY = "ybs.cart.v1";
+
+
+/**
+ * Show "a picture goes here" scaffolding in every empty media slot.
+ *
+ * OFF by default, and it must stay off on a live shop: labelled placeholders
+ * read as broken to a customer, and broken reads as untrustworthy on a site
+ * that is about to ask for an address and a date of birth.
+ *
+ * Turn it on (`NEXT_PUBLIC_MEDIA_HINTS=on`) while setting a store up, so
+ * whoever is loading the artwork can SEE which slots are still empty and which
+ * dashboard screen fills each one. Turn it off before the first customer.
+ */
+export const MEDIA_HINTS = (process.env.NEXT_PUBLIC_MEDIA_HINTS || "").trim().toLowerCase() === "on";

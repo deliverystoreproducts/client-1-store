@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { MediaSlot } from "@/components/MediaSlot";
 import { notFound } from "next/navigation";
 import { ProductCard } from "@/components/ProductCard";
 import { getDealDetail } from "@/lib/store";
@@ -68,7 +69,13 @@ export default async function DealPage({ params }: Params) {
         ) : deal.image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img className="deal-hero" src={deal.image} alt="" />
-        ) : null}
+        ) : (
+          <MediaSlot
+            className="deal-hero"
+            label="Deal picture"
+            where="Deals → the deal → Picture"
+          />
+        )}
 
         <div className="deal-head-body">
           <span className="eyebrow">Offer</span>

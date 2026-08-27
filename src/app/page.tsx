@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ProductCard } from "@/components/ProductCard";
 import { BrandRail } from "@/components/BrandRail";
+import { MediaSlot } from "@/components/MediaSlot";
 import { CategoryFeature } from "@/components/CategoryFeature";
 import { CategoryRow } from "@/components/CategoryRow";
 import { DealCard } from "@/components/DealCard";
@@ -14,7 +15,6 @@ import {
   getDeals,
   getStoreProfile,
 } from "@/lib/store";
-import { toPublicImageUrl } from "@/lib/kamui/images";
 import { DELIVERY_WINDOW_SHORT, deliveryWindowNotice, isWithinDeliveryWindow } from "@/lib/hours";
 
 /**
@@ -27,15 +27,6 @@ export const dynamic = "force-dynamic";
 
 const PAGE_SIZE = 24;
 
-// Demo hero. The dashboard's hero image (Settings → Branding) wins the moment
-// the operator sets one; this is only the out-of-box look. Served through OUR
-// image proxy like every other picture — the browser never touches the CDN.
-// ⚠ EYEBALL THIS. Verified to EXIST (HTTP 200), not to be art-directed — the
-// previous ID turned out to show a gardener with a lawnmower. Spare verified
-// IDs if this one is wrong too: photo-1603386329225-868f9b1ee6c9,
-// photo-1567016526105-22da7c13161a. Real brand photography replaces all of
-// this before launch.
-const DEFAULT_HERO_IMAGE = "https://images.unsplash.com/photo-1503262028195-93c528f03218?w=1920&q=80";
 
 // The default is HONEST: it says Newest and it IS newest. It used to say
 // "Featured" while upstream defaulted to name-ASC, which made the shop window
@@ -121,7 +112,12 @@ export default async function HomePage({
   const activeCategory = categories.find((c) => c.id === categoryId);
   const firstOnPage = (page - 1) * PAGE_SIZE;
 
-  const heroSrc = profile.heroImage ?? toPublicImageUrl(DEFAULT_HERO_IMAGE);
+  // No stand-in photograph. This used to fall back to a stock Unsplash image,
+  // which is the worst of both worlds: a real photograph of someone else's shop,
+  // rendered as though it had been chosen, so an operator had no way to tell
+  // their hero was unset and a customer saw a picture of a place that is not
+  // this one. An empty slot is honest; a borrowed photo is not.
+  const heroSrc = profile.heroImage;
   // Desktop cut if the operator supplied one, else the single video. One <video>
   // either way — swapping sources by breakpoint needs JS and would download
   // both on the crossover.
@@ -161,7 +157,14 @@ export default async function HomePage({
                 style={{ backgroundImage: `url(${heroSrc})` }}
               />
             </>
-          ) : null}
+          ) : (
+            <MediaSlot
+              kind="video"
+              className="hero-media"
+              label="Hero banner"
+              where="Settings → Branding → Hero banner"
+            />
+          )}
 
           <div className="hero-body">
             <div>
