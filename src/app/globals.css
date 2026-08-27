@@ -363,7 +363,7 @@ body::after {
 
 .display {
   font-family: var(--font-display);
-  font-weight: 800;
+  font-weight: 600;
   line-height: 1.02;
   letter-spacing: -0.03em;
   text-wrap: balance;
@@ -704,7 +704,7 @@ body::after {
 
 .footer-mark {
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 600;
   font-size: 1.3rem;
   line-height: 1;
   letter-spacing: -0.03em;
@@ -3990,26 +3990,28 @@ body::after {
   font-variation-settings: normal;
 }
 
+/* ONE heading voice across the site (owner's call, 2026-08-27): the light
+   "Featured brands" style — 600, ~1.3rem — everywhere. No 900-weight billboards. */
 .cat-row-name {
-  font-weight: 900;
-  letter-spacing: -0.03em;
-  font-size: clamp(1.5rem, 4.4vw, 2.25rem);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  font-size: clamp(1.15rem, 2.2vw, 1.4rem);
   color: var(--pine);
 }
 
 /* The section eyebrow becomes a real heading rather than a small-caps label —
    in this treatment the category name is the wayfinding, so it carries weight. */
 .section-head .eyebrow {
-  font-weight: 900;
-  font-size: clamp(1.25rem, 3.4vw, 1.75rem);
-  letter-spacing: -0.025em;
+  font-weight: 600;
+  font-size: clamp(1.15rem, 2.2vw, 1.4rem);
+  letter-spacing: -0.015em;
   text-transform: none;
   color: var(--pine);
 }
 
 .cat-row-all,
 .section-head .btn-link {
-  font-weight: 700;
+  font-weight: 500;
   text-transform: none;
   letter-spacing: 0;
   font-size: var(--t--1);
@@ -5437,7 +5439,7 @@ body::after {
 
 .auth-title {
   font-family: var(--font-display);
-  font-weight: 800;
+  font-weight: 600;
   font-size: 1.5rem;
   letter-spacing: -0.02em;
   margin: 0;
@@ -5507,7 +5509,7 @@ body::after {
 
 .acct-title {
   font-family: var(--font-display);
-  font-weight: 800;
+  font-weight: 600;
   font-size: clamp(1.7rem, 4vw, 2.3rem);
   letter-spacing: -0.03em;
   margin: 0 0 1.2rem;
@@ -5534,7 +5536,7 @@ body::after {
 
 .acct-card-head h2 {
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 600;
   font-size: 1.15rem;
   letter-spacing: -0.01em;
   margin: 0;
