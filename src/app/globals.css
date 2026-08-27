@@ -6210,3 +6210,23 @@ body::after {
     display: none;
   }
 }
+
+/* phone: the suggestion panel is a fixed sheet under the bar, sized to sit
+   above the keyboard, and scrolls inside itself */
+@media (max-width: 860px) {
+  .site-header .hdr-pop {
+    position: fixed;
+    /* ticker (26px) + bar (52px) + a gap; the header is sticky at the top */
+    top: calc(84px + env(safe-area-inset-top, 0px));
+    left: 0.5rem;
+    right: 0.5rem;
+    max-height: 42dvh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 12px;
+  }
+
+  .hdr-pop .hdr-opt {
+    min-height: 44px;
+  }
+}
