@@ -84,17 +84,12 @@ export function CartView() {
 
   return (
     <>
-      <div className="section-head" data-reveal style={{ "--i": 0 } as React.CSSProperties}>
-        <span className="eyebrow">Your cart</span>
-        <hr />
+      <div className="wm-head">
+        <h1 className="wm-title">Cart</h1>
         <span className="faint num">
           {count} item{count === 1 ? "" : "s"}
         </span>
       </div>
-
-      <h1 className="display" style={{ fontSize: "var(--t-3)", marginBottom: "1.6rem" }} data-reveal>
-        Ready when you are.
-      </h1>
 
       {error ? (
         <div className="notice notice-error mb-2" role="alert">
@@ -218,11 +213,32 @@ export function CartView() {
           )}
 
           <p className="faint mt-2 mb-0">
-            Final total is confirmed at checkout — store-wide deals and delivery minimums are
-            applied there. Pay cash when your order arrives.
+            Final total is confirmed at checkout. Pay cash when your order arrives.
           </p>
         </aside>
       </div>
+
+      {/* Phone: the one thing this page is for, pinned above the thumb. */}
+      {cart && cart.lines.length > 0 ? (
+        <>
+        <div className="cta-spacer" aria-hidden />
+        <div className="cta-bar">
+          <span className="cta-total">
+            <span className="faint">Est. total</span>
+            <strong className="num">{formatUsd(cart.estimatedTotal)}</strong>
+          </span>
+          {overLimit ? (
+            <span className="btn" aria-disabled="true" data-disabled="true">
+              Checkout
+            </span>
+          ) : (
+            <Link className="btn" href="/checkout">
+              Checkout →
+            </Link>
+          )}
+        </div>
+        </>
+      ) : null}
 
       {/* Prop 65 and vape disposal, once per distinct product class in the
           basket. The product display page is what satisfies 27 CCR

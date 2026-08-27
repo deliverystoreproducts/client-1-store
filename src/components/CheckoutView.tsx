@@ -43,8 +43,6 @@ export function CheckoutView({
   autoPromoCode = "",
   autoPromoLabel = "",
   requireIdPhoto,
-  deliveryNotice,
-  withinDeliveryWindow,
   brochureUrl,
   minAge,
 }: {
@@ -59,9 +57,6 @@ export function CheckoutView({
   autoPromoCode?: string;
   autoPromoLabel?: string;
   requireIdPhoto: boolean;
-  /** One plain sentence about 4 CCR § 15403 delivery hours, computed server-side. */
-  deliveryNotice: string;
-  withinDeliveryWindow: boolean;
   /**
    * The DCC's SB 540 safer-use brochure, served from THIS origin. Empty string
    * when the operator has not supplied one — see the block that renders it.
@@ -540,17 +535,9 @@ export function CheckoutView({
                 </p>
               ) : null}
 
-              {/* One line when it matters (outside delivery hours), otherwise the
+              {/* The
                   facts fold away behind ⓘ — the customer asked for an address
-                  form, not a leaflet. The rules themselves are unchanged: the
-                  driver checks ID at the door (4 CCR §§ 15404/15415), cash on
-                  delivery, 06:00–22:00 (§ 15403). */}
-              {withinDeliveryWindow ? null : (
-                <div className="notice notice-error mb-2" role="status">
-                  <strong>Outside delivery hours. </strong>
-                  {deliveryNotice}
-                </div>
-              )}
+                  form, not a leaflet. */}
               <details className="info-fold mb-2">
                 <summary>
                   <span className="info-i" aria-hidden>i</span> Delivery info
@@ -559,7 +546,6 @@ export function CheckoutView({
                   <li>
                     <strong>Cash on delivery</strong> — nothing is charged now; pay the driver.
                   </li>
-                  <li>{deliveryNotice}</li>
                   <li>
                     <strong>ID at the door</strong> — the driver checks a valid government photo ID;
                     someone {minAge}+ must receive the order in person.

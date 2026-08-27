@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { DELIVERY_WINDOW_LABEL } from "@/lib/hours";
 import { getStoreProfile } from "@/lib/store";
 import {
   DAILY_LIMIT_CONCENTRATE_GRAMS,
@@ -130,12 +129,6 @@ export default async function TermsPage() {
           driver will not complete the delivery. That is not a discretionary call.
         </li>
       </ul>
-
-      <h2>Hours</h2>
-      <p>
-        California restricts the sale and delivery of cannabis goods to {DELIVERY_WINDOW_LABEL}{" "}
-        (4 CCR § 15403). An order placed outside that window goes out when it opens.
-      </p>
 
       <h2>Daily limits</h2>
       <p>

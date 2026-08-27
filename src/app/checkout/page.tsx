@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { CheckoutView } from "@/components/CheckoutView";
 import { getBannerPromo, getStoreProfile } from "@/lib/store";
-import { deliveryWindowNotice, isWithinDeliveryWindow } from "@/lib/hours";
 
 export const metadata: Metadata = { title: "Checkout" };
 export const dynamic = "force-dynamic";
@@ -21,8 +20,6 @@ export default async function CheckoutPage() {
   return (
     <CheckoutView
       requireIdPhoto={profile.requireIdVerification}
-      deliveryNotice={deliveryWindowNotice()}
-      withinDeliveryWindow={isWithinDeliveryWindow()}
       // B&P § 26070.3(b) — the DCC safer-use brochure, displayed online at the
       // time of purchase. Dashboard-set (Settings → Business), env fallback.
       // Empty when the operator has set neither: the view then prints a loud

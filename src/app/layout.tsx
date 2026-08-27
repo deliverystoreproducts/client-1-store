@@ -15,7 +15,6 @@ import { OPEN_ROUTE_HEADER } from "@/lib/open-routes";
 import { hasPassedAgeGate } from "@/lib/session";
 import { getStoreProfile } from "@/lib/store";
 import { LICENSE_PLACEHOLDER, MISSING, SITE_TAGLINE } from "@/lib/site";
-import { DELIVERY_WINDOW_LABEL } from "@/lib/hours";
 
 export const metadata: Metadata = {
   title: {
@@ -205,7 +204,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                     <div className="footer-col" aria-label="Contact">
                       <span className="footer-head">Contact</span>
                       {profile.privacyContactAddress ? <p>{profile.privacyContactAddress}</p> : null}
-                      <p>Hours: {DELIVERY_WINDOW_LABEL}</p>
                       {profile.contactPhone ? (
                         <a href={`tel:${profile.contactPhone}`}>{profile.contactPhone}</a>
                       ) : null}

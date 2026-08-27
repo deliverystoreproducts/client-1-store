@@ -4,7 +4,6 @@ import {
   LICENSE_PLACEHOLDER,
   MISSING,
 } from "@/lib/site";
-import { deliveryWindowNotice } from "@/lib/hours";
 import { getStoreProfile } from "@/lib/store";
 
 /**
@@ -86,8 +85,6 @@ export default async function ConfirmationPage({
         government-issued photo ID — the driver has to check it in person and cannot complete the
         delivery without it.
       </p>
-
-      <p className="faint">{deliveryWindowNotice()}</p>
 
       <div className="row mt-3" style={{ justifyContent: "center" }}>
         {token ? (

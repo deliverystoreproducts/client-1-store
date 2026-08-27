@@ -15,7 +15,6 @@ import {
   getDeals,
   getStoreProfile,
 } from "@/lib/store";
-import { DELIVERY_WINDOW_SHORT, deliveryWindowNotice, isWithinDeliveryWindow } from "@/lib/hours";
 
 /**
  * Home / browse. Server-rendered, and the filters are a plain GET form: search,
@@ -94,11 +93,6 @@ export default async function HomePage({
     return s ? `/category/${id}?${s}` : `/category/${id}`;
   };
 
-  // 4 CCR § 15403 caps delivery at 06:00–22:00 Pacific. We do not block ordering
-  // on it (whether placement outside the window is lawful is unsettled) — we just
-  // never let a customer find out after the fact.
-  const openForDelivery = isWithinDeliveryWindow();
-  const hoursNotice = deliveryWindowNotice();
 
   const activeCategory = categories.find((c) => c.id === categoryId);
 
@@ -186,7 +180,6 @@ export default async function HomePage({
                   />
                   {profile.open ? "Taking orders" : "Closed"}
                 </span>
-                <span className="fact">{DELIVERY_WINDOW_SHORT}</span>
                 <span className="fact">Cash on delivery</span>
                 <span className="fact">{profile.minAge}+ with valid ID at the door</span>
                 {profile.contactPhone ? (
@@ -209,11 +202,6 @@ export default async function HomePage({
         <div className="notice notice-error mb-3">
           <strong>We&apos;re not taking orders right now.</strong> You can still browse — please
           check back soon.
-        </div>
-      ) : !openForDelivery ? (
-        <div className="notice mb-3">
-          <strong>Outside delivery hours.</strong> {hoursNotice} Order any time — it goes out when
-          the window opens.
         </div>
       ) : null}
 

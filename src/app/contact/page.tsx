@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { DELIVERY_WINDOW_LABEL } from "@/lib/hours";
 import { getStoreProfile } from "@/lib/store";
 import {
   LICENSE_PLACEHOLDER,
@@ -48,7 +47,7 @@ export default async function ContactPage() {
     <article className="legal">
       <h1 className="display">Contact us</h1>
 
-      <p>Real people, during delivery hours — {DELIVERY_WINDOW_LABEL}, seven days a week.</p>
+      <p>Real people, seven days a week.</p>
 
         <section>
           <h2>Get in touch</h2>

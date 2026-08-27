@@ -6071,3 +6071,45 @@ body::after {
 .info-fold-warn > summary {
   color: var(--pine);
 }
+
+/* ── the pinned call to action on phones (cart) ─────────────────────────────── */
+.cta-bar {
+  display: none;
+}
+
+@media (max-width: 860px) {
+  .cta-bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 55;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.7rem var(--gutter) calc(0.7rem + env(safe-area-inset-bottom, 0px));
+    background: var(--ground-raise);
+    border-top: 1px solid var(--rule);
+    box-shadow: 0 -10px 30px -18px rgb(0 0 0 / 0.35);
+  }
+
+  .cta-bar .btn {
+    flex: 1;
+    max-width: 60%;
+  }
+
+  .cta-total {
+    display: grid;
+    line-height: 1.15;
+  }
+
+  .cta-total strong {
+    font-size: 1.15rem;
+  }
+
+  /* room for the bar so the summary's last line is never hidden under it */
+  .cta-spacer {
+    height: 6rem;
+  }
+}

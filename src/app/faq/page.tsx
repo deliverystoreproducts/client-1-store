@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { DELIVERY_WINDOW_LABEL } from "@/lib/hours";
 import {
   DAILY_LIMIT_CONCENTRATE_GRAMS,
   DAILY_LIMIT_IMMATURE_PLANTS,
@@ -35,17 +34,6 @@ interface QA {
 }
 
 const QUESTIONS: QA[] = [
-  {
-    q: "When can I get a delivery?",
-    a: (
-      <>
-        Between <strong>{DELIVERY_WINDOW_LABEL}</strong>, seven days a week. Those hours are set by
-        state law, not by us — California licenses retailers to sell and deliver only inside that
-        window. You can browse and build an order any time; anything placed after hours goes out
-        the following morning.
-      </>
-    ),
-  },
   {
     q: "How long does delivery take?",
     a: (
