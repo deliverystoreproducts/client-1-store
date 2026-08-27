@@ -2,8 +2,16 @@ import Link from "next/link";
 import { ProductCard } from "@/components/ProductCard";
 import { BrandRail } from "@/components/BrandRail";
 import { CategoryFeature } from "@/components/CategoryFeature";
+import { CategoryRow } from "@/components/CategoryRow";
 import { DealCard } from "@/components/DealCard";
-import { getBrands, getCatalogPage, getCategories, getDeals, getStoreProfile } from "@/lib/store";
+import {
+  getBrands,
+  getCatalogPage,
+  getCategories,
+  getCategoryBands,
+  getDeals,
+  getStoreProfile,
+} from "@/lib/store";
 import { toPublicImageUrl } from "@/lib/kamui/images";
 import { DELIVERY_WINDOW_SHORT, deliveryWindowNotice, isWithinDeliveryWindow } from "@/lib/hours";
 
@@ -67,6 +75,10 @@ export default async function HomePage({
     browsing ? Promise.resolve([]) : getDeals(),
     getCatalogPage({ search, categoryId, sort: sort ?? "newest", page, limit: PAGE_SIZE }),
   ]);
+
+  // Needs `categories`, so it cannot join the Promise.all above. Skipped
+  // entirely while browsing — the bands are shop-window furniture.
+  const bands = browsing ? [] : await getCategoryBands(categories, { bands: 6, perBand: 4 });
 
   const pageHref = (n: number) => {
     const qs = new URLSearchParams();
@@ -204,6 +216,15 @@ export default async function HomePage({
           </div>
         </section>
       ) : null}
+
+      {/* A band per category, in the operator's order — the wayfinding a
+          customer who knows the FORM they want (flower, carts, edibles) needs
+          before they will scroll. "Everything else" is what is left after
+          these, so the two never show the same product twice in the same
+          scroll. */}
+      {bands.map((b, i) => (
+        <CategoryRow key={b.category.id} category={b.category} products={b.products} index={i} />
+      ))}
 
       <section id="catalogue">
         <div className="section-head" data-reveal style={{ "--i": 5 } as React.CSSProperties}>
