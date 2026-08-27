@@ -481,32 +481,6 @@ export function CheckoutView({
             <>
               <h2>Delivery</h2>
 
-              {/* Where this is going — never who is ordering. */}
-              <div className="field">
-                <span className="label" id="deliver-to-label">
-                  Deliver to
-                </span>
-                <div className="plain-address" aria-labelledby="deliver-to-label">
-                  {lastAddress ? (
-                    <>
-                      <span className="faint">
-                        {lastAddressSource === "order"
-                          ? "Your last order went here."
-                          : "Your saved address."}{" "}
-                        Change it below if it has moved.
-                      </span>
-                      <p>{lastAddress}</p>
-                    </>
-                  ) : lookingUp ? (
-                    <span className="faint">Checking for a previous delivery address…</span>
-                  ) : (
-                    <p className="muted" style={{ fontSize: "1rem" }}>
-                      Enter the address you&apos;d like this delivered to.
-                    </p>
-                  )}
-                </div>
-              </div>
-
               <div className="field">
                 <label className="label" htmlFor="address">
                   Delivery address
@@ -566,34 +540,32 @@ export function CheckoutView({
                 </p>
               ) : null}
 
-              <div className="notice mb-2">
-                <strong>Cash on delivery.</strong> Nothing is charged now — pay the driver when your
-                order arrives. Please have a valid ID ready.
-              </div>
-
-              {/* Delivery hours are a fact the customer needs before they commit, not a
-              block on the button: 4 CCR § 15403 caps DELIVERY at 06:00–22:00
-              Pacific, and whether an order may be PLACED outside it is unsettled.
-              So we state it, and state it louder when it currently bites. */}
-              <div
-                className={`notice mb-2${withinDeliveryWindow ? "" : " notice-error"}`}
-                role={withinDeliveryWindow ? undefined : "status"}
-              >
-                {withinDeliveryWindow ? null : <strong>Outside delivery hours. </strong>}
-                {deliveryNotice}
-              </div>
-
-              {/* 4 CCR §§ 15404 / 15415(g): the delivery employee verifies identity
-              and age IN PERSON before handing anything over, and § 15415(c)
-              forbids an unstaffed delivery. The website is not the compliance
-              boundary for age — the driver is — so checkout must never leave a
-              customer expecting otherwise. */}
-              <div className="notice mb-2">
-                <strong>ID is checked at the door.</strong> The driver has to see a valid,
-                unexpired, government-issued photo ID and cannot complete the delivery without it.
-                Someone {minAge} or older must be there to receive the order in person — we cannot
-                leave cannabis at a door, with a neighbour, or in a locker.
-              </div>
+              {/* One line when it matters (outside delivery hours), otherwise the
+                  facts fold away behind ⓘ — the customer asked for an address
+                  form, not a leaflet. The rules themselves are unchanged: the
+                  driver checks ID at the door (4 CCR §§ 15404/15415), cash on
+                  delivery, 06:00–22:00 (§ 15403). */}
+              {withinDeliveryWindow ? null : (
+                <div className="notice notice-error mb-2" role="status">
+                  <strong>Outside delivery hours. </strong>
+                  {deliveryNotice}
+                </div>
+              )}
+              <details className="info-fold mb-2">
+                <summary>
+                  <span className="info-i" aria-hidden>i</span> Delivery info
+                </summary>
+                <ul>
+                  <li>
+                    <strong>Cash on delivery</strong> — nothing is charged now; pay the driver.
+                  </li>
+                  <li>{deliveryNotice}</li>
+                  <li>
+                    <strong>ID at the door</strong> — the driver checks a valid government photo ID;
+                    someone {minAge}+ must receive the order in person.
+                  </li>
+                </ul>
+              </details>
 
               <button
                 type="button"
@@ -601,7 +573,7 @@ export function CheckoutView({
                 disabled={!addressReady}
                 onClick={afterDelivery}
               >
-                {addressReady ? "Next — check your ID" : "Enter a delivery address"}
+                {!addressReady ? "Enter a delivery address" : needsId ? "Next — your ID" : "Next — review order"}
               </button>
             </>
           ) : null}
@@ -671,72 +643,52 @@ export function CheckoutView({
             <>
               <h2>Review &amp; place order</h2>
 
-              {cart ? <DailyLimitReadout assessment={cart.dailyLimit} className="mb-2" /> : null}
-
-              {/* 27 CCR § 25602(b)(1)(C) and B&P § 26152.1, on the last screen
-              before the order is placed. Plain styling, deliberately — this
-              page is a form, and the warnings read as statements rather than as
-              design. */}
-              <BasketComplianceNotices
-                routes={routes}
-                vapeHardware={vapeHardware}
-                className="basket-warnings"
-              />
-
-              {/* ── SB 540 safer-use brochure — B&P § 26070.3(b) ────────────────
-              "On and after March 1, 2025, a retailer … shall prominently
-              display the brochure, including printed copies, at the point of
-              sale or final delivery in person AND ONLINE AT TIME OF ONLINE
-              PURCHASES, and offer each new consumer a copy … at the time of
-              first purchase or delivery."
-
-              This is the most commonly missed website obligation in California
-              cannabis retail, because it lives in the statute and is mirrored
-              nowhere in the DCC regulations — a regulations-only review never
-              sees it.
-
-              Placement is the whole point: immediately above the place-order
-              control, not behind an accordion and not in the footer.
-              "Prominently" and "at time of … purchase" both point here.
-
-              ⚠️ Served from THIS origin, never hot-linked from the DCC's CDN —
-              the site makes no third-party browser request and the brochure is
-              not the exception. And ⚠️ the STATUTE ALSO REQUIRES PRINTED COPIES
-              at final delivery; that is a driver-runbook task no website can
-              discharge. */}
-              {brochureUrl ? (
-                <div className="notice mb-2">
-                  <strong>Before you order: California&apos;s safer-use guide.</strong> The
-                  Department of Cannabis Control publishes a short guide to the effects of cannabis,
-                  high-potency products, mental health, and use while pregnant or breastfeeding.
-                  Please read it — you are also given a printed copy at delivery.
-                  <p className="mt-1 mb-0">
-                    <a
-                      className="link"
-                      href={brochureUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Open the DCC safer-use guide (PDF)
-                    </a>
-                  </p>
+              {/* The statutory notices — Prop 65 (27 CCR § 25602), the daily
+                  limit (4 CCR § 15409) and the DCC safer-use guide (B&P
+                  § 26070.3(b)) — in ONE fold, its summary always visible with
+                  the WARNING word and the guide link, so the notices are
+                  offered at the point of purchase without being a page of
+                  reading between the customer and the button. Opens by itself
+                  when the daily limit is actually exceeded. */}
+              <details
+                className="info-fold info-fold-warn mb-2"
+                open={overLimit || undefined}
+              >
+                <summary>
+                  <span aria-hidden>⚠</span> WARNING — health &amp; legal notices
+                  {brochureUrl ? (
+                    <>
+                      {" · "}
+                      <a className="link" href={brochureUrl} target="_blank" rel="noopener noreferrer">
+                        safer-use guide (PDF)
+                      </a>
+                    </>
+                  ) : null}
+                </summary>
+                <div className="mt-2">
+                  {cart ? <DailyLimitReadout assessment={cart.dailyLimit} className="mb-2" /> : null}
+                  <BasketComplianceNotices
+                    routes={routes}
+                    vapeHardware={vapeHardware}
+                    className="basket-warnings"
+                  />
+                  {brochureUrl ? (
+                    <p className="faint mt-2 mb-0">
+                      California&apos;s Department of Cannabis Control publishes a short safer-use
+                      guide — you are also given a printed copy at delivery.
+                    </p>
+                  ) : (
+                    <div className="notice notice-error mt-2" role="alert">
+                      <strong>Safer-use brochure link not set</strong> — Settings → Storefront →
+                      Legal &amp; compliance. Required online at the time of purchase (B&amp;P
+                      § 26070.3(b)).
+                    </div>
+                  )}
                 </div>
-              ) : (
-                <div className="notice notice-error mb-2" role="alert">
-                  <strong>SET NEXT_PUBLIC_SAFER_USE_BROCHURE_URL.</strong> B&amp;P § 26070.3(b) has
-                  required this store to display the DCC safer-use brochure online at the time of
-                  purchase since 1 March 2025. Host the current PDF on this origin and set the
-                  variable. This store is not launch-ready until you do.
-                </div>
-              )}
-
-              <div className="notice mb-2">
-                <strong>ID ready.</strong> Both sides captured — we&apos;ll check them as your order
-                is placed.
-              </div>
+              </details>
 
               <button className="btn btn-block" disabled={!canSubmit}>
-                {submitting ? "Checking your ID…" : "Place order"}
+                {submitting ? "Placing your order…" : "Place order"}
               </button>
               <button
                 type="button"
@@ -769,35 +721,21 @@ export function CheckoutView({
             ))}
           </div>
 
-          {/* Say it plainly. A discount that appears in the total with no
-              explanation reads as a pricing error, and a customer who cannot
-              see WHY the number moved does not trust the number. */}
-          {cart?.autoDiscount ? (
-            <div className="notice notice-ok mb-2" role="status">
-              <strong>{cart.autoDiscount.percent}% off every online order</strong> — taken off
-              automatically. Nothing to enter.
-            </div>
-          ) : null}
-          {autoPromoCode && appliedCoupon === autoPromoCode && cart && cart.discount > 0 ? (
-            <div className="notice notice-ok mb-2" role="status">
-              <strong>{autoPromoLabel || "Store discount"}</strong> — applied automatically with
-              code <code>{autoPromoCode}</code>. Nothing to enter.
-            </div>
-          ) : null}
-
-          <div className="field">
-            <label className="label" htmlFor="coupon">
-              {autoPromoCode || cart?.autoDiscount
-                ? "Have a different code?"
-                : "Promo code"}
-            </label>
-            <div className="row" style={{ gap: "0.5rem", flexWrap: "nowrap" }}>
+          {/* The automatic discount speaks for itself as a line in the totals.
+              The code box is there for whoever has one, folded away for
+              everyone else. */}
+          <details className="info-fold mb-2" open={appliedCoupon ? true : undefined}>
+            <summary>Have a promo code?</summary>
+            <div className="row mt-2" style={{ gap: "0.5rem", flexWrap: "nowrap" }}>
+              <label className="sr-only" htmlFor="coupon">
+                Promo code
+              </label>
               <input
                 id="coupon"
                 className="input"
                 value={coupon}
                 onChange={(e) => setCoupon(e.target.value)}
-                placeholder="Optional"
+                placeholder="Code"
               />
               <button
                 type="button"
@@ -810,11 +748,10 @@ export function CheckoutView({
             {cart?.couponMessage ? <p className="faint mt-1 mb-0">{cart.couponMessage}</p> : null}
             {cart?.autoDiscount ? (
               <p className="faint mt-1 mb-0">
-                A promo code replaces the automatic {cart.autoDiscount.percent}% — they don&apos;t
-                stack.
+                A code replaces the automatic {cart.autoDiscount.percent}%.
               </p>
             ) : null}
-          </div>
+          </details>
 
           <div className="totals">
             <div>

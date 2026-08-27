@@ -6005,3 +6005,69 @@ body::after {
   min-height: 3.5rem;
   margin-top: 1.2rem;
 }
+
+/* ── ⓘ folds on checkout — facts available, not in the way ─────────────────── */
+.info-fold {
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 0.55rem 0.85rem;
+  font-size: var(--t--1);
+  color: var(--pine-2);
+}
+
+.info-fold > summary {
+  cursor: pointer;
+  list-style: none;
+  font-weight: 600;
+  color: var(--pine);
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.info-fold > summary::-webkit-details-marker {
+  display: none;
+}
+
+.info-fold > summary::after {
+  content: "";
+  margin-left: auto;
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform 0.18s var(--ease);
+}
+
+.info-fold[open] > summary::after {
+  transform: rotate(-135deg);
+}
+
+.info-fold ul {
+  margin: 0.6rem 0 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.info-i {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-style: italic;
+}
+
+.info-fold-warn {
+  border-color: #f2c94c;
+}
+
+.info-fold-warn > summary {
+  color: var(--pine);
+}
