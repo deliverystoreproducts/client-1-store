@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FiltersFold } from "@/components/FiltersFold";
 import {
   GENETICS,
   SORTS,
@@ -61,6 +62,14 @@ export function FilterRail({
   showCannabinoids: boolean;
 }) {
   const applied = activeFilterCount(filters, pinned);
+  // What the fold hides: everything except search and genetics.
+  const folded =
+    (filters.sortRaw ? 1 : 0) +
+    (filters.categoryId && pinned !== "category" ? 1 : 0) +
+    (filters.brandId && pinned !== "brand" ? 1 : 0) +
+    (filters.minPrice != null || filters.maxPrice != null ? 1 : 0) +
+    (filters.minThc != null || filters.maxThc != null ? 1 : 0) +
+    (filters.onSale ? 1 : 0);
   const priceOpen = filters.minPrice != null || filters.maxPrice != null;
   const thcOpen = filters.minThc != null || filters.maxThc != null;
 
@@ -88,6 +97,32 @@ export function FilterRail({
         />
       </div>
 
+      <div className="field">
+        <span className="label">Genetics</span>
+        {/* Radios, not chips-as-links: they belong to this form's submission and
+            must round-trip with everything else the customer has set. */}
+        <div className="radio-row">
+          <label className="radio">
+            <input type="radio" name="genetics" value="" defaultChecked={!filters.genetics} />
+            <span>Any</span>
+          </label>
+          {GENETICS.map((g) => (
+            <label className="radio" key={g}>
+              <input
+                type="radio"
+                name="genetics"
+                value={g}
+                defaultChecked={filters.genetics === g}
+              />
+              <span>{g}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* Search and genetics are the two filters a phone shopper actually reaches
+          for; everything else waits behind the Filters button (open on desktop). */}
+      <FiltersFold applied={folded} startOpen={folded > 0}>
       <div className="field">
         <label className="label" htmlFor="f-sort">
           Sort
@@ -142,29 +177,6 @@ export function FilterRail({
           </select>
         </div>
       ) : null}
-
-      <div className="field">
-        <span className="label">Genetics</span>
-        {/* Radios, not chips-as-links: they belong to this form's submission and
-            must round-trip with everything else the customer has set. */}
-        <div className="radio-row">
-          <label className="radio">
-            <input type="radio" name="genetics" value="" defaultChecked={!filters.genetics} />
-            <span>Any</span>
-          </label>
-          {GENETICS.map((g) => (
-            <label className="radio" key={g}>
-              <input
-                type="radio"
-                name="genetics"
-                value={g}
-                defaultChecked={filters.genetics === g}
-              />
-              <span>{g}</span>
-            </label>
-          ))}
-        </div>
-      </div>
 
       <details className="filter-group" open={priceOpen}>
         <summary>Price</summary>
@@ -254,6 +266,8 @@ export function FilterRail({
         <input type="checkbox" name="onSale" value="true" defaultChecked={filters.onSale} />
         <span>On sale only</span>
       </label>
+
+      </FiltersFold>
 
       <button className="btn btn-clay btn-block" type="submit">
         Show {total > 0 ? <span className="num">{total}</span> : null} result

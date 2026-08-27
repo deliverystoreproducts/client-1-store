@@ -6151,3 +6151,62 @@ body::after {
   letter-spacing: 0.02em;
   border-radius: 999px;
 }
+
+/* ── the Filters fold in the shelf rail ─────────────────────────────────────── */
+.filters-fold > summary {
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  cursor: pointer;
+  width: auto;
+}
+
+.filters-fold > summary::-webkit-details-marker {
+  display: none;
+}
+
+.filters-n {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.2rem;
+  height: 1.2rem;
+  padding-inline: 0.3rem;
+  border-radius: 999px;
+  background: var(--fern);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.filters-fold-body {
+  margin-top: 1rem;
+  display: grid;
+  gap: 1rem;
+}
+
+/* desktop: the rail has room — no button, the sections just sit there */
+@media (min-width: 861px) {
+  .filters-fold > summary {
+    display: none;
+  }
+}
+
+/* phone: the rail is a compact toolbar above the grid — search, genetics,
+   a Filters button — not a page of controls */
+@media (max-width: 860px) {
+  .filters .filters-head {
+    display: none;
+  }
+  .filters .radio-row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .filters .radio-row::-webkit-scrollbar {
+    display: none;
+  }
+  .filters .field > .label {
+    display: none;
+  }
+}

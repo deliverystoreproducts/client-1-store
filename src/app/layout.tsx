@@ -201,6 +201,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                       <Link href="/contact">Contact</Link>
                     </nav>
 
+                    {profile.privacyContactAddress || profile.contactPhone || profile.contactEmail ? (
                     <div className="footer-col" aria-label="Contact">
                       <span className="footer-head">Contact</span>
                       {profile.privacyContactAddress ? <p>{profile.privacyContactAddress}</p> : null}
@@ -211,6 +212,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                         <a href={`mailto:${profile.contactEmail}`}>{profile.contactEmail}</a>
                       ) : null}
                     </div>
+                    ) : null}
                   </div>
 
                   <div className="footer-legal">
