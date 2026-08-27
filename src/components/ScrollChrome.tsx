@@ -37,9 +37,41 @@ export function ScrollChrome() {
     };
     apply();
     window.addEventListener("scroll", onScroll, { passive: true });
+
+    // ?debug=chrome — a small badge with the numbers that decide whether the
+    // bar can paint under the phone's status bar. Nothing else on the page
+    // can show them, and they cannot be read from a screenshot.
+    let badge: HTMLDivElement | null = null;
+    let tick = 0;
+    if (window.location.search.includes("debug=chrome")) {
+      badge = document.createElement("div");
+      badge.style.cssText =
+        "position:fixed;left:8px;bottom:96px;z-index:9999;background:#000;color:#0f0;font:12px/1.4 monospace;padding:6px 8px;border-radius:6px;white-space:pre";
+      document.body.appendChild(badge);
+      const probe = document.createElement("div");
+      probe.style.cssText = "position:fixed;top:0;left:0;width:0;height:0;padding-top:env(safe-area-inset-top, 0px);visibility:hidden";
+      document.body.appendChild(probe);
+      const meta = document.querySelector('meta[name="viewport"]')?.getAttribute("content") ?? "(none)";
+      const stack = document.querySelector(".hdr-stack");
+      const render = () => {
+        const inset = getComputedStyle(probe).paddingTop;
+        const r = stack?.getBoundingClientRect();
+        badge!.textContent =
+          `safe-area-inset-top: ${inset}\n` +
+          `stack top: ${r ? Math.round(r.top) : "?"}px  h: ${r ? Math.round(r.height) : "?"}px\n` +
+          `scrollY: ${Math.round(window.scrollY)}  overlay: ${root.hasAttribute("data-hero-overlay")}  scrolled: ${root.hasAttribute("data-scrolled")}\n` +
+          `inner: ${window.innerWidth}x${window.innerHeight}  screen: ${screen.width}x${screen.height}\n` +
+          `viewport: ${meta}`;
+        tick = window.requestAnimationFrame(render);
+      };
+      render();
+    }
+
     return () => {
       window.removeEventListener("scroll", onScroll);
       if (raf) window.cancelAnimationFrame(raf);
+      if (tick) window.cancelAnimationFrame(tick);
+      badge?.remove();
     };
   }, [pathname]);
 

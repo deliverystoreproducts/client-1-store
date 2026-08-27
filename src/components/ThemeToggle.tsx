@@ -8,7 +8,7 @@ const KEY = "ybs.theme";
  *  in-app flip leaves the browser chrome painted for the OS theme. Overwrite
  *  both metas with the chosen ground so the chrome follows the toggle. */
 function syncChromeColor(dark: boolean) {
-  const color = dark ? "#0c0c0e" : "#fafafa";
+  const color = dark ? "#18181b" : "#ffffff";
   document
     .querySelectorAll('meta[name="theme-color"]')
     .forEach((m) => m.setAttribute("content", color));

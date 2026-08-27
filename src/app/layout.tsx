@@ -58,7 +58,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   // Light is the default; the in-app toggle rewrites this when a visitor picks dark.
-  themeColor: "#fafafa",
+  themeColor: "#ffffff",
   width: "device-width",
   initialScale: 1,
   // Lets the sticky header paint up under the iPhone status bar. Without it,
