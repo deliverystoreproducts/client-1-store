@@ -701,6 +701,12 @@ export function CheckoutView({
           {/* Say it plainly. A discount that appears in the total with no
               explanation reads as a pricing error, and a customer who cannot
               see WHY the number moved does not trust the number. */}
+          {cart?.autoDiscount ? (
+            <div className="notice notice-ok mb-2" role="status">
+              <strong>{cart.autoDiscount.percent}% off every online order</strong> — taken off
+              automatically. Nothing to enter.
+            </div>
+          ) : null}
           {autoPromoCode && appliedCoupon === autoPromoCode && cart && cart.discount > 0 ? (
             <div className="notice notice-ok mb-2" role="status">
               <strong>{autoPromoLabel || "Store discount"}</strong> — applied automatically with
@@ -710,7 +716,9 @@ export function CheckoutView({
 
           <div className="field">
             <label className="label" htmlFor="coupon">
-              {autoPromoCode ? "Have a different code?" : "Promo code"}
+              {autoPromoCode || cart?.autoDiscount
+                ? "Have a different code?"
+                : "Promo code"}
             </label>
             <div className="row" style={{ gap: "0.5rem", flexWrap: "nowrap" }}>
               <input
@@ -729,6 +737,12 @@ export function CheckoutView({
               </button>
             </div>
             {cart?.couponMessage ? <p className="faint mt-1 mb-0">{cart.couponMessage}</p> : null}
+            {cart?.autoDiscount ? (
+              <p className="faint mt-1 mb-0">
+                A promo code replaces the automatic {cart.autoDiscount.percent}% — they don&apos;t
+                stack.
+              </p>
+            ) : null}
           </div>
 
           <div className="totals">
@@ -738,7 +752,9 @@ export function CheckoutView({
             </div>
             {cart && cart.discount > 0 ? (
               <div>
-                <span>Discount</span>
+                <span>
+                  {cart.autoDiscount ? `Automatic discount (${cart.autoDiscount.percent}%)` : "Discount"}
+                </span>
                 <span>−{formatUsd(cart.discount)}</span>
               </div>
             ) : null}

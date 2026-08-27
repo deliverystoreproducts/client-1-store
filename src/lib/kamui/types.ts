@@ -114,6 +114,11 @@ export interface TenantProfileV1 {
   highlights?: { icon: string; title: string; body: string }[];
   /** Cities from the shop's ACTIVE delivery zones — the ones checkout enforces. */
   deliveryCities?: string[];
+  /**
+   * Percent off every online order, applied by the PLATFORM at checkout (1–50,
+   * or null). We only preview it; the charged number is upstream's.
+   */
+  autoDiscountPercent?: number | null;
   slug: string;
   storeName: string;
   contactPhone: string | null;

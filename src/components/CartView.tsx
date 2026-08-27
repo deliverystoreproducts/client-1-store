@@ -172,7 +172,9 @@ export function CartView() {
             </div>
             {cart && cart.discount > 0 ? (
               <div>
-                <span>Discount</span>
+                <span>
+                  {cart.autoDiscount ? `Automatic discount (${cart.autoDiscount.percent}%)` : "Discount"}
+                </span>
                 <span>−{formatUsd(cart.discount)}</span>
               </div>
             ) : null}
