@@ -38,9 +38,8 @@ export default async function ProductsPage({
 
   return (
     <section>
-      <div className="section-head">
-        <span className="eyebrow">Shop all</span>
-        <hr />
+      <div className="wm-head">
+        <h1 className="wm-title">Shop all</h1>
         {!results.unavailable ? (
           <span className="faint num">
             {results.total} item{results.total === 1 ? "" : "s"}

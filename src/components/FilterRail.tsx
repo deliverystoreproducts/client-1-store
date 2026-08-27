@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { FiltersFold } from "@/components/FiltersFold";
+import { AutoSubmit } from "@/components/AutoSubmit";
 import {
   GENETICS,
   SORTS,
@@ -84,18 +85,10 @@ export function FilterRail({
         ) : null}
       </div>
 
-      <div className="search">
-        <label className="sr-only" htmlFor="f-q">
-          Search products
-        </label>
-        <input
-          id="f-q"
-          type="search"
-          name="q"
-          defaultValue={filters.search}
-          placeholder="Search the shelf…"
-        />
-      </div>
+      {/* Keeps a typed search on the shelf when a filter changes; the header
+          is where a customer searches. */}
+      {filters.search ? <input type="hidden" name="q" value={filters.search} /> : null}
+      <AutoSubmit />
 
       <div className="field">
         <span className="label">Genetics</span>
@@ -269,16 +262,14 @@ export function FilterRail({
 
       </FiltersFold>
 
-      <button className="btn btn-clay btn-block" type="submit">
-        Show {total > 0 ? <span className="num">{total}</span> : null} result
-        {total === 1 ? "" : "s"}
-      </button>
-
-      {/* Submitting resets to page 1 by omission — there is no page input here.
-          Keeping one would strand a customer on page 4 of a shelf that now has
-          one page. `browseQueryString` enforces the same rule for links. */}
+      {/* Filters apply as they change (AutoSubmit). Only a browser without
+          JavaScript needs a button. Submitting resets to page 1 by omission —
+          there is no page input here. */}
       <noscript>
-        <p className="small muted mt-1">Press “Show results” to apply your filters.</p>
+        <button className="btn btn-outline btn-block" type="submit">
+          Show {total > 0 ? <span className="num">{total}</span> : null} result
+          {total === 1 ? "" : "s"}
+        </button>
       </noscript>
     </form>
   );

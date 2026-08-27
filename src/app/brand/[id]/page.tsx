@@ -62,9 +62,8 @@ export default async function BrandPage({
         <span>{brand.name}</span>
       </nav>
 
-      <div className="section-head">
-        <span className="eyebrow">{brand.name}</span>
-        <hr />
+      <div className="wm-head">
+        <h1 className="wm-title">{brand.name}</h1>
         {!results.unavailable ? (
           <span className="faint num">
             {results.total} item{results.total === 1 ? "" : "s"}
