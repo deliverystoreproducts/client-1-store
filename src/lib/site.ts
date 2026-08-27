@@ -30,8 +30,6 @@ export const DEFAULT_MIN_AGE = Number(process.env.NEXT_PUBLIC_MIN_AGE || "21") |
  */
 export const LICENSE_NUMBER = (process.env.NEXT_PUBLIC_LICENSE_NUMBER || "").trim();
 
-/** What the UI shows when the operator has not supplied a number yet. */
-export const LICENSE_PLACEHOLDER = "Licence number NOT SET — Settings → Business";
 
 /**
  * ══════════════════════════════════════════════════════════════════════════
@@ -92,13 +90,9 @@ export const SAFER_USE_BROCHURE_URL = (
   process.env.NEXT_PUBLIC_SAFER_USE_BROCHURE_URL || ""
 ).trim();
 
-/**
- * Operator-facing placeholder for an unset business fact. Points at the
- * dashboard page (the primary way to set these now); the env vars documented in
- * .env.example remain as fallback. Deliberately loud — an unfinished legal page
- * must not ship looking finished.
- */
-export const MISSING = (label: string) => `${label} NOT SET — Settings → Business`;
+// Business identity and contact details are OPTIONAL and hidden when unset —
+// a shop may choose to publish none of them. Nothing on the site prints a
+// placeholder for a missing value.
 
 /** localStorage key for the browser-side cart. Namespaced to this store. */
 export const CART_STORAGE_KEY = "ybs.cart.v1";

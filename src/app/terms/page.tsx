@@ -7,8 +7,6 @@ import {
   DAILY_LIMIT_NON_CONCENTRATED_GRAMS,
 } from "@/lib/compliance/limits";
 import {
-  LICENSE_PLACEHOLDER,
-  MISSING,
   SITE_NAME,
 } from "@/lib/site";
 
@@ -68,36 +66,32 @@ export default async function TermsPage() {
     <article className="legal">
       <h1 className="display">Terms of service</h1>
 
-      <div className="legal-meta">
-        <span>
-          Effective date:{" "}
+      {/* Business identity shows only when the operator has set it — a shop
+          may choose to publish none of it. Nothing is ever printed as a
+          placeholder. */}
+      {POLICY_EFFECTIVE_DATE || LICENSE_NUMBER ? (
+        <div className="legal-meta">
           {POLICY_EFFECTIVE_DATE ? (
-            <strong>{POLICY_EFFECTIVE_DATE}</strong>
-          ) : (
-            <span className="license" data-missing="true">
-              {MISSING("Policy effective date")}
+            <span>
+              Effective date: <strong>{POLICY_EFFECTIVE_DATE}</strong>
             </span>
-          )}
-        </span>
-        <span>
-          Licence{" "}
-          <span className="license" data-missing={!LICENSE_NUMBER}>
-            {LICENSE_NUMBER || LICENSE_PLACEHOLDER}
-          </span>
-        </span>
-      </div>
+          ) : null}
+          {LICENSE_NUMBER ? (
+            <span>
+              Licence <span className="license">{LICENSE_NUMBER}</span>
+            </span>
+          ) : null}
+        </div>
+      ) : null}
 
       <p>
-        These terms cover ordering cannabis for delivery from {SITE_NAME}, operated by{" "}
+        These terms cover ordering cannabis for delivery from {SITE_NAME}
         {LEGAL_ENTITY_NAME ? (
-          <strong>{LEGAL_ENTITY_NAME}</strong>
-        ) : (
-          <span className="license" data-missing="true">
-            {MISSING("Legal entity name")}
-          </span>
-        )}
-        , a retailer licensed by the California Department of Cannabis Control. Placing an order
-        means you accept them.
+          <>
+            , operated by <strong>{LEGAL_ENTITY_NAME}</strong>
+          </>
+        ) : null}
+        . Placing an order means you accept them.
       </p>
 
       <h2>You must be 21 or older</h2>
@@ -187,15 +181,13 @@ export default async function TermsPage() {
 
       <h2>Changes and contact</h2>
       <p>
-        We will post any change to these terms on this page with a new effective date. Questions:{" "}
+        We will post any change to these terms on this page with a new effective date.
         {PRIVACY_CONTACT_EMAIL ? (
-          <a href={`mailto:${PRIVACY_CONTACT_EMAIL}`}>{PRIVACY_CONTACT_EMAIL}</a>
-        ) : (
-          <span className="license" data-missing="true">
-            {MISSING("Privacy contact email")}
-          </span>
-        )}
-        .
+          <>
+            {" "}
+            Questions: <a href={`mailto:${PRIVACY_CONTACT_EMAIL}`}>{PRIVACY_CONTACT_EMAIL}</a>.
+          </>
+        ) : null}
       </p>
 
       <p className="mt-3">

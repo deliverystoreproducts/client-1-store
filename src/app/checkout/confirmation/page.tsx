@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
-  LICENSE_PLACEHOLDER,
-  MISSING,
 } from "@/lib/site";
 import { getStoreProfile } from "@/lib/store";
 
@@ -110,24 +108,25 @@ export default async function ConfirmationPage({
         § 34011.2(d).
       </p>
 
-      {/* B&P § 26151(a)(1) — this screen is the customer's record of who sold
-          to them, so it identifies the licensee, not just the shop name. */}
-      <p className="faint mb-0">
-        Sold by{" "}
-        <span className="license" data-missing={!LEGAL_ENTITY_NAME}>
-          {LEGAL_ENTITY_NAME || MISSING("Legal entity name")}
-        </span>{" "}
-        · DCC Licence{" "}
-        <span className="license" data-missing={!LICENSE_NUMBER}>
-          {LICENSE_NUMBER || LICENSE_PLACEHOLDER}
-        </span>
-        {LOCAL_PERMIT_NUMBER ? (
-          <>
-            {" "}
-            · Local permit <span className="license">{LOCAL_PERMIT_NUMBER}</span>
-          </>
-        ) : null}
-      </p>
+      {LEGAL_ENTITY_NAME || LICENSE_NUMBER || LOCAL_PERMIT_NUMBER ? (
+        <p className="faint mb-0">
+          {LEGAL_ENTITY_NAME ? (
+            <>
+              Sold by <span className="license">{LEGAL_ENTITY_NAME}</span>
+            </>
+          ) : null}
+          {LICENSE_NUMBER ? (
+            <>
+              {LEGAL_ENTITY_NAME ? " · " : ""}DCC Licence <span className="license">{LICENSE_NUMBER}</span>
+            </>
+          ) : null}
+          {LOCAL_PERMIT_NUMBER ? (
+            <>
+              {" "}· Local permit <span className="license">{LOCAL_PERMIT_NUMBER}</span>
+            </>
+          ) : null}
+        </p>
+      ) : null}
     </div>
   );
 }

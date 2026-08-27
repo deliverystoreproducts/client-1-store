@@ -14,7 +14,7 @@ import { isUpstreamConfigured } from "@/lib/kamui/env";
 import { OPEN_ROUTE_HEADER } from "@/lib/open-routes";
 import { hasPassedAgeGate } from "@/lib/session";
 import { getStoreProfile } from "@/lib/store";
-import { LICENSE_PLACEHOLDER, MISSING, SITE_TAGLINE } from "@/lib/site";
+import { SITE_TAGLINE } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: {

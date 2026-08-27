@@ -3,8 +3,6 @@ import Link from "next/link";
 
 import { getStoreProfile } from "@/lib/store";
 import {
-  LICENSE_PLACEHOLDER,
-  MISSING,
   SITE_NAME,
 } from "@/lib/site";
 
@@ -64,13 +62,7 @@ export default async function ContactPage() {
                 </li>
               ) : null}
             </ul>
-          ) : (
-            <p>
-              <span className="license" data-missing="true">
-                {MISSING("Contact email")}
-              </span>
-            </p>
-          )}
+          ) : null}
           <p>
             Outside delivery hours you can still reach us — we&apos;ll come back to you when we
             open.
@@ -117,34 +109,29 @@ export default async function ContactPage() {
           <p>Please keep the packaging until we&apos;ve spoken.</p>
         </section>
 
-        <section>
-          <h2>Licensed retailer</h2>
-          <p>
-            {LEGAL_ENTITY_NAME ? (
-              <strong>{LEGAL_ENTITY_NAME}</strong>
-            ) : (
-              <span className="license" data-missing="true">
-                {MISSING("Legal entity name")}
-              </span>
-            )}
-            <br />
-            California cannabis licence{" "}
-            <span className="license" data-missing={!LICENSE_NUMBER}>
-              {LICENSE_NUMBER || LICENSE_PLACEHOLDER}
-            </span>
-          </p>
-          <p>
-            You can check that number against the state&apos;s own register at{" "}
-            <a
-              href="https://search.cannabis.ca.gov/"
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              search.cannabis.ca.gov
-            </a>
-            .
-          </p>
-        </section>
+        {LEGAL_ENTITY_NAME || LICENSE_NUMBER ? (
+          <section>
+            <h2>Licensed retailer</h2>
+            <p>
+              {LEGAL_ENTITY_NAME ? <strong>{LEGAL_ENTITY_NAME}</strong> : null}
+              {LEGAL_ENTITY_NAME && LICENSE_NUMBER ? <br /> : null}
+              {LICENSE_NUMBER ? (
+                <>
+                  California cannabis licence <span className="license">{LICENSE_NUMBER}</span>
+                </>
+              ) : null}
+            </p>
+            {LICENSE_NUMBER ? (
+              <p>
+                You can check that number against the state&apos;s own register at{" "}
+                <a href="https://search.cannabis.ca.gov/" rel="noopener noreferrer" target="_blank">
+                  search.cannabis.ca.gov
+                </a>
+                .
+              </p>
+            ) : null}
+          </section>
+        ) : null}
     </article>
   );
 }
