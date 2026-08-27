@@ -58,35 +58,40 @@
 :root {
   /* Ground — warm porcelain, cream-cast. --ground-deep is the footer's shade;
      --ground-raise is panels and cards, a half-step off white. */
-  --ground: #f6fbf2;
-  --ground-deep: #ecf5e4;
+  --ground: #fafafa;
+  --ground-deep: #f4f4f5;
   --ground-raise: #ffffff;
   --field: #ffffff;
 
   /* Rules. Decorative only — never load-bearing for text contrast. */
-  --rule: #e0ecd5;
-  --rule-hi: #bdd3ac;
+  --rule: #e4e4e7;
+  --rule-hi: #d4d4d8;
 
   /* Type — pine-green inks. Measured on --ground: 13.3 : 1, 7.4 : 1, 5.3 : 1
      (and pine-3 holds 4.9 : 1 on the deeper footer ground). */
-  --pine: #182415;
-  --pine-2: #3e5138;
-  --pine-3: #54694c;
+  --pine: #18181b;
+  --pine-2: #52525b;
+  --pine-3: #71717a;
 
   /* Chromatic accents. On a light ground the text-safe direction INVERTS:
      dark theme lightened a colour to make it readable, daylight darkens it.
      All measured on --ground. */
-  --clay: #c14608; /* fired terracotta — fills, borders, seals (5.5 : 1) */
-  --clay-lit: #a03a06; /* the deeper clay for hover fills and edges */
-  --amber: #c14608; /* honey — primary action, focus, price (5.1 : 1; cream
+  /* Price red. Measured 4.83 : 1 on the white card — AA at any size, and it is
+     only ever used on the bold price. Never body copy. Dark ground uses
+     #f87171 (6.40 : 1); both measured, not eyeballed. */
+  --price: #dc2626;
+  --price-deep: #b91c1c;
+  --clay: #dc2626; /* was terracotta; now the same retail red (4.8 : 1) */
+  --clay-lit: #b91c1c; /* the deeper clay for hover fills and edges */
+  --amber: #dc2626; /* honey — primary action, focus, price (5.1 : 1; cream
                        text ON an amber fill measures the same 5.1 : 1) */
-  --amber-deep: #a03a06;
-  --sage: #2f7d46; /* open / delivered / affirmative (5.9 : 1) */
-  --fern: #0e7d3b; /* THE action green — brighter per theme "Sunset
+  --amber-deep: #b91c1c;
+  --sage: #16a34a; /* open / delivered / affirmative (5.9 : 1) */
+  --fern: #7c3aed; /* THE action green — brighter per theme "Sunset
                       Apothecary" (4.6 : 1 both directions; measured) */
-  --fern-lit: #0a6b32; /* hover fill — deeper green (6.2 : 1 with porcelain) */
+  --fern-lit: #6d28d9; /* hover fill — deeper green (6.2 : 1 with porcelain) */
   --marigold: #ffb054; /* tint fills only — dark text rides on it */
-  --coral: #c14608; /* non-text accent: active-tab rule, seals (3.4 : 1 UI) */
+  --coral: #dc2626; /* non-text accent: active-tab rule, seals (3.4 : 1 UI) */
   /* Ceramic plate gradient stops, so the product plates re-glaze per theme. */
   --plate-a: #eaf3e0;
   --plate-b: #f8fbf3;
@@ -132,25 +137,27 @@
    directions. Statutory colors stay statutory. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-  --ground: #120b1e;
-  --ground-deep: #0d0817;
-  --ground-raise: #1b1230;
-  --field: #1b1230;
-  --rule: #332159;
-  --rule-hi: #4b3380;
-  --pine: #f0e9fb;
-  --pine-2: #cfc2e8;
-  --pine-3: #948aab;
-  --clay: #ff4fa3; /* hot pink — fills read with the ground's ink (6.3 : 1) */
-  --clay-lit: #e03a8c;
-  --amber: #ff4fa3; /* pink carries price + highlights (6.3 : 1) */
-  --amber-deep: #e03a8c;
-  --sage: #66d98a;
+  --ground: #0c0c0e;
+  --ground-deep: #09090b;
+  --price: #f87171; /* lightened for the dark ground (6.40 : 1) */
+  --price-deep: #ef4444;
+  --ground-raise: #18181b;
+  --field: #18181b;
+  --rule: #27272a;
+  --rule-hi: #3f3f46;
+  --pine: #fafafa;
+  --pine-2: #d4d4d8;
+  --pine-3: #a1a1aa;
+  --clay: #f87171; /* hot pink — fills read with the ground's ink (6.3 : 1) */
+  --clay-lit: #ef4444;
+  --amber: #f87171; /* pink carries price + highlights (6.3 : 1) */
+  --amber-deep: #ef4444;
+  --sage: #4ade80;
   --alarm: #ff7a66;
-  --fern: #22b558; /* the act stays GREEN in every theme (7.2 : 1 with ink) */
-  --fern-lit: #2fce6a; /* hover fill — brighter green (9.3 : 1 with ink) */
+  --fern: #a78bfa; /* the act stays GREEN in every theme (7.2 : 1 with ink) */
+  --fern-lit: #c4b5fd; /* hover fill — brighter green (9.3 : 1 with ink) */
   --marigold: #c4a6ff; /* lavender tint (9.4 : 1 as text) */
-  --coral: #ff4fa3;
+  --coral: #f87171;
   --plate-a: #221743;
   --plate-b: #150e2a;
   --lift: 0 14px 34px -14px rgb(0 0 0 / 0.55), 0 2px 8px -2px rgb(0 0 0 / 0.4);
@@ -158,25 +165,27 @@
 }
 
 :root[data-theme="dark"] {
-  --ground: #120b1e;
-  --ground-deep: #0d0817;
-  --ground-raise: #1b1230;
-  --field: #1b1230;
-  --rule: #332159;
-  --rule-hi: #4b3380;
-  --pine: #f0e9fb;
-  --pine-2: #cfc2e8;
-  --pine-3: #948aab;
-  --clay: #ff4fa3; /* hot pink — fills read with the ground's ink (6.3 : 1) */
-  --clay-lit: #e03a8c;
-  --amber: #ff4fa3; /* pink carries price + highlights (6.3 : 1) */
-  --amber-deep: #e03a8c;
-  --sage: #66d98a;
+  --ground: #0c0c0e;
+  --ground-deep: #09090b;
+  --price: #f87171; /* lightened for the dark ground (6.40 : 1) */
+  --price-deep: #ef4444;
+  --ground-raise: #18181b;
+  --field: #18181b;
+  --rule: #27272a;
+  --rule-hi: #3f3f46;
+  --pine: #fafafa;
+  --pine-2: #d4d4d8;
+  --pine-3: #a1a1aa;
+  --clay: #f87171; /* hot pink — fills read with the ground's ink (6.3 : 1) */
+  --clay-lit: #ef4444;
+  --amber: #f87171; /* pink carries price + highlights (6.3 : 1) */
+  --amber-deep: #ef4444;
+  --sage: #4ade80;
   --alarm: #ff7a66;
-  --fern: #22b558; /* the act stays GREEN in every theme (7.2 : 1 with ink) */
-  --fern-lit: #2fce6a; /* hover fill — brighter green (9.3 : 1 with ink) */
+  --fern: #a78bfa; /* the act stays GREEN in every theme (7.2 : 1 with ink) */
+  --fern-lit: #c4b5fd; /* hover fill — brighter green (9.3 : 1 with ink) */
   --marigold: #c4a6ff; /* lavender tint (9.4 : 1 as text) */
-  --coral: #ff4fa3;
+  --coral: #f87171;
   --plate-a: #221743;
   --plate-b: #150e2a;
   --lift: 0 14px 34px -14px rgb(0 0 0 / 0.55), 0 2px 8px -2px rgb(0 0 0 / 0.4);
@@ -3981,4 +3990,148 @@ body::after {
   .catalogue-row {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RETAIL TREATMENT
+   ═══════════════════════════════════════════════════════════════════════════
+   Matches the reference storefront (hitsla.com): white cards with a soft
+   shadow, brand over name, a loud red price, and heavy sans headings.
+
+   This REPLACES the editorial "printed index" treatment the tiles used to
+   carry — the ordinals, the display-serif product names, the absent card
+   chrome. Both are coherent designs; this is the one the client's other sites
+   use, and a customer moving between them should not feel they changed
+   company.
+
+   Kept deliberately as a labelled block at the end rather than surgery across
+   2,900 lines: every override below is equal-specificity and later in the
+   cascade, so it wins without !important, and the treatment can be read — or
+   reverted — as one piece.
+*/
+
+/* ── headings: heavy sans, tight, not the display serif ──────────────────── */
+
+.cat-row-name,
+.section-head .eyebrow,
+.display-sm {
+  font-family: var(--font-body);
+  font-variation-settings: normal;
+}
+
+.cat-row-name {
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  font-size: clamp(1.5rem, 4.4vw, 2.25rem);
+  color: var(--pine);
+}
+
+/* The section eyebrow becomes a real heading rather than a small-caps label —
+   in this treatment the category name is the wayfinding, so it carries weight. */
+.section-head .eyebrow {
+  font-weight: 900;
+  font-size: clamp(1.25rem, 3.4vw, 1.75rem);
+  letter-spacing: -0.025em;
+  text-transform: none;
+  color: var(--pine);
+}
+
+.cat-row-all,
+.section-head .btn-link {
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: var(--t--1);
+  color: var(--fern); /* violet in this palette */
+}
+
+/* ── the card ────────────────────────────────────────────────────────────── */
+
+.tile {
+  gap: 0;
+  background: var(--ground-raise);
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(9, 9, 11, 0.05);
+  transition: box-shadow 0.2s var(--ease), border-color 0.2s var(--ease);
+}
+
+.tile:hover {
+  box-shadow: 0 4px 14px rgba(9, 9, 11, 0.1);
+  border-color: var(--rule-hi);
+}
+
+.tile-frame {
+  border: 0;
+  border-radius: 0;
+  aspect-ratio: 1 / 1;
+}
+
+/* The ordinal belonged to the printed-index idea. A retail card shows product,
+   brand, price — a number in the corner is one more thing to read. */
+.tile-index {
+  display: none;
+}
+
+.tile-brand,
+.tile-name,
+.tile-foot,
+.tile-action {
+  padding-inline: 0.75rem;
+}
+
+.tile-brand {
+  padding-top: 0.7rem;
+  font-size: var(--t--2);
+  letter-spacing: 0.01em;
+  text-transform: none;
+  color: var(--pine-3);
+}
+
+.tile-name {
+  font-family: var(--font-body);
+  font-variation-settings: normal;
+  font-weight: 500;
+  font-size: var(--t--1);
+  line-height: 1.35;
+  letter-spacing: 0;
+  margin-top: 0.15rem;
+  /* pushes the price to the card's foot so a row of cards aligns on price
+     regardless of how long the names are */
+  flex: 1;
+}
+
+.tile-foot {
+  padding-top: 0.5rem;
+  align-items: baseline;
+  gap: 0.45rem;
+}
+
+.price {
+  font-family: var(--font-body);
+  font-variation-settings: normal;
+  font-weight: 700;
+  font-size: var(--t-1);
+  letter-spacing: -0.01em;
+  color: var(--price);
+}
+
+.price-was {
+  color: var(--pine-3);
+  font-weight: 400;
+}
+
+.tile-action {
+  padding-bottom: 0.75rem;
+  padding-top: 0.55rem;
+}
+
+/* The badge sits on the image, so it needs its own ground now that the card
+   below is white. */
+.tile-badge {
+  border-radius: 6px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: none;
 }
