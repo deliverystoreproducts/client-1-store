@@ -191,6 +191,7 @@
 }
 
 html {
+  background: var(--ground);
   -webkit-text-size-adjust: 100%;
   /* In-page jumps (banner → #catalogue, pager) glide instead of teleporting.
      Route changes stay instant via data-scroll-behavior on <html> (Next's
@@ -5866,14 +5867,14 @@ body::after {
     right: 0;
     display: flex;
     flex-direction: column-reverse; /* bar on top, ticker under it */
-    background: #fff;
-    color: #111;
+    background: var(--ground-raise);
+    color: var(--pine);
     border-bottom: 1px solid var(--rule);
     transition: background 0.25s var(--ease), border-color 0.25s var(--ease);
   }
 
   .hdr-stack:has(.promo-bar) {
-    background: #fff;
+    background: var(--ground-raise);
   }
 
   /* The header's desktop rule paints it black; on the phone the STACK is the
@@ -5895,7 +5896,7 @@ body::after {
     left: 0;
     right: 0;
     height: env(safe-area-inset-top, 0px);
-    background: #fff;
+    background: var(--ground-raise);
     z-index: 1;
   }
 
@@ -5912,34 +5913,34 @@ body::after {
   .site-header .brand-name,
   .site-header .hdr-icon,
   .site-header .burger {
-    color: #111;
+    color: var(--pine);
   }
 
   .site-header .burger i {
-    background: #111;
+    background: var(--pine);
   }
 
   .site-header .hdr-search input {
-    background: #f2f2f5;
+    background: var(--ground-deep);
     border-color: transparent;
-    color: #111;
+    color: var(--pine);
   }
 
   .site-header .hdr-search input::placeholder {
-    color: #6b6b73;
+    color: var(--pine-3);
   }
 
   .site-header .hdr-search-go {
-    color: #6b6b73;
+    color: var(--pine-3);
   }
 
   .site-header .hdr-icon:hover,
   .site-header .burger:hover {
-    background: #f2f2f5;
+    background: var(--ground-deep);
   }
 
   .site-header .cart-count {
-    border-color: #fff;
+    border-color: var(--ground-raise);
   }
 
   .promo-bar {
@@ -5953,25 +5954,25 @@ body::after {
 
   /* the burger sheet, white */
   .mobile-menu {
-    background: #fff;
+    background: var(--ground-raise);
     border-top-color: var(--rule);
   }
 
   .mobile-menu a {
-    color: #111;
+    color: var(--pine);
     border-bottom-color: var(--rule);
   }
 
   .mobile-menu a:active {
-    background: #f2f2f5;
+    background: var(--ground-deep);
   }
 
   .theme-toggle {
-    color: #111;
+    color: var(--pine);
   }
 
   .theme-toggle:hover {
-    background: #f2f2f5;
+    background: var(--ground-deep);
   }
 
   /* ── overlay state: banner page, not yet scrolled ─────────────────────── */
@@ -5992,7 +5993,7 @@ body::after {
 
   html[data-hero-overlay]:not([data-scrolled]) .site-header .burger,
   html[data-hero-overlay]:not([data-scrolled]) .site-header .hdr-icon {
-    background: rgb(255 255 255 / 0.92);
+    background: color-mix(in srgb, var(--ground-raise) 92%, transparent);
     border-radius: 50%;
     box-shadow: 0 2px 10px rgb(0 0 0 / 0.12);
     backdrop-filter: blur(6px);
