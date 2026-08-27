@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { MediaSlot } from "@/components/MediaSlot";
 import { MEDIA_HINTS } from "@/lib/site";
+import { categoryIconUrl } from "@/lib/category-art";
 import type { PublicCategory } from "@/lib/public-types";
 
 /**
@@ -9,11 +10,12 @@ import type { PublicCategory } from "@/lib/public-types";
  * Sits directly under the hero, because it is the first question a shopper
  * answers (what KIND of thing) before brand or price.
  *
- * EVERY category gets a pill, in the operator's `sortOrder`. One without a
- * picture yet is the same pill with an empty right-hand side — the row must not
- * change shape as pictures are added, and the gap is the nudge ("that one still
- * wants a picture"). Pictures are set in the dashboard (Catalog → Categories),
- * so a client changes their own shop window without a deploy.
+ * EVERY category gets a pill, in the operator's `sortOrder`. The picture is
+ * the operator's own (dashboard, Catalog → Categories) when they have set one;
+ * otherwise a bundled icon matched by name (lib/category-art.ts) — "Flower",
+ * "Vape Pens", "Infused Joints" all land on the right picture on day one, and
+ * an upload later replaces it without a deploy. Only a name nothing matches
+ * shows an empty right-hand side.
  */
 export function CategoryFeature({ categories }: { categories: PublicCategory[] }) {
   if (categories.length === 0) return null;
@@ -29,11 +31,13 @@ export function CategoryFeature({ categories }: { categories: PublicCategory[] }
       </div>
 
       <ul className="cat-pills">
-        {ordered.map((c) => (
+        {ordered.map((c) => {
+          const art = c.image ?? categoryIconUrl(c.name);
+          return (
           <li key={c.id}>
             <Link href={`/category/${c.id}`} className="cat-pill">
               <span className="cat-pill-name">{c.name}</span>
-              <span className="cat-pill-art" data-empty={!c.image || undefined} aria-hidden>
+              <span className="cat-pill-art" data-empty={!art || undefined} aria-hidden>
                 {c.video ? (
                   <video
                     src={c.video}
@@ -43,16 +47,17 @@ export function CategoryFeature({ categories }: { categories: PublicCategory[] }
                     loop
                     playsInline
                   />
-                ) : c.image ? (
+                ) : art ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={c.image} alt="" loading="lazy" />
+                  <img src={art} alt="" loading="lazy" />
                 ) : MEDIA_HINTS ? (
                   <MediaSlot label={`${c.name} picture`} where="Catalog → Categories" />
                 ) : null}
               </span>
             </Link>
           </li>
-        ))}
+          );
+        })}
       </ul>
     </section>
   );
