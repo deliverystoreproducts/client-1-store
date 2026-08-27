@@ -465,8 +465,23 @@ export function CheckoutView({
                     data-state={step === n ? "current" : step > n ? "done" : "todo"}
                     aria-current={step === n ? "step" : undefined}
                   >
-                    <span className="steps-num">{step > n ? "✓" : shown}</span>
-                    {label}
+                    {step > n ? (
+                      // A finished step is the way back — no separate "Back" button.
+                      <button
+                        type="button"
+                        className="steps-back"
+                        disabled={submitting}
+                        onClick={() => setStep(n as 1 | 2 | 3)}
+                      >
+                        <span className="steps-num">✓</span>
+                        {label}
+                      </button>
+                    ) : (
+                      <>
+                        <span className="steps-num">{shown}</span>
+                        {label}
+                      </>
+                    )}
                   </li>
                 );
               },
@@ -616,13 +631,6 @@ export function CheckoutView({
               >
                 {idUploading ? "Saving…" : idFile ? "Save and continue" : "Add a photo to continue"}
               </button>
-              <button
-                type="button"
-                className="btn btn-ghost btn-block mt-1"
-                onClick={() => setStep(1)}
-              >
-                Back to delivery
-              </button>
             </>
           ) : null}
 
@@ -676,14 +684,6 @@ export function CheckoutView({
 
               <button className="btn btn-block cta-inline" disabled={!canSubmit}>
                 {submitting ? "Placing your order…" : "Place order"}
-              </button>
-              <button
-                type="button"
-                className="btn btn-ghost btn-block mt-1"
-                disabled={submitting}
-                onClick={() => setStep(needsId ? 2 : 1)}
-              >
-                Back to ID check
               </button>
 
               <p className="faint mt-2 mb-0">

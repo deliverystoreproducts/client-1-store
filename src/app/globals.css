@@ -6122,3 +6122,32 @@ body::after {
     display: none;
   }
 }
+
+/* a finished step in the checkout stepper is a button back to it */
+.steps-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: var(--fern);
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 3px;
+  transition: text-decoration-color 0.18s var(--ease);
+}
+
+.steps-back:hover {
+  text-decoration-color: currentColor;
+}
+
+/* the pinned bar's button is the cart's size, not the checkout form's tall one */
+.plain .cta-bar .btn {
+  min-height: 46px;
+  font-size: var(--t--1);
+  letter-spacing: 0.02em;
+  border-radius: 999px;
+}
