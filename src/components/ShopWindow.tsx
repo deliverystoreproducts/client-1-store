@@ -107,39 +107,45 @@ export function DeliveryAreas({ cities }: { cities: string[] }) {
       </p>
 
       {/*
-        EVERY city is rendered; the CLAMP IS VISUAL — two rows, done in CSS.
+        THE LIST LIVES OUTSIDE <details>, and that is the whole fix.
 
-        The previous version cut the list at a fixed count of twelve, which is
-        the right number at exactly one viewport width and wrong at all the
-        others: on a wide screen twelve fitted one row and left the second empty,
-        on a narrow one it spilled to four. A row count cannot be decided by a
-        server that does not know the width, so it is not decided there.
+        It was inside, before the <summary>. A browser hides every non-<summary>
+        child of a closed <details> — so all 66 pills vanished and the panel
+        rendered as a heading with a lone "Show all 66 areas" under it. Verified
+        in the live markup: the <li>s were present and simply not displayed.
 
-        Because nothing is withheld from the DOM, find-in-page still locates a
-        visitor's own suburb even while the list is collapsed — the rows past
-        the clamp are clipped, not absent. A JS toggle that unmounted them would
-        answer "no" to a customer the shop actually delivers to.
+        Now <details> holds only the toggle, and :has() reads its open state to
+        lift the clamp on the list beside it. The pills are never inside the
+        element that hides things.
+
+        The clamp itself is VISUAL — two rows by height, in CSS. A count cannot
+        be decided by a server that does not know the viewport width: twelve
+        fills one row on a laptop and spills to four on a phone.
+
+        Nothing is withheld from the DOM either way, so find-in-page still finds
+        a visitor's own suburb while the list is collapsed.
 
         Plain text, not links: a city is not a page here, and making it look
         clickable when it is not is the kind of small lie that costs trust.
       */}
-      <details className="areas-fold">
-        <ul className="areas-list">
-          {cities.map((c) => (
-            <li className="area-pill" key={c}>
-              {c}
-            </li>
-          ))}
-        </ul>
+      <ul className="areas-list">
+        {cities.map((c) => (
+          <li className="area-pill" key={c}>
+            {c}
+          </li>
+        ))}
+      </ul>
 
-        {/* After the list, so opening it does not shove the pills down. The
-            label cannot state a remainder — how many are hidden depends on the
-            width — so it names the total, which is true at every size. */}
+      {/* The label names the TOTAL, not a remainder: how many are hidden
+          depends on the width, and a number that is wrong at most sizes is
+          worse than no number. */}
+      <details className="areas-fold">
         <summary>
           <span className="areas-more-open">Show all {cities.length} areas</span>
           <span className="areas-more-shut">Show fewer</span>
         </summary>
       </details>
+
     </section>
   );
 }

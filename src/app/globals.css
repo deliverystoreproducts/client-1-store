@@ -4484,32 +4484,54 @@ body::after {
 /* ── delivery areas: a visual two-row clamp ──────────────────────────────── */
 
 /*
-   The list is clipped to two rows by HEIGHT, not by counting pills. A count is
-   right at one viewport width and wrong at every other; a height is right at
-   all of them, and both rows always fill.
+   The list is clipped to two rows by HEIGHT, not by counting pills — a count is
+   right at one viewport width and wrong at every other, and both rows have to
+   fill at any size.
 
-   --area-row is one pill's outer height (line-box + padding + border). Keep it
-   in step with .area-pill or the clamp will cut a row in half.
+   The <ul> is a SIBLING of <details>, never a child. A browser hides every
+   non-<summary> child of a closed <details>, which is what made all 66 pills
+   disappear and left a heading with a lone toggle under it. :has() reads the
+   toggle's state from the parent instead, so the list is never inside the
+   element that does the hiding.
+
+   --area-row is one pill's outer height. It is PINNED on .area-pill rather than
+   derived from line-height + padding, because an approximate row height cuts
+   the second row in half.
 */
-.areas-fold {
+.areas {
   --area-row: 38px;
   --area-gap: 0.45rem;
 }
 
-.areas-fold > .areas-list {
+.areas > .areas-list {
   max-height: calc(var(--area-row) * 2 + var(--area-gap));
   overflow: hidden;
-  /* Fades the clipped edge so a half-hidden third row reads as "there is more"
+  /* Fades the clipped edge, so a half-hidden third row reads as "there is more"
      rather than as a rendering fault. */
-  mask-image: linear-gradient(to bottom, #000 72%, transparent);
-  -webkit-mask-image: linear-gradient(to bottom, #000 72%, transparent);
-  transition: max-height 0.25s var(--ease);
+  mask-image: linear-gradient(to bottom, #000 74%, transparent);
+  -webkit-mask-image: linear-gradient(to bottom, #000 74%, transparent);
+  transition: max-height 0.28s var(--ease);
 }
 
-.areas-fold[open] > .areas-list {
-  max-height: none;
+.areas:has(.areas-fold[open]) > .areas-list {
+  max-height: 60rem;
   mask-image: none;
   -webkit-mask-image: none;
+}
+
+/* :has() is what lifts the clamp. Where it is unsupported the panel simply
+   stays two rows and the toggle does nothing visible — the cities are still in
+   the DOM and still findable, so the failure is a smaller panel, never a
+   missing one. */
+@supports not selector(:has(*)) {
+  .areas > .areas-list {
+    max-height: none;
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
+  .areas-fold {
+    display: none;
+  }
 }
 
 .areas-fold > summary {
@@ -4546,16 +4568,12 @@ body::after {
   display: inline;
 }
 
-/* A shop with few enough areas to fit two rows should not be offered a
-   pointless "show all". Nothing is clipped, so the control has no work to do —
-   but it cannot be hidden from CSS alone (we do not know if it wrapped), so it
-   stays and simply reads as a no-op. Kept deliberately over a JS measurement. */
-
 @media (prefers-reduced-motion: reduce) {
-  .areas-fold > .areas-list {
+  .areas > .areas-list {
     transition: none;
   }
 }
+
 
 
 /* Hero video fills the frame the still image used to. object-fit rather than a
@@ -4805,4 +4823,65 @@ body::after {
 .brand-chip-art .slot-mark {
   width: 16px;
   height: 16px;
+}
+
+/* ── carousel: every card the same size ──────────────────────────────────── */
+
+/*
+   In the screenshot the cards were ragged: a one-line product name made a short
+   card and a two-line name a tall one, so the row had no baseline and the
+   "Add to cart" buttons sat at four different heights.
+
+   Fixed by making the CARD a fixed-height flex column and reserving the name's
+   two lines whether or not it needs them. The name box is a constant, the image
+   is a square, the price and button are pinned to the foot — so every card in
+   the row is identical and the buttons line up.
+*/
+
+.carousel-cell {
+  display: flex;
+}
+
+.carousel-cell > .tile {
+  width: 100%;
+  height: 100%;
+}
+
+.carousel-track .tile {
+  display: flex;
+  flex-direction: column;
+}
+
+.carousel-track .tile-frame {
+  flex: none;
+  aspect-ratio: 1 / 1;
+}
+
+/* Two lines, reserved. `min-height` rather than `height` so a longer name still
+   clamps at two rather than overflowing its box. */
+.carousel-track .tile-name {
+  flex: none;
+  min-height: calc(2 * 1.35em);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Pushes price + button to the bottom of every card regardless of name length,
+   which is what actually makes the row read as a row. */
+.carousel-track .tile-foot {
+  margin-top: auto;
+}
+
+.carousel-track .tile-action {
+  flex: none;
+}
+
+/* The brand line is held open even when a product has no brand, so the names
+   below it sit on one baseline across the whole row. */
+.carousel-track .tile-brand {
+  flex: none;
+  min-height: 1.3em;
 }
