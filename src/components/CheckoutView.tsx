@@ -438,6 +438,7 @@ export function CheckoutView({
 
       <div className="plain-grid">
         <form
+          id="checkout-form"
           className="plain-box"
           onSubmit={(e) => {
             e.preventDefault();
@@ -555,7 +556,7 @@ export function CheckoutView({
 
               <button
                 type="button"
-                className="btn btn-block"
+                className="btn btn-block cta-inline"
                 disabled={!addressReady}
                 onClick={afterDelivery}
               >
@@ -609,7 +610,7 @@ export function CheckoutView({
 
               <button
                 type="button"
-                className="btn btn-block mt-2"
+                className="btn btn-block mt-2 cta-inline"
                 disabled={!idFile || idUploading}
                 onClick={() => void saveIdPhoto()}
               >
@@ -673,7 +674,7 @@ export function CheckoutView({
                 </div>
               </details>
 
-              <button className="btn btn-block" disabled={!canSubmit}>
+              <button className="btn btn-block cta-inline" disabled={!canSubmit}>
                 {submitting ? "Placing your order…" : "Place order"}
               </button>
               <button
@@ -792,6 +793,34 @@ export function CheckoutView({
             34011.2(d).
           </p>
         </aside>
+      </div>
+
+      {/* Phone: the step's one action, pinned above the thumb. Mirrors the
+          inline buttons (hidden on phones) exactly — same guards, same labels. */}
+      <div className="cta-spacer" aria-hidden />
+      <div className="cta-bar">
+        <span className="cta-total">
+          <span className="faint">Est. total</span>
+          <strong className="num">{formatUsd(cart?.estimatedTotal ?? 0)}</strong>
+        </span>
+        {step === 1 ? (
+          <button type="button" className="btn" disabled={!addressReady} onClick={afterDelivery}>
+            {!addressReady ? "Enter address" : needsId ? "Next — your ID" : "Next — review"}
+          </button>
+        ) : step === 2 ? (
+          <button
+            type="button"
+            className="btn"
+            disabled={!idFile || idUploading}
+            onClick={() => void saveIdPhoto()}
+          >
+            {idUploading ? "Saving…" : idFile ? "Save & continue" : "Add a photo"}
+          </button>
+        ) : (
+          <button type="submit" form="checkout-form" className="btn" disabled={!canSubmit}>
+            {submitting ? "Placing…" : "Place order"}
+          </button>
+        )}
       </div>
     </div>
   );

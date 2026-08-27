@@ -6113,3 +6113,10 @@ body::after {
     height: 6rem;
   }
 }
+
+@media (max-width: 860px) {
+  /* the pinned bar carries the step's action on phones */
+  .cta-inline {
+    display: none;
+  }
+}
