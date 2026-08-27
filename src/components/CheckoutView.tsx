@@ -41,12 +41,24 @@ import type {
  * The readout is an ADDRESS, never a person. See `resolveLastAddress`.
  */
 export function CheckoutView({
+  autoPromoCode = "",
+  autoPromoLabel = "",
   requireIdPhoto,
   deliveryNotice,
   withinDeliveryWindow,
   brochureUrl,
   minAge,
 }: {
+  /**
+   * The store-wide promo, already validated upstream. Applied on mount so the
+   * total a customer sees is the total they get, without typing anything.
+   *
+   * It is a REAL coupon code, not a client-side percentage — the platform's
+   * coupon engine still prices and redeems it, so the storefront never computes
+   * a discount the checkout might disagree with.
+   */
+  autoPromoCode?: string;
+  autoPromoLabel?: string;
   requireIdPhoto: boolean;
   /** One plain sentence about 4 CCR § 15403 delivery hours, computed server-side. */
   deliveryNotice: string;
@@ -70,7 +82,7 @@ export function CheckoutView({
   const [lookingUp, setLookingUp] = useState(true);
   const [notes, setNotes] = useState("");
   const [coupon, setCoupon] = useState("");
-  const [appliedCoupon, setAppliedCoupon] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState(autoPromoCode);
 
   // Promo links arrive as /checkout?promo=CODE. Prefill AND apply — the
   // "Apply it at checkout" button must mean applied, not "now retype it"
@@ -686,9 +698,19 @@ export function CheckoutView({
             ))}
           </div>
 
+          {/* Say it plainly. A discount that appears in the total with no
+              explanation reads as a pricing error, and a customer who cannot
+              see WHY the number moved does not trust the number. */}
+          {autoPromoCode && appliedCoupon === autoPromoCode && cart && cart.discount > 0 ? (
+            <div className="notice notice-ok mb-2" role="status">
+              <strong>{autoPromoLabel || "Store discount"}</strong> — applied automatically with
+              code <code>{autoPromoCode}</code>. Nothing to enter.
+            </div>
+          ) : null}
+
           <div className="field">
             <label className="label" htmlFor="coupon">
-              Promo code
+              {autoPromoCode ? "Have a different code?" : "Promo code"}
             </label>
             <div className="row" style={{ gap: "0.5rem", flexWrap: "nowrap" }}>
               <input

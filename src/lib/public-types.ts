@@ -22,6 +22,23 @@ export interface PublicCategory {
   id: number;
   name: string;
   productCount: number;
+  /** Our own proxied URL, or null. */
+  image: string | null;
+  video: string | null;
+  /**
+   * The operator's ordering, carried so the home page can present the first few
+   * as a feature row and still know the order was chosen rather than incidental.
+   */
+  sortOrder: number;
+  /**
+   * A category the operator has given artwork to.
+   *
+   * There is deliberately no separate "featured" flag: uploading a picture IS
+   * the act of featuring it. A flag would be a second control that can disagree
+   * with the first — a category marked featured with no art renders as an empty
+   * frame, and one with art but unflagged is work the operator did for nothing.
+   */
+  featured: boolean;
 }
 
 export interface PublicBrand {

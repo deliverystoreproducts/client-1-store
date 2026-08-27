@@ -71,6 +71,11 @@ export interface ProductDetailResponse {
 }
 
 export interface StoreCategoryV1 {
+  /** Category artwork set by the operator. May be a RELATIVE upload path. */
+  image?: string | null;
+  video?: string | null;
+  /** The operator's chosen order — also the array order, but published as a value. */
+  sortOrder?: number;
   id: number;
   name: string;
   productCount: number;
