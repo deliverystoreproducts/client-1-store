@@ -2,6 +2,7 @@ import { isSameOriginRequest } from "@/lib/csrf";
 import * as api from "@/lib/kamui/client";
 import { toPublicCustomer } from "@/lib/kamui/map";
 import { fail, failFromUpstream, json, readJson } from "@/lib/http";
+import { UpstreamError } from "@/lib/kamui/errors";
 import { clearSession, readCustomerToken, readSessionToken } from "@/lib/session";
 import type { SessionState } from "@/lib/public-types";
 
@@ -41,11 +42,21 @@ export async function GET(): Promise<Response> {
       pendingRegistration: false,
       customer: toPublicCustomer(res.customer),
     });
-  } catch {
-    // Expired or rejected token: drop it and answer "signed out". A 500 here
-    // would leave the whole site stuck behind a broken header.
-    await clearSession();
-    return json(SIGNED_OUT);
+  } catch (e) {
+    // ONLY a token upstream actually rejected signs the customer out. Anything
+    // else — a timeout, a 5xx, a network blip — is a hiccup, and a hiccup must
+    // not destroy a session the customer just verified by SMS. (That was the
+    // "verified my number and landed back on sign-in" report: the account page
+    // asked /me a moment after sign-in, the answer failed for a reason that had
+    // nothing to do with the token, and this branch threw the cookie away.)
+    if (e instanceof UpstreamError && e.code === "customer_unauthorized") {
+      await clearSession();
+      return json(SIGNED_OUT);
+    }
+    console.error("[bff] /api/auth/me could not reach upstream", e);
+    return fail(503, "unavailable", {
+      message: "We couldn't load your account just now. Please try again.",
+    });
   }
 }
 
