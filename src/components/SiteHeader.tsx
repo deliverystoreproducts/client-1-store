@@ -141,6 +141,7 @@ export function SiteHeader({
         <div id="mobile-menu" className="mobile-menu">
           <Link href="/">Home</Link>
           <Link href="/products">All Products</Link>
+          <Link href="/categories">Categories</Link>
           <Link href="/brands">Brands</Link>
           <Link href="/deals">Deals</Link>
           <Link href="/track">Track an order</Link>

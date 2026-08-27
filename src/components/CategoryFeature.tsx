@@ -28,6 +28,9 @@ export function CategoryFeature({ categories }: { categories: PublicCategory[] }
         <h2 className="wm-title" id="cats-head">
           Browse by category
         </h2>
+        <Link className="wm-more" href="/categories" aria-label="All categories">
+          →
+        </Link>
       </div>
 
       <ul className="cat-pills">

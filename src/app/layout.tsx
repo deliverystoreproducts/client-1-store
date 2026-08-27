@@ -186,7 +186,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                     <nav className="footer-col" aria-label="Shop">
                       <span className="footer-head">Shop</span>
                       <Link href="/">Home</Link>
-                      <Link href="/products">Categories</Link>
+                      <Link href="/categories">Categories</Link>
                       <Link href="/brands">Brands</Link>
                     </nav>
 
