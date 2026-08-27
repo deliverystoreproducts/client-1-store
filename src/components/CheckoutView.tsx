@@ -277,6 +277,38 @@ export function CheckoutView({
     }
   }
 
+  // Delivery-zone lookup for the typed address. HOOKS END HERE — every hook in
+  // this component must sit above the early returns below. This effect used to
+  // live further down, past `return <p>Loading…</p>`, so the first render (no
+  // session yet) ran N hooks and the next ran N+1: React error #310, and the
+  // checkout page crashed for every signed-in customer.
+  useEffect(() => {
+    const a = address.trim();
+    if (a.length < 6) {
+      setZone(null);
+      return;
+    }
+    // Debounced: this fires per keystroke otherwise, and each one is an
+    // upstream geocode against a customer's home address.
+    let stop = false;
+    const timer = window.setTimeout(() => {
+      apiGet<{ zone: { city: string; minimumOrder: number } | null }>(
+        `/api/delivery-zone?address=${encodeURIComponent(a)}`,
+      )
+        .then((r) => {
+          if (!stop) setZone(r.zone);
+        })
+        .catch(() => {
+          // No opinion. Checkout still enforces it.
+          if (!stop) setZone(null);
+        });
+    }, 500);
+    return () => {
+      stop = true;
+      window.clearTimeout(timer);
+    };
+  }, [address]);
+
   if (!ready || session === null) return <p className="muted">Loading checkout…</p>;
 
   if (items.length === 0) {
@@ -345,33 +377,6 @@ export function CheckoutView({
 
   // Warnings and limits were both decided on the SERVER when the cart was
   // priced; this view only groups and renders them. The daily-limit refusal is
-  useEffect(() => {
-    const a = address.trim();
-    if (a.length < 6) {
-      setZone(null);
-      return;
-    }
-    // Debounced: this fires per keystroke otherwise, and each one is an
-    // upstream geocode against a customer's home address.
-    let stop = false;
-    const timer = window.setTimeout(() => {
-      apiGet<{ zone: { city: string; minimumOrder: number } | null }>(
-        `/api/delivery-zone?address=${encodeURIComponent(a)}`,
-      )
-        .then((r) => {
-          if (!stop) setZone(r.zone);
-        })
-        .catch(() => {
-          // No opinion. Checkout still enforces it.
-          if (!stop) setZone(null);
-        });
-    }, 500);
-    return () => {
-      stop = true;
-      window.clearTimeout(timer);
-    };
-  }, [address]);
-
   // enforced again in POST /api/checkout — a disabled button is a courtesy, not
   // a control.
   const routes = (cart?.lines ?? [])
