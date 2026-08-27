@@ -72,14 +72,16 @@
   --price-deep: #b91c1c;
   --clay: #dc2626; /* was terracotta; now the same retail red (4.8 : 1) */
   --clay-lit: #b91c1c; /* the deeper clay for hover fills and edges */
-  --amber: #dc2626; /* honey — primary action, focus, price (5.1 : 1; cream
-                       text ON an amber fill measures the same 5.1 : 1) */
-  --amber-deep: #b91c1c;
+  /* Focus rings, hover borders, link hover, active step — the ACTION colour,
+     i.e. the same green as the buttons. (This was the price red for a while,
+     which is why every focused input lit up red.) Prices use --price. */
+  --amber: #16a34a;
+  --amber-deep: #15803d;
   --sage: #16a34a; /* open / delivered / affirmative (5.9 : 1) */
   --fern: #16a34a; /* THE action colour — the reference site's green */
   --fern-lit: #15803d; /* hover fill — deeper green */
   --marigold: #ffb054; /* tint fills only — dark text rides on it */
-  --coral: #dc2626; /* non-text accent: active-tab rule, seals (3.4 : 1 UI) */
+  --coral: #16a34a; /* non-text accent: active-tab rule, seals */
   /* Ceramic plate gradient stops, so the product plates re-glaze per theme. */
   --plate-a: #eaf3e0;
   --plate-b: #f8fbf3;
@@ -141,14 +143,14 @@
   --pine-3: #a1a1aa;
   --clay: #f87171; /* hot pink — fills read with the ground's ink (6.3 : 1) */
   --clay-lit: #ef4444;
-  --amber: #f87171; /* pink carries price + highlights (6.3 : 1) */
-  --amber-deep: #ef4444;
+  --amber: #22c55e; /* focus / hover / active — the action green */
+  --amber-deep: #4ade80;
   --sage: #4ade80;
   --alarm: #ff7a66;
   --fern: #22c55e; /* the act stays green in every theme */
   --fern-lit: #4ade80; /* hover fill — brighter green */
   --marigold: #c4a6ff; /* lavender tint (9.4 : 1 as text) */
-  --coral: #f87171;
+  --coral: #22c55e;
   --plate-a: #221743;
   --plate-b: #150e2a;
   --lift: 0 14px 34px -14px rgb(0 0 0 / 0.55), 0 2px 8px -2px rgb(0 0 0 / 0.4);
@@ -169,14 +171,14 @@
   --pine-3: #a1a1aa;
   --clay: #f87171; /* hot pink — fills read with the ground's ink (6.3 : 1) */
   --clay-lit: #ef4444;
-  --amber: #f87171; /* pink carries price + highlights (6.3 : 1) */
-  --amber-deep: #ef4444;
+  --amber: #22c55e; /* focus / hover / active — the action green */
+  --amber-deep: #4ade80;
   --sage: #4ade80;
   --alarm: #ff7a66;
   --fern: #22c55e; /* the act stays green in every theme */
   --fern-lit: #4ade80; /* hover fill — brighter green */
   --marigold: #c4a6ff; /* lavender tint (9.4 : 1 as text) */
-  --coral: #f87171;
+  --coral: #22c55e;
   --plate-a: #221743;
   --plate-b: #150e2a;
   --lift: 0 14px 34px -14px rgb(0 0 0 / 0.55), 0 2px 8px -2px rgb(0 0 0 / 0.4);
@@ -1611,7 +1613,7 @@ body::after {
 
 .detail-price .price {
   font-size: var(--t-2);
-  color: var(--amber);
+  color: var(--price);
 }
 
 .detail-buy {
@@ -1841,7 +1843,7 @@ body::after {
   font-family: var(--font-display);
   font-size: var(--t-2);
   font-weight: 600;
-  color: var(--amber);
+  color: var(--price);
   line-height: 1;
 }
 
