@@ -143,6 +143,12 @@ export interface PublicStoreProfile {
   showCannabinoids: boolean;
   requireIdVerification: boolean;
   couponsEnabled: boolean;
+  /**
+   * The shop's automatic online discount, in percent, or null. Set in the
+   * dashboard; ENFORCED upstream at order creation. The cart shows it so the
+   * total a customer sees is the total they are charged — never the source of it.
+   */
+  autoDiscountPercent: number | null;
 
   /** Top promo strip. Null hides it — an empty bar is worse than none. */
   promoText: string | null;
@@ -231,6 +237,12 @@ export interface PricedCart {
   discount: number;
   couponMessage: string | null;
   couponApplied: boolean;
+  /**
+   * The automatic online discount as previewed on this cart, or null when the
+   * shop has none or a promo code is applied instead (the two never stack — the
+   * code wins, the same rule upstream applies).
+   */
+  autoDiscount: { percent: number; amount: number } | null;
   /**
    * Separately stated, because R&TC § 34011.2(d) requires the cannabis excise
    * tax to be separately stated on the document the purchaser gets. A single

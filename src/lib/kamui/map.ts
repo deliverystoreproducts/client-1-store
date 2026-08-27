@@ -127,6 +127,15 @@ export function toPublicStoreProfile(t: TenantProfileV1): PublicStoreProfile {
     showCannabinoids: !!t.cannabinoidDisplay,
     requireIdVerification: !!t.requireIdVerification,
     couponsEnabled: !!t.couponsDeals,
+    // Whole percent 1–50 or null — the same bounds upstream enforces, re-checked
+    // so a malformed value can never render as "NaN% off".
+    autoDiscountPercent:
+      typeof t.autoDiscountPercent === "number" &&
+      Number.isInteger(t.autoDiscountPercent) &&
+      t.autoDiscountPercent >= 1 &&
+      t.autoDiscountPercent <= 50
+        ? t.autoDiscountPercent
+        : null,
 
     // The logo is an image reference in the upstream's URL space; the proxy
     // mint is what keeps that host out of our HTML.
