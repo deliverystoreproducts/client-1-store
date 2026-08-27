@@ -5587,3 +5587,198 @@ body::after {
   border-color: var(--pine-3);
   color: var(--pine);
 }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   WEEDMAPS ROWS (2026-08-27) — "Browse by category" pills, section heads,
+   "Deals" strip. The shop window is: hero → categories → brands → deals.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.wm-head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 0 0.9rem;
+}
+
+.wm-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(1.15rem, 2.2vw, 1.4rem);
+  letter-spacing: -0.015em;
+  margin: 0;
+  color: var(--pine);
+}
+
+/* the round "→" Weedmaps puts after a heading */
+.wm-more {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--ground-deep);
+  color: var(--pine);
+  font-size: 1.05rem;
+  line-height: 1;
+  transition: background 0.18s var(--ease);
+}
+
+.wm-more:hover {
+  background: var(--rule);
+}
+
+/* ── category pills ─────────────────────────────────────────────────────── */
+.cat-feature-wrap {
+  margin-bottom: clamp(1.6rem, 4vw, 2.4rem);
+}
+
+.cat-pills {
+  list-style: none;
+  margin: 0;
+  padding: 2px 0 8px;
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+}
+
+.cat-pills::-webkit-scrollbar {
+  display: none;
+}
+
+.cat-pills > li {
+  flex: none;
+  scroll-snap-align: start;
+}
+
+.cat-pill {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: clamp(168px, 16vw, 210px);
+  height: 72px;
+  padding: 0 0.35rem 0 1rem;
+  border-radius: 10px;
+  background: var(--ground-deep);
+  color: var(--pine);
+  overflow: visible;
+  transition: background 0.18s var(--ease), transform 0.18s var(--ease);
+}
+
+.cat-pill:hover {
+  background: var(--rule);
+  transform: translateY(-1px);
+}
+
+.cat-pill:focus-visible {
+  outline: 2px solid var(--fern);
+  outline-offset: 2px;
+}
+
+/* Weedmaps: 1.25rem / 500 / letter-spacing .003rem */
+.cat-pill-name {
+  font-size: 1.15rem;
+  font-weight: 500;
+  letter-spacing: 0.003125rem;
+  line-height: 1.2;
+  text-wrap: balance;
+  min-width: 0;
+}
+
+/* the picture sits on the pill's right edge and may spill past its top/bottom */
+.cat-pill-art {
+  position: relative;
+  flex: none;
+  width: 72px;
+  height: 84px;
+  margin-block: -6px;
+  display: grid;
+  place-items: center;
+}
+
+.cat-pill-art img,
+.cat-pill-art video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 6px 10px rgb(0 0 0 / 0.18));
+}
+
+.cat-pill-art[data-empty="true"] {
+  width: 56px;
+}
+
+.cat-pill-art .slot {
+  position: absolute;
+  inset: 6px 0;
+  border-radius: 8px;
+  font-size: 0.6rem;
+}
+
+/* ── deals strip: the grey rounded container with 16:9 picture cards ─────── */
+.deals-strip {
+  background: var(--ground-deep);
+  border-radius: 18px;
+  padding: clamp(1rem, 2.4vw, 1.4rem) clamp(1rem, 2.4vw, 1.4rem) clamp(0.8rem, 2vw, 1.1rem);
+  margin-bottom: clamp(1.6rem, 4vw, 2.4rem);
+}
+
+.deals-strip .wm-title {
+  color: var(--fern);
+}
+
+.deals-strip .wm-more {
+  background: var(--ground-raise);
+}
+
+.deals-strip .deals-row {
+  display: flex;
+  gap: clamp(0.8rem, 1.6vw, 1.1rem);
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 2px 0 6px;
+  grid-template-columns: none;
+}
+
+.deals-strip .deals-row::-webkit-scrollbar {
+  display: none;
+}
+
+.deals-strip .deal {
+  flex: none;
+  width: clamp(260px, 30vw, 400px);
+}
+
+.deals-strip .deal-frame {
+  aspect-ratio: 16 / 9;
+  border-radius: 14px;
+  border: 0;
+  background: var(--ground-raise);
+}
+
+.deals-strip .deal-type {
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.92);
+  color: var(--pine);
+  font-weight: 600;
+}
+
+.deals-strip .deal-body {
+  padding-top: 0.6rem;
+}
+
+.deals-strip .deal-name {
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.deals-strip .deal-copy {
+  color: var(--pine-3);
+  font-size: var(--t--1);
+}

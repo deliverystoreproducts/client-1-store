@@ -26,12 +26,12 @@ export function BrandRail({ brands }: { brands: PublicBrand[] }) {
 
   return (
     <section className="brand-rail-wrap" aria-labelledby="brands-head">
-      <div className="cat-row-head">
-        <h2 className="cat-row-name" id="brands-head">
-          Shop by brand
+      <div className="wm-head">
+        <h2 className="wm-title" id="brands-head">
+          Featured brands
         </h2>
-        <Link className="cat-row-all" href="/brands">
-          All {brands.length} →
+        <Link className="wm-more" href="/brands" aria-label={`All ${brands.length} brands`}>
+          →
         </Link>
       </div>
 
