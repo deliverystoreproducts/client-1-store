@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: typecheck + build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Version comes from the "packageManager" field in package.json.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # No credentials, on purpose. Every route in this app is server-rendered on
+      # demand, so the build never calls upstream — it logs one "not configured"
+      # line and produces the same output it would with a real key. If a future
+      # change makes the build need a reachable API, that is the regression, not
+      # a reason to put a secret here.
+      - run: pnpm build
+
+      # After build: `next build` generates next-env.d.ts, which is gitignored
+      # and which tsconfig.json includes.
+      - run: pnpm typecheck
+
+      # The suite covers the parts where being wrong is expensive and silent:
+      # the AAMVA parse and the real-WASM barcode decode, the wire->browser
+      # mappers (one asserts a referral coupon's note — another customer's name
+      # and phone — never crosses), the age-gate allowlist, and the browse-filter
+      # round-trip. `vitest run` is non-watch; it exits.
+      - run: pnpm test
