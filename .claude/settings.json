@@ -1,0 +1,16 @@
+{
+  "//": "A Stop hook that runs the real gate. The recurring failure this repo has seen is a change reported as done before typecheck, tests or a build were run — twice in one session that shipped a bug to a live storefront. CI cannot catch it: jobs in this org execute zero steps (unpaid billing), so a red check means nothing and a green one is unavailable. This makes the gate automatic rather than remembered. It is fast: typecheck ~5s, 66 tests <1s.",
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd \"$CLAUDE_PROJECT_DIR\" && { pnpm exec tsc --noEmit 2>&1 | head -15; pnpm exec vitest run 2>&1 | grep -E 'Test Files|Tests '; } || true"
+          }
+        ]
+      }
+    ]
+  }
+}
