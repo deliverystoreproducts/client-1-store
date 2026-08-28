@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { InfiniteShelf } from "@/components/InfiniteShelf";
+import { HeroAI } from "@/components/HeroAI";
+import { HERO_AI } from "@/lib/site";
 import { BrandRail } from "@/components/BrandRail";
 import { MediaSlot } from "@/components/MediaSlot";
 import { CategoryFeature } from "@/components/CategoryFeature";
@@ -109,7 +111,10 @@ export default async function HomePage({
 
   return (
     <>
-      {!browsing ? (
+      {!browsing && HERO_AI ? (
+        <HeroAI storeName={profile.storeName} total={results.total} />
+      ) : null}
+      {!browsing && !HERO_AI ? (
         <section className="hero" data-media="true" data-banner={((heroSrc || heroVideo) && !profile.heroTitle) || undefined}>
           {heroVideo ? (
             /* Video wins over the still when the operator has set one.

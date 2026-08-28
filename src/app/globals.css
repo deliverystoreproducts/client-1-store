@@ -6230,3 +6230,382 @@ body::after {
     min-height: 44px;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   AI BUDTENDER HERO (2026-08-27) — the legacy puffnluff robot, ported.
+   Self-coloured (violet), identical in both themes. NEXT_PUBLIC_HERO_AI=on.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.bud-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: 18px;
+  min-height: 420px;
+  color: #fff;
+  background: linear-gradient(135deg, #7c3aed, #c026d3 55%, #6d28d9);
+  isolation: isolate;
+  margin-bottom: clamp(1.4rem, 3vw, 2.2rem);
+}
+
+.bud-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.bud-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(90deg, rgb(0 0 0 / 0.72), rgb(0 0 0 / 0.38) 50%, rgb(0 0 0 / 0.18));
+  pointer-events: none;
+}
+
+.bud-closed {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  gap: 2rem;
+  align-items: center;
+  padding: clamp(1.6rem, 4vw, 3.2rem);
+  min-height: 420px;
+}
+
+@media (min-width: 820px) {
+  .bud-closed {
+    grid-template-columns: 1.1fr 1fr;
+  }
+}
+
+.bud-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgb(255 255 255 / 0.15);
+  border: 1px solid rgb(255 255 255 / 0.25);
+  backdrop-filter: blur(4px);
+  border-radius: 999px;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 1.1rem;
+}
+
+.bud-badge i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #f0abfc;
+  animation: bud-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes bud-pulse {
+  50% { opacity: 0.35; }
+}
+
+.bud-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.7rem, 4vw, 2.6rem);
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  margin: 0 0 0.6rem;
+  color: #fff;
+  text-wrap: balance;
+}
+
+.bud-sub {
+  color: #ede9fe;
+  max-width: 40ch;
+  margin: 0 0 1.3rem;
+}
+
+.bud-shop {
+  background: #fff;
+  color: #6d28d9;
+}
+
+.bud-shop:hover {
+  background: #fdf4ff;
+  color: #6d28d9;
+}
+
+.bud-card {
+  position: relative;
+  background: rgb(255 255 255 / 0.10);
+  border: 1px solid rgb(255 255 255 / 0.25);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 1.25rem;
+  box-shadow: 0 24px 60px -24px rgb(0 0 0 / 0.5);
+}
+
+.bud-card-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 800;
+  margin: 0 0 0.9rem;
+}
+
+.bud-input-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.bud-input {
+  flex: 1;
+  min-width: 0;
+  min-height: 46px;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.6rem 1.1rem;
+  font-size: 16px;
+  background: rgb(255 255 255 / 0.95);
+  color: #18181b;
+}
+
+.bud-input:focus-visible {
+  outline: 2px solid #f0abfc;
+}
+
+.bud-send {
+  flex: none;
+  width: 46px;
+  height: 46px;
+  border: 0;
+  border-radius: 50%;
+  background: #d946ef;
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.18s var(--ease);
+}
+
+.bud-send:hover {
+  background: #c026d3;
+}
+
+.bud-limit {
+  flex: 1;
+  text-align: center;
+  color: #f5d0fe;
+  margin: 0;
+  font-size: var(--t--1);
+}
+
+.bud-prompts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.9rem;
+}
+
+.bud-prompts button {
+  background: rgb(255 255 255 / 0.12);
+  border: 1px solid rgb(255 255 255 / 0.22);
+  color: #fff;
+  border-radius: 999px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s var(--ease);
+}
+
+.bud-prompts button:hover {
+  background: rgb(255 255 255 / 0.22);
+}
+
+.bud-prompts-center {
+  justify-content: center;
+  margin: 1.2rem 0;
+}
+
+/* ── open chat ── */
+.bud-chat {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  height: min(72dvh, 560px);
+}
+
+.bud-chat-head {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.9rem 1.1rem;
+  border-bottom: 1px solid rgb(255 255 255 / 0.15);
+}
+
+.bud-back {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.12);
+  color: #fff;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.bud-chat-title {
+  font-weight: 800;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.bud-chat-sub {
+  margin: 0;
+  font-size: 0.72rem;
+  color: #f0abfc;
+}
+
+.bud-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.bud-msg {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.bud-msg-user {
+  justify-content: flex-end;
+}
+
+.bud-bubble {
+  max-width: 88%;
+  background: rgb(46 16 101 / 0.92);
+  border: 1px solid rgb(240 171 252 / 0.35);
+  border-radius: 16px 16px 16px 6px;
+  padding: 0.65rem 0.9rem;
+  font-size: var(--t--1);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.bud-msg-user .bud-bubble {
+  background: #fff;
+  color: #6d28d9;
+  font-weight: 600;
+  border: 0;
+  border-radius: 16px 16px 6px 16px;
+  white-space: normal;
+}
+
+.bud-cursor {
+  display: inline-block;
+  width: 8px;
+  height: 16px;
+  border-radius: 4px;
+  background: #f0abfc;
+  animation: bud-pulse 1s ease-in-out infinite;
+}
+
+.bud-chat-foot {
+  border-top: 1px solid rgb(255 255 255 / 0.15);
+  padding: 0.8rem 1.1rem;
+}
+
+/* the product card inside an answer */
+.bud-product {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: rgb(255 255 255 / 0.96);
+  border-radius: 14px;
+  padding: 0.5rem;
+  white-space: normal;
+}
+
+.bud-product-thumb {
+  flex: none;
+  width: 52px;
+  height: 52px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #ede9fe;
+  display: grid;
+  place-items: center;
+  font-size: 1.4rem;
+}
+
+.bud-product-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bud-product-body {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  line-height: 1.25;
+  color: #18181b;
+}
+
+.bud-product-name {
+  font-weight: 700;
+  font-size: 0.82rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bud-product-meta {
+  font-size: 0.7rem;
+  color: #71717a;
+}
+
+.bud-product-price {
+  font-weight: 800;
+  font-size: 0.85rem;
+  color: #18181b;
+}
+
+.bud-product-price s {
+  color: #a1a1aa;
+  font-weight: 400;
+  margin-left: 0.35rem;
+}
+
+.bud-product-add {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: #7c3aed;
+  color: #fff;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background 0.18s var(--ease);
+}
+
+.bud-product-add:hover {
+  background: #6d28d9;
+}
+
+@media (max-width: 860px) {
+  .bud-hero {
+    margin-inline: calc(-1 * var(--gutter));
+    border-radius: 0 0 22px 22px;
+    margin-top: -0.75rem;
+  }
+}

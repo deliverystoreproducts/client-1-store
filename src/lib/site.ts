@@ -109,4 +109,7 @@ export const CART_STORAGE_KEY = "ybs.cart.v1";
  * whoever is loading the artwork can SEE which slots are still empty and which
  * dashboard screen fills each one. Turn it off before the first customer.
  */
+/** The AI-budtender hero (the legacy puffnluff robot) instead of the banner. */
+export const HERO_AI = (process.env.NEXT_PUBLIC_HERO_AI || "").trim().toLowerCase() === "on";
+
 export const MEDIA_HINTS = (process.env.NEXT_PUBLIC_MEDIA_HINTS || "").trim().toLowerCase() === "on";
