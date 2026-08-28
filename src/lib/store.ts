@@ -72,6 +72,7 @@ export const FALLBACK_PROFILE: PublicStoreProfile = {
   showCannabinoids: false,
   requireIdVerification: false,
   couponsEnabled: false,
+  autoDiscountPercent: null,
   logo: null,
   // Even with the backend unreachable, the legal pages must not go blank: the
   // env-var fallbacks (the pre-dashboard way of configuring these) still apply.
@@ -107,6 +108,11 @@ export interface BannerPromo {
  * no banner. Never throws.
  */
 export async function getBannerPromo(): Promise<BannerPromo | null> {
+  // The dashboard's automatic discount supersedes the env-var coupon: when the
+  // operator has set a percent, there is no code to advertise or auto-apply —
+  // the platform takes it off every order by itself.
+  const profile = await getStoreProfile();
+  if (profile.autoDiscountPercent != null) return null;
   const code = (process.env.PROMO_CODE || "WEB10").trim().toUpperCase();
   if (!code || code === "OFF") return null;
   try {
@@ -258,7 +264,7 @@ export async function getCategoryBands(
 
   // The operator's order decides which categories get a band — same reasoning
   // as the feature tiles: they chose it, we do not re-rank it by stock count.
-  const chosen = [...categories].sort((a, b) => a.sortOrder - b.sortOrder).slice(0, bands);
+  const chosen = [...categories].sort((a, b) => (a.sortOrder || 9999) - (b.sortOrder || 9999)).slice(0, bands);
 
   const pages = await Promise.all(
     chosen.map((c) =>
@@ -491,6 +497,24 @@ export async function priceCart(
     couponMessage = "Sign in to use a promo code.";
   }
 
+  // ── automatic online discount (preview) ───────────────────────────────
+  //
+  // Set in the dashboard, ENFORCED by the platform at order creation on the
+  // post-deal subtotal. Mirrored here with the same arithmetic (whole cents,
+  // Math.round) so the total shown is the total charged. Suppressed the moment
+  // a promo code applies: upstream never stacks the two — the code wins.
+  let autoDiscount: PricedCart["autoDiscount"] = null;
+  const autoPct = (await getStoreProfile()).autoDiscountPercent;
+  if (autoPct != null && !couponApplied && subtotalCents > 0) {
+    const autoCents = Math.min(Math.round(subtotalCents * (autoPct / 100)), subtotalCents);
+    if (autoCents > 0) {
+      discountCents = autoCents;
+      autoDiscount = { percent: autoPct, amount: autoCents / 100 };
+      // A code that was refused still shows its own message; a code that was
+      // never typed needs none.
+    }
+  }
+
   // ── taxes (estimate) ──────────────────────────────────────────────────
   //
   // Broken out per component, not lumped: R&TC § 34011.2(d) requires the
@@ -531,6 +555,7 @@ export async function priceCart(
     discount: discountCents / 100,
     couponMessage,
     couponApplied,
+    autoDiscount,
     taxes,
     exciseRatePercent,
     estimatedTotal: Math.max(0, estimatedTotalCents) / 100,
@@ -546,6 +571,7 @@ function emptyCart(): PricedCart {
     discount: 0,
     couponMessage: null,
     couponApplied: false,
+    autoDiscount: null,
     taxes: { city: 0, excise: 0, state: 0, total: 0 },
     exciseRatePercent: null,
     estimatedTotal: 0,

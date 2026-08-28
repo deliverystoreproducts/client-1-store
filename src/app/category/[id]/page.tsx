@@ -64,9 +64,8 @@ export default async function CategoryPage({
         <span>{category.name}</span>
       </nav>
 
-      <div className="section-head">
-        <span className="eyebrow">{category.name}</span>
-        <hr />
+      <div className="wm-head">
+        <h1 className="wm-title">{category.name}</h1>
         {!results.unavailable ? (
           <span className="faint num">
             {results.total} item{results.total === 1 ? "" : "s"}

@@ -1,6 +1,7 @@
 import "server-only";
 
 import { toPublicImageUrl } from "./images";
+import { brandLogoUrl } from "@/lib/brand-art";
 import {
   LEGAL_ENTITY_NAME,
   LICENSE_NUMBER,
@@ -101,7 +102,10 @@ export function toPublicBrand(b: StoreBrandV1): PublicBrand {
     id: b.id,
     name: b.name,
     productCount: b.productCount,
-    image: toPublicImageUrl(b.image ?? null),
+    // The operator's own logo first; failing that, the bundled table matched by
+    // name (lib/brand-art.ts). Both go through the proxy — the browser never
+    // learns where either came from.
+    image: toPublicImageUrl(b.image ?? null) ?? toPublicImageUrl(brandLogoUrl(b.name)),
   };
 }
 
@@ -127,6 +131,15 @@ export function toPublicStoreProfile(t: TenantProfileV1): PublicStoreProfile {
     showCannabinoids: !!t.cannabinoidDisplay,
     requireIdVerification: !!t.requireIdVerification,
     couponsEnabled: !!t.couponsDeals,
+    // Whole percent 1–50 or null — the same bounds upstream enforces, re-checked
+    // so a malformed value can never render as "NaN% off".
+    autoDiscountPercent:
+      typeof t.autoDiscountPercent === "number" &&
+      Number.isInteger(t.autoDiscountPercent) &&
+      t.autoDiscountPercent >= 1 &&
+      t.autoDiscountPercent <= 50
+        ? t.autoDiscountPercent
+        : null,
 
     // The logo is an image reference in the upstream's URL space; the proxy
     // mint is what keeps that host out of our HTML.
@@ -160,7 +173,7 @@ export function toPublicStoreProfile(t: TenantProfileV1): PublicStoreProfile {
 export function toPublicCustomer(c: CustomerProfileV1): PublicCustomer {
   // customerId and referredFrom are upstream bookkeeping; the browser has no
   // use for either and an id is a handle we would rather not publish.
-  return { name: c.name, phone: c.phone, address: c.address };
+  return { name: c.name, phone: c.phone, address: c.address, hasId: !!c.hasId };
 }
 
 /**

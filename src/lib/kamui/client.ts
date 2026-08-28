@@ -276,7 +276,7 @@ export function getProduct(id: number): Promise<ProductDetailResponse> {
 
 export function listCategories(): Promise<ListCategoriesResponse> {
   return call<ListCategoriesResponse>("GET", `${API_PREFIX}/categories`, {}, {
-    revalidate: 300,
+    revalidate: 60, // a dashboard reorder or new picture shows within a minute,
     tags: ["catalog"],
   });
 }
@@ -398,6 +398,21 @@ export function registerCustomer(
   if (fields.idPhoto) form.set("idPhoto", fields.idPhoto);
   return call<RegisterResponse>("POST", `${API_PREFIX}/auth/register`, { form }, {
     customerToken: verifiedPhoneToken,
+  });
+}
+
+/**
+ * Attach a government-ID photo to a signed-in customer. Upstream stores the
+ * object and flips `hasId`; the storefront never sees the file again.
+ */
+export function uploadIdPhoto(
+  customerToken: string,
+  photo: File,
+): Promise<{ key?: string }> {
+  const form = new FormData();
+  form.set("photo", photo);
+  return call<{ key?: string }>("POST", `${API_PREFIX}/account/id-photo`, { form }, {
+    customerToken,
   });
 }
 

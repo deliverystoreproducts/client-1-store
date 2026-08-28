@@ -7,14 +7,14 @@ import { CartProvider } from "@/components/CartProvider";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { SiteHeader } from "@/components/SiteHeader";
 import { PromoBar } from "@/components/PromoBar";
+import { ScrollChrome } from "@/components/ScrollChrome";
 import { StoreUnavailable } from "@/components/StoreUnavailable";
 import { SwRegister } from "@/components/SwRegister";
 import { isUpstreamConfigured } from "@/lib/kamui/env";
 import { OPEN_ROUTE_HEADER } from "@/lib/open-routes";
 import { hasPassedAgeGate } from "@/lib/session";
 import { getStoreProfile } from "@/lib/store";
-import { LICENSE_PLACEHOLDER, MISSING, SITE_TAGLINE } from "@/lib/site";
-import { DELIVERY_WINDOW_LABEL } from "@/lib/hours";
+import { SITE_TAGLINE } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: {
@@ -56,12 +56,14 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f6fbf2" },
-    { media: "(prefers-color-scheme: dark)", color: "#120b1e" },
-  ],
+  // Light is the default; the in-app toggle rewrites this when a visitor picks dark.
+  themeColor: "#ffffff",
   width: "device-width",
   initialScale: 1,
+  // Lets the sticky header paint up under the iPhone status bar. Without it,
+  // Safari scrolls the page beneath a translucent bar and the header appears to
+  // float below a strip of blurred product photos.
+  viewportFit: "cover",
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
@@ -120,14 +122,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             the preload must be anonymous or the browser fetches them twice. */}
         <link
           rel="preload"
-          href="/fonts/fraunces-latin-var.woff2"
-          as="font"
-          type="font/woff2"
-          crossOrigin="anonymous"
-        />
-        <link
-          rel="preload"
-          href="/fonts/archivo-latin-var.woff2"
+          href="/fonts/figtree-latin-var.woff2"
           as="font"
           type="font/woff2"
           crossOrigin="anonymous"
@@ -143,8 +138,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         ) : (
           <CartProvider>
             <div className="shell">
-              <PromoBar text={profile.promoText} badge={profile.promoBadge} href={profile.promoHref} />
-              <SiteHeader storeName={storeName} logo={profile.logo} />
+              {/* One sticky block — promo strip + header — padded for the
+                  phone's status bar so the black reaches the top edge. */}
+              <ScrollChrome />
+              {/* Desktop: ticker above the bar. Phone: white bar first, ticker
+                  under it, and both float transparent over a banner hero until
+                  the page scrolls (globals.css "PHONE CHROME"). */}
+              <div className="hdr-stack">
+                <PromoBar text={profile.promoText} badge={profile.promoBadge} href={profile.promoHref} />
+                <SiteHeader storeName={storeName} logo={profile.logo} />
+              </div>
               <main className="main">
                 <div className="wrap">{children}</div>
               </main>
@@ -182,7 +185,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                     <nav className="footer-col" aria-label="Shop">
                       <span className="footer-head">Shop</span>
                       <Link href="/">Home</Link>
-                      <Link href="/products">Categories</Link>
+                      <Link href="/categories">Categories</Link>
                       <Link href="/brands">Brands</Link>
                     </nav>
 
@@ -198,10 +201,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                       <Link href="/contact">Contact</Link>
                     </nav>
 
+                    {profile.privacyContactAddress || profile.contactPhone || profile.contactEmail ? (
                     <div className="footer-col" aria-label="Contact">
                       <span className="footer-head">Contact</span>
                       {profile.privacyContactAddress ? <p>{profile.privacyContactAddress}</p> : null}
-                      <p>Hours: {DELIVERY_WINDOW_LABEL}</p>
                       {profile.contactPhone ? (
                         <a href={`tel:${profile.contactPhone}`}>{profile.contactPhone}</a>
                       ) : null}
@@ -209,6 +212,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                         <a href={`mailto:${profile.contactEmail}`}>{profile.contactEmail}</a>
                       ) : null}
                     </div>
+                    ) : null}
                   </div>
 
                   <div className="footer-legal">

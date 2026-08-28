@@ -8,22 +8,23 @@ const KEY = "ybs.theme";
  *  in-app flip leaves the browser chrome painted for the OS theme. Overwrite
  *  both metas with the chosen ground so the chrome follows the toggle. */
 function syncChromeColor(dark: boolean) {
-  const color = dark ? "#120b1e" : "#f6fbf2";
+  const color = dark ? "#18181b" : "#ffffff";
   document
     .querySelectorAll('meta[name="theme-color"]')
     .forEach((m) => m.setAttribute("content", color));
 }
 
-/** Sun/moon toggle. The inline script in layout.tsx applies the saved choice
- *  before first paint; this button only has to flip and remember. */
+/** Dark-mode switch. Lives in the menus (More ▾ / burger sheet), never in the
+ *  bar itself. The inline script in layout.tsx applies the saved choice before
+ *  first paint; this control only has to flip and remember. */
 export function ThemeToggle() {
   const [dark, setDark] = useState<boolean | null>(null);
 
   useEffect(() => {
+    // Light by default. The OS preference is deliberately NOT consulted: the
+    // store has one look, and dark is an opt-in the visitor makes here.
     const attr = document.documentElement.getAttribute("data-theme");
-    const isDark =
-      attr ? attr === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
-    setDark(isDark);
+    setDark(attr === "dark");
     if (attr) syncChromeColor(attr === "dark");
   }, []);
 
@@ -32,7 +33,9 @@ export function ThemeToggle() {
   return (
     <button
       className="theme-toggle"
-      aria-label={dark ? "Switch to light theme" : "Switch to dark theme"}
+      role="switch"
+      aria-checked={dark}
+      aria-label="Dark mode"
       onClick={() => {
         const next = !dark;
         setDark(next);
@@ -43,7 +46,10 @@ export function ThemeToggle() {
         } catch {}
       }}
     >
-      {dark ? "\u2600" : "\u263E"}
+      <span className="theme-toggle-label">Dark mode</span>
+      <span className="theme-toggle-track" aria-hidden>
+        <span className="theme-toggle-knob" />
+      </span>
     </button>
   );
 }

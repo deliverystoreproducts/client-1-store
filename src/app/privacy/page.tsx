@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
-  LICENSE_PLACEHOLDER,
-  MISSING,
   SITE_NAME,
 } from "@/lib/site";
 import { getStoreProfile } from "@/lib/store";
@@ -60,13 +58,6 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-function Missing({ env }: { env: string }) {
-  return (
-    <span className="license" data-missing="true">
-      {MISSING(env)}
-    </span>
-  );
-}
 
 export default async function PrivacyPage() {
   // Business identity resolved server-side: dashboard value first, env
@@ -84,22 +75,20 @@ export default async function PrivacyPage() {
     <article className="legal">
       <h1 className="display">Privacy policy</h1>
 
-      <div className="legal-meta">
-        <span>
-          Effective date:{" "}
+      {POLICY_EFFECTIVE_DATE || LICENSE_NUMBER ? (
+        <div className="legal-meta">
           {POLICY_EFFECTIVE_DATE ? (
-            <strong>{POLICY_EFFECTIVE_DATE}</strong>
-          ) : (
-            <Missing env="Policy effective date" />
-          )}
-        </span>
-        <span>
-          Licence{" "}
-          <span className="license" data-missing={!LICENSE_NUMBER}>
-            {LICENSE_NUMBER || LICENSE_PLACEHOLDER}
-          </span>
-        </span>
-      </div>
+            <span>
+              Effective date: <strong>{POLICY_EFFECTIVE_DATE}</strong>
+            </span>
+          ) : null}
+          {LICENSE_NUMBER ? (
+            <span>
+              Licence <span className="license">{LICENSE_NUMBER}</span>
+            </span>
+          ) : null}
+        </div>
+      ) : null}
 
       <p>
         This policy explains what {SITE_NAME}{" "}
@@ -110,21 +99,16 @@ export default async function PrivacyPage() {
 
       <h2>Who we are</h2>
       <p>
-        This store is operated by{" "}
-        {LEGAL_ENTITY_NAME ? (
-          <strong>{LEGAL_ENTITY_NAME}</strong>
-        ) : (
-          <Missing env="Legal entity name" />
-        )}
-        , a cannabis retailer licensed by the California Department of Cannabis Control under
-        licence{" "}
-        <span className="license" data-missing={!LICENSE_NUMBER}>
-          {LICENSE_NUMBER || LICENSE_PLACEHOLDER}
-        </span>
-        . You can check that licence at{" "}
-        <a href="https://search.cannabis.ca.gov/" rel="noopener noreferrer" target="_blank">
-          search.cannabis.ca.gov
-        </a>
+        This store is operated by {LEGAL_ENTITY_NAME ? <strong>{LEGAL_ENTITY_NAME}</strong> : SITE_NAME}
+        {LICENSE_NUMBER ? (
+          <>
+            , a cannabis retailer licensed by the California Department of Cannabis Control under
+            licence <span className="license">{LICENSE_NUMBER}</span>. You can check that licence at{" "}
+            <a href="https://search.cannabis.ca.gov/" rel="noopener noreferrer" target="_blank">
+              search.cannabis.ca.gov
+            </a>
+          </>
+        ) : null}
         .
       </p>
 
@@ -263,22 +247,26 @@ export default async function PrivacyPage() {
         way to see the current version.
       </p>
 
-      <h2>Contact us</h2>
-      <p>
-        Questions about this policy, or a request about your information:
-        <br />
-        {PRIVACY_CONTACT_EMAIL ? (
-          <a href={`mailto:${PRIVACY_CONTACT_EMAIL}`}>{PRIVACY_CONTACT_EMAIL}</a>
-        ) : (
-          <Missing env="Privacy contact email" />
-        )}
-        <br />
-        {PRIVACY_CONTACT_ADDRESS ? (
-          PRIVACY_CONTACT_ADDRESS
-        ) : (
-          <Missing env="Privacy contact address" />
-        )}
-      </p>
+      {PRIVACY_CONTACT_EMAIL || PRIVACY_CONTACT_ADDRESS ? (
+        <>
+          <h2>Contact us</h2>
+          <p>
+            Questions about this policy, or a request about your information:
+            {PRIVACY_CONTACT_EMAIL ? (
+              <>
+                <br />
+                <a href={`mailto:${PRIVACY_CONTACT_EMAIL}`}>{PRIVACY_CONTACT_EMAIL}</a>
+              </>
+            ) : null}
+            {PRIVACY_CONTACT_ADDRESS ? (
+              <>
+                <br />
+                {PRIVACY_CONTACT_ADDRESS}
+              </>
+            ) : null}
+          </p>
+        </>
+      ) : null}
 
       <p className="mt-3">
         <Link className="btn btn-ghost btn-sm" href="/">

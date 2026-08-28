@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ProductCard } from "@/components/ProductCard";
+import { InfiniteShelf } from "@/components/InfiniteShelf";
 import { browseQueryString, type BrowseFilters, type PinnedDimension } from "@/lib/catalog-query";
 import type { PublicProductPage } from "@/lib/public-types";
 
@@ -60,34 +60,9 @@ export function ProductResults({
     );
   }
 
-  const pageHref = (n: number) => `${basePath}${browseQueryString(filters, { page: n }, pinned)}`;
-  const firstOnPage = (results.page - 1) * pageSize;
+  // The feed appends pages after this server-rendered one; the query it
+  // continues from is this page's own filters, minus the page number.
+  const query = browseQueryString(filters, {}, pinned);
 
-  return (
-    <>
-      <div className="catalogue">
-        {results.products.map((p, i) => (
-          <ProductCard key={p.id} product={p} index={firstOnPage + i + 1} />
-        ))}
-      </div>
-
-      {results.totalPages > 1 ? (
-        <nav className="pager" aria-label="Pagination">
-          {results.page > 1 ? (
-            <Link className="btn btn-ghost btn-sm" href={pageHref(results.page - 1)}>
-              ← Previous
-            </Link>
-          ) : null}
-          <span className="eyebrow num">
-            Page {results.page} / {results.totalPages}
-          </span>
-          {results.page < results.totalPages ? (
-            <Link className="btn btn-ghost btn-sm" href={pageHref(results.page + 1)}>
-              Next →
-            </Link>
-          ) : null}
-        </nav>
-      ) : null}
-    </>
-  );
+  return <InfiniteShelf initial={results} query={query} pageSize={pageSize} />;
 }

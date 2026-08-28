@@ -1,5 +1,6 @@
 import { failFromUpstream, json } from "@/lib/http";
 import { getCatalogPage, type CatalogQuery } from "@/lib/store";
+import { parseBrowseFilters, toCatalogQuery } from "@/lib/catalog-query";
 
 /**
  * GET /api/catalog — the browsable catalog, for client-side search and paging.
@@ -11,27 +12,19 @@ import { getCatalogPage, type CatalogQuery } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
 
-const SORTS = new Set(["price_asc", "price_desc", "name_asc", "newest"]);
-
-function intParam(sp: URLSearchParams, key: string): number | undefined {
-  const raw = sp.get(key);
-  if (!raw) return undefined;
-  const n = Number(raw);
-  return Number.isInteger(n) && n > 0 ? n : undefined;
-}
-
 export async function GET(req: Request): Promise<Response> {
   const sp = new URL(req.url).searchParams;
-  const sortRaw = sp.get("sort");
-
+  // The same parser the shelf pages use, so the feed's second page is filtered
+  // exactly like the server-rendered first one — genetics, price, THC included.
+  const bag: Record<string, string> = {};
+  sp.forEach((v, k) => {
+    bag[k] = v;
+  });
+  const filters = parseBrowseFilters(bag);
+  const limitRaw = Number(sp.get("limit"));
+  const limit = Number.isInteger(limitRaw) && limitRaw > 0 ? Math.min(48, limitRaw) : 24;
   const query: CatalogQuery = {
-    search: sp.get("q")?.slice(0, 120) || undefined,
-    categoryId: intParam(sp, "category"),
-    brandId: intParam(sp, "brand"),
-    sort: sortRaw && SORTS.has(sortRaw) ? (sortRaw as CatalogQuery["sort"]) : undefined,
-    page: intParam(sp, "page") ?? 1,
-    limit: Math.min(48, intParam(sp, "limit") ?? 24),
-    onSale: sp.get("onSale") === "true" || undefined,
+    ...toCatalogQuery(filters, limit),
     featured: sp.get("featured") === "true" || undefined,
   };
 

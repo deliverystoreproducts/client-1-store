@@ -77,6 +77,6 @@ export const config = {
    *     none of them carry catalogue data.
    */
   matcher: [
-    "/((?!api|_next/static|_next/image|fonts|favicon.ico|icon.svg|robots.txt|manifest.webmanifest|sw.js|offline.html|icons/|splash/|apple-icon.png|dcc-safer-use-brochure.pdf).*)",
+    "/((?!api|_next/static|_next/image|fonts|favicon.ico|icon.svg|robots.txt|manifest.webmanifest|sw.js|offline.html|icons/|splash/|categories/[a-z-]+\\.png|apple-icon.png|dcc-safer-use-brochure.pdf).*)",
   ],
 };

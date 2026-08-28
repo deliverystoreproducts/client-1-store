@@ -75,17 +75,17 @@ export function SearchSuggest({ id = "hdr-q" }: { id?: string }) {
 
   // One flat list so arrow keys cross group boundaries the way a person expects.
   const flat: Flat[] = [
-    ...sug.products.map((p) => ({
-      key: `p${p.id}`,
-      href: `/product/${p.id}`,
-      label: p.name,
-    })),
     ...sug.categories.map((c) => ({
       key: `c${c.id}`,
       href: `/category/${c.id}`,
       label: c.name,
     })),
     ...sug.brands.map((b) => ({ key: `b${b.id}`, href: `/brand/${b.id}`, label: b.name })),
+    ...sug.products.map((p) => ({
+      key: `p${p.id}`,
+      href: `/product/${p.id}`,
+      label: p.name,
+    })),
   ];
   const hasAny = flat.length > 0;
 
@@ -158,41 +158,9 @@ export function SearchSuggest({ id = "hdr-q" }: { id?: string }) {
 
       {open && hasAny ? (
         <div className="hdr-pop" id={`${id}-list`} role="listbox" aria-label="Search suggestions">
-          {sug.products.length > 0 ? (
-            <div className="hdr-group">
-              <span className="hdr-group-head" role="presentation">
-                Products
-              </span>
-              {sug.products.map((p) => {
-                idx += 1;
-                const i = idx;
-                return (
-                  <div
-                    key={p.id}
-                    id={`${id}-opt-${i}`}
-                    role="option"
-                    aria-selected={i === active}
-                    className="hdr-opt"
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      go(`/product/${p.id}`);
-                    }}
-                    onMouseEnter={() => setActive(i)}
-                  >
-                    {p.image ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img className="hdr-thumb" src={p.image} alt="" loading="lazy" />
-                    ) : (
-                      <span className="hdr-thumb hdr-thumb-empty" aria-hidden />
-                    )}
-                    <span className="hdr-opt-name">{p.name}</span>
-                    <span className="hdr-opt-meta num">{formatUsd(p.unitPrice)}</span>
-                  </div>
-                );
-              })}
-            </div>
-          ) : null}
-
+          {/* Categories and brands first: short lists, and on a phone the
+              keyboard covers the bottom half of this panel — the things a
+              shopper types a brand name to reach must not sit under it. */}
           {(
             [
               ["Categories", sug.categories, "category"],
@@ -228,6 +196,41 @@ export function SearchSuggest({ id = "hdr-q" }: { id?: string }) {
               </div>
             ) : null,
           )}
+
+          {sug.products.length > 0 ? (
+            <div className="hdr-group">
+              <span className="hdr-group-head" role="presentation">
+                Products
+              </span>
+              {sug.products.map((p) => {
+                idx += 1;
+                const i = idx;
+                return (
+                  <div
+                    key={p.id}
+                    id={`${id}-opt-${i}`}
+                    role="option"
+                    aria-selected={i === active}
+                    className="hdr-opt"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      go(`/product/${p.id}`);
+                    }}
+                    onMouseEnter={() => setActive(i)}
+                  >
+                    {p.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img className="hdr-thumb" src={p.image} alt="" loading="lazy" />
+                    ) : (
+                      <span className="hdr-thumb hdr-thumb-empty" aria-hidden />
+                    )}
+                    <span className="hdr-opt-name">{p.name}</span>
+                    <span className="hdr-opt-meta num">{formatUsd(p.unitPrice)}</span>
+                  </div>
+                );
+              })}
+            </div>
+          ) : null}
 
           <button
             className="hdr-all"

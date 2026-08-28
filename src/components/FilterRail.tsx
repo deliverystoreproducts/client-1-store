@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { FiltersFold } from "@/components/FiltersFold";
+import { AutoSubmit } from "@/components/AutoSubmit";
 import {
   GENETICS,
   SORTS,
@@ -61,6 +63,14 @@ export function FilterRail({
   showCannabinoids: boolean;
 }) {
   const applied = activeFilterCount(filters, pinned);
+  // What the fold hides: everything except search and genetics.
+  const folded =
+    (filters.sortRaw ? 1 : 0) +
+    (filters.categoryId && pinned !== "category" ? 1 : 0) +
+    (filters.brandId && pinned !== "brand" ? 1 : 0) +
+    (filters.minPrice != null || filters.maxPrice != null ? 1 : 0) +
+    (filters.minThc != null || filters.maxThc != null ? 1 : 0) +
+    (filters.onSale ? 1 : 0);
   const priceOpen = filters.minPrice != null || filters.maxPrice != null;
   const thcOpen = filters.minThc != null || filters.maxThc != null;
 
@@ -75,19 +85,37 @@ export function FilterRail({
         ) : null}
       </div>
 
-      <div className="search">
-        <label className="sr-only" htmlFor="f-q">
-          Search products
-        </label>
-        <input
-          id="f-q"
-          type="search"
-          name="q"
-          defaultValue={filters.search}
-          placeholder="Search the shelf…"
-        />
+      {/* Keeps a typed search on the shelf when a filter changes; the header
+          is where a customer searches. */}
+      {filters.search ? <input type="hidden" name="q" value={filters.search} /> : null}
+      <AutoSubmit />
+
+      <div className="field">
+        <span className="label">Genetics</span>
+        {/* Radios, not chips-as-links: they belong to this form's submission and
+            must round-trip with everything else the customer has set. */}
+        <div className="radio-row">
+          <label className="radio">
+            <input type="radio" name="genetics" value="" defaultChecked={!filters.genetics} />
+            <span>Any</span>
+          </label>
+          {GENETICS.map((g) => (
+            <label className="radio" key={g}>
+              <input
+                type="radio"
+                name="genetics"
+                value={g}
+                defaultChecked={filters.genetics === g}
+              />
+              <span>{g}</span>
+            </label>
+          ))}
+        </div>
       </div>
 
+      {/* Search and genetics are the two filters a phone shopper actually reaches
+          for; everything else waits behind the Filters button (open on desktop). */}
+      <FiltersFold applied={folded} startOpen={folded > 0}>
       <div className="field">
         <label className="label" htmlFor="f-sort">
           Sort
@@ -142,29 +170,6 @@ export function FilterRail({
           </select>
         </div>
       ) : null}
-
-      <div className="field">
-        <span className="label">Genetics</span>
-        {/* Radios, not chips-as-links: they belong to this form's submission and
-            must round-trip with everything else the customer has set. */}
-        <div className="radio-row">
-          <label className="radio">
-            <input type="radio" name="genetics" value="" defaultChecked={!filters.genetics} />
-            <span>Any</span>
-          </label>
-          {GENETICS.map((g) => (
-            <label className="radio" key={g}>
-              <input
-                type="radio"
-                name="genetics"
-                value={g}
-                defaultChecked={filters.genetics === g}
-              />
-              <span>{g}</span>
-            </label>
-          ))}
-        </div>
-      </div>
 
       <details className="filter-group" open={priceOpen}>
         <summary>Price</summary>
@@ -255,16 +260,16 @@ export function FilterRail({
         <span>On sale only</span>
       </label>
 
-      <button className="btn btn-clay btn-block" type="submit">
-        Show {total > 0 ? <span className="num">{total}</span> : null} result
-        {total === 1 ? "" : "s"}
-      </button>
+      </FiltersFold>
 
-      {/* Submitting resets to page 1 by omission — there is no page input here.
-          Keeping one would strand a customer on page 4 of a shelf that now has
-          one page. `browseQueryString` enforces the same rule for links. */}
+      {/* Filters apply as they change (AutoSubmit). Only a browser without
+          JavaScript needs a button. Submitting resets to page 1 by omission —
+          there is no page input here. */}
       <noscript>
-        <p className="small muted mt-1">Press “Show results” to apply your filters.</p>
+        <button className="btn btn-outline btn-block" type="submit">
+          Show {total > 0 ? <span className="num">{total}</span> : null} result
+          {total === 1 ? "" : "s"}
+        </button>
       </noscript>
     </form>
   );

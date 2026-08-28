@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { LICENSE_PLACEHOLDER } from "@/lib/site";
 
 /**
  * Legal-age confirmation.
@@ -132,12 +131,14 @@ export function AgeGate({ minAge, storeName, licenseNumber }: { minAge: number; 
             posted, and `src/lib/open-routes.ts` is what makes this link lead
             somewhere instead of back to the gate. */}
         <p className="gate-fine" data-reveal style={{ "--i": 6 } as React.CSSProperties}>
-          Licensed California cannabis retailer
-          <span className="gate-licence">
-            <span className="license" data-missing={!licenseNumber}>
-              {licenseNumber || LICENSE_PLACEHOLDER}
-            </span>
-          </span>
+          {licenseNumber ? (
+            <>
+              Licensed California cannabis retailer
+              <span className="gate-licence">
+                <span className="license">{licenseNumber}</span>
+              </span>
+            </>
+          ) : null}
           <Link className="link" href="/privacy">
             Privacy policy
           </Link>

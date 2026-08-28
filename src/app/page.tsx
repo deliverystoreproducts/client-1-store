@@ -1,12 +1,13 @@
 import Link from "next/link";
-import { ProductCard } from "@/components/ProductCard";
+import { InfiniteShelf } from "@/components/InfiniteShelf";
+import { HeroAI } from "@/components/HeroAI";
+import { HERO_AI } from "@/lib/site";
 import { BrandRail } from "@/components/BrandRail";
 import { MediaSlot } from "@/components/MediaSlot";
 import { CategoryFeature } from "@/components/CategoryFeature";
 import { CategoryRow } from "@/components/CategoryRow";
 import { FeaturedCarousel } from "@/components/FeaturedCarousel";
 import { DealCard } from "@/components/DealCard";
-import { DeliveryAreas, HighlightStrip } from "@/components/ShopWindow";
 import {
   getBrands,
   getCatalogPage,
@@ -16,7 +17,6 @@ import {
   getDeals,
   getStoreProfile,
 } from "@/lib/store";
-import { DELIVERY_WINDOW_SHORT, deliveryWindowNotice, isWithinDeliveryWindow } from "@/lib/hours";
 
 /**
  * Home / browse. Server-rendered, and the filters are a plain GET form: search,
@@ -75,15 +75,6 @@ export default async function HomePage({
   // entirely while browsing — the bands are shop-window furniture.
   const bands = browsing ? [] : await getCategoryBands(categories, { bands: 6, perBand: 4 });
 
-  const pageHref = (n: number) => {
-    const qs = new URLSearchParams();
-    if (search) qs.set("q", search);
-    if (categoryId) qs.set("category", String(categoryId));
-    if (sortRaw) qs.set("sort", sortRaw);
-    if (n > 1) qs.set("page", String(n));
-    const s = qs.toString();
-    return s ? `/?${s}#catalogue` : "/#catalogue";
-  };
 
   /**
    * A category is a PLACE now (/category/5), not a query param on the home
@@ -104,14 +95,8 @@ export default async function HomePage({
     return s ? `/category/${id}?${s}` : `/category/${id}`;
   };
 
-  // 4 CCR § 15403 caps delivery at 06:00–22:00 Pacific. We do not block ordering
-  // on it (whether placement outside the window is lawful is unsettled) — we just
-  // never let a customer find out after the fact.
-  const openForDelivery = isWithinDeliveryWindow();
-  const hoursNotice = deliveryWindowNotice();
 
   const activeCategory = categories.find((c) => c.id === categoryId);
-  const firstOnPage = (page - 1) * PAGE_SIZE;
 
   // No stand-in photograph. This used to fall back to a stock Unsplash image,
   // which is the worst of both worlds: a real photograph of someone else's shop,
@@ -126,8 +111,11 @@ export default async function HomePage({
 
   return (
     <>
-      {!browsing ? (
-        <section className="hero" data-media="true">
+      {!browsing && HERO_AI ? (
+        <HeroAI storeName={profile.storeName} total={results.total} />
+      ) : null}
+      {!browsing && !HERO_AI ? (
+        <section className="hero" data-media="true" data-banner={((heroSrc || heroVideo) && !profile.heroTitle) || undefined}>
           {heroVideo ? (
             /* Video wins over the still when the operator has set one.
                muted + playsInline + autoPlay is the only combination a phone
@@ -167,6 +155,12 @@ export default async function HomePage({
             />
           )}
 
+          {/* A banner the operator uploaded WITHOUT a headline is the whole
+              hero — the reference site's logo banner, nothing written over it.
+              The facts strip still shows below the shelf-top in that case (see
+              .hero-facts-only). A headline, or no picture at all, brings the
+              plaque back. */}
+          {(heroSrc || heroVideo) && !profile.heroTitle ? null : (
           <div className="hero-body">
             <div>
               <span className="eyebrow" data-reveal style={{ "--i": 0 } as React.CSSProperties}>
@@ -191,7 +185,6 @@ export default async function HomePage({
                   />
                   {profile.open ? "Taking orders" : "Closed"}
                 </span>
-                <span className="fact">{DELIVERY_WINDOW_SHORT}</span>
                 <span className="fact">Cash on delivery</span>
                 <span className="fact">{profile.minAge}+ with valid ID at the door</span>
                 {profile.contactPhone ? (
@@ -206,6 +199,7 @@ export default async function HomePage({
               </p>
             </div>
           </div>
+          )}
         </section>
       ) : null}
 
@@ -214,58 +208,49 @@ export default async function HomePage({
           <strong>We&apos;re not taking orders right now.</strong> You can still browse — please
           check back soon.
         </div>
-      ) : !openForDelivery ? (
-        <div className="notice mb-3">
-          <strong>Outside delivery hours.</strong> {hoursNotice} Order any time — it goes out when
-          the window opens.
-        </div>
       ) : null}
 
-      {/* Directly under the hero: the three promises, then where we go. Both
-          render nothing when the operator has not set them, so the page simply
-          tightens up rather than showing empty furniture. */}
-      {!browsing ? <HighlightStrip items={profile.highlights} /> : null}
-      {!browsing ? <DeliveryAreas cities={profile.deliveryCities} /> : null}
+      {/* The Weedmaps order, straight under the hero: what KIND (categories),
+          WHOSE (brands), what's ON (deals) — then the shelf. The promise strip
+          and the delivery-area list that used to sit here were removed at the
+          owner's request (2026-08-27); the copy still exists on the profile and
+          the checkout still enforces the zones. All three rails are hidden the
+          moment a customer starts filtering — at that point they are shopping,
+          not browsing. */}
+      {!browsing ? <CategoryFeature categories={categories} /> : null}
+      {!browsing ? <BrandRail brands={brands} /> : null}
 
-      {/* Featured leads the shelf — hand-picked when the operator has picked,
-          a spread of the catalogue when they have not, so the row is never an
-          empty band under a promise. */}
+      {deals.length > 0 ? (
+        <section className="deals-strip" aria-labelledby="deals-head">
+          <div className="wm-head">
+            <h2 className="wm-title" id="deals-head">
+              Deals
+            </h2>
+            <Link className="wm-more" href="/deals" aria-label="All deals">
+              →
+            </Link>
+          </div>
+          <div className="deals-row">
+            {deals.map((d, i) => (
+              <DealCard key={d.id} deal={d} index={i + 1} />
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {/* Featured — hand-picked when the operator has picked, a spread of the
+          catalogue when they have not, so the row is never an empty band. */}
       {featured.length > 0 ? (
         <section className="cat-row" aria-labelledby="featured-head">
           <div className="cat-row-head">
             <h2 className="cat-row-name" id="featured-head">
-              Featured
+              Featured items
             </h2>
             <Link className="cat-row-all" href="/products">
               View all →
             </Link>
           </div>
           <FeaturedCarousel products={featured} />
-        </section>
-      ) : null}
-
-      {/* The shop window, in the order a customer shops it: who makes it, what
-          kind it is, what's on offer, then everything else. Hidden the moment
-          they start filtering — at that point they are shopping, not browsing. */}
-      {!browsing ? <BrandRail brands={brands} /> : null}
-      {!browsing ? <CategoryFeature categories={categories} /> : null}
-
-      {deals.length > 0 ? (
-        <section className="deals-strip" aria-labelledby="deals-head">
-          <div className="section-head">
-            <span className="eyebrow" id="deals-head">
-              On offer
-            </span>
-            <hr />
-            <Link className="btn btn-link btn-sm" href="/deals">
-              All deals →
-            </Link>
-          </div>
-          <div className="deals-row">
-            {deals.slice(0, 3).map((d, i) => (
-              <DealCard key={d.id} deal={d} index={i + 1} />
-            ))}
-          </div>
         </section>
       ) : null}
 
@@ -368,31 +353,18 @@ export default async function HomePage({
             )}
           </div>
         ) : (
-          <>
-            <div className="catalogue">
-              {results.products.map((p, i) => (
-                <ProductCard key={p.id} product={p} index={firstOnPage + i + 1} />
-              ))}
-            </div>
-
-            {results.totalPages > 1 ? (
-              <nav className="pager" aria-label="Pagination">
-                {page > 1 ? (
-                  <Link className="btn btn-ghost btn-sm" href={pageHref(page - 1)}>
-                    ← Previous
-                  </Link>
-                ) : null}
-                <span className="eyebrow num">
-                  Page {page} / {results.totalPages}
-                </span>
-                {page < results.totalPages ? (
-                  <Link className="btn btn-ghost btn-sm" href={pageHref(page + 1)}>
-                    Next →
-                  </Link>
-                ) : null}
-              </nav>
-            ) : null}
-          </>
+          <InfiniteShelf
+            initial={results}
+            query={(() => {
+              const qs = new URLSearchParams();
+              if (search) qs.set("q", search);
+              if (categoryId) qs.set("category", String(categoryId));
+              if (sortRaw) qs.set("sort", sortRaw);
+              const q = qs.toString();
+              return q ? `?${q}` : "";
+            })()}
+            pageSize={PAGE_SIZE}
+          />
         )}
       </section>
     </>
