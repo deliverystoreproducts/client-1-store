@@ -264,7 +264,7 @@ export async function getCategoryBands(
 
   // The operator's order decides which categories get a band — same reasoning
   // as the feature tiles: they chose it, we do not re-rank it by stock count.
-  const chosen = [...categories].sort((a, b) => a.sortOrder - b.sortOrder).slice(0, bands);
+  const chosen = [...categories].sort((a, b) => (a.sortOrder || 9999) - (b.sortOrder || 9999)).slice(0, bands);
 
   const pages = await Promise.all(
     chosen.map((c) =>

@@ -18,7 +18,9 @@ export const metadata: Metadata = {
 
 export default async function CategoriesPage() {
   const categories = await getCategories();
-  const ordered = [...categories].sort((a, b) => a.sortOrder - b.sortOrder);
+  // sortOrder 0 means "never ordered by the operator" — those go LAST, so the
+  // curated categories (1, 2, 3…) lead the rail instead of trailing it.
+  const ordered = [...categories].sort((a, b) => (a.sortOrder || 9999) - (b.sortOrder || 9999));
 
   return (
     <section>
