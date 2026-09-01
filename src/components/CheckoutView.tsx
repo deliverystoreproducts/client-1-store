@@ -334,12 +334,13 @@ export function CheckoutView({
           <div className="mt-2">
             <SignInFlow
               onSignedIn={onSignedIn}
-              // Never here, whatever the store setting says: checkout scans the
-              // ID unconditionally a few steps below, and asking a brand-new
-              // customer to photograph both sides of their licence twice in one
-              // sitting is how a signup gets abandoned. The setting still
-              // governs the standalone /signin form.
-              requireIdPhoto={false}
+              // The store's setting, same as /signin. This was hardcoded false
+              // ("checkout scans the ID a few steps below") — but the platform
+              // REFUSES to create the account without the photo when the store
+              // requires ID, so a new customer signing up inside checkout could
+              // never get past this panel. No double-ask: the later checkout ID
+              // step skips itself once the account has a photo (hasId).
+              requireIdPhoto={requireIdPhoto}
               initialStep={session.pendingRegistration ? "profile" : "phone"}
             />
           </div>
