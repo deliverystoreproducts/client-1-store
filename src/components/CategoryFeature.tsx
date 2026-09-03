@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ScrollRail } from "@/components/ScrollRail";
 import { MediaSlot } from "@/components/MediaSlot";
 import { MEDIA_HINTS } from "@/lib/site";
 import { categoryIconUrl } from "@/lib/category-art";
@@ -35,7 +36,7 @@ export function CategoryFeature({ categories }: { categories: PublicCategory[] }
         </Link>
       </div>
 
-      <ul className="cat-pills">
+      <ScrollRail className="cat-pills" label="categories">
         {ordered.map((c) => {
           const art = c.image ?? categoryIconUrl(c.name);
           return (
@@ -63,7 +64,7 @@ export function CategoryFeature({ categories }: { categories: PublicCategory[] }
           </li>
           );
         })}
-      </ul>
+      </ScrollRail>
     </section>
   );
 }

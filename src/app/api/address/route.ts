@@ -13,7 +13,14 @@ import { json, fail } from "@/lib/http";
  *
  * This is ASSISTANCE, not authority: free text still works (a new building
  * OSM hasn't mapped must not be unorderable), and serviceability is enforced
- * by the backend's delivery-zone check at checkout, not here.
+ * by the backend at checkout, not here — the delivery-zone check for the
+ * minimum, and CA-ONLY-01 for the state line.
+ *
+ * CALIFORNIA ONLY. A licensed retailer may not deliver out of state (4 CCR
+ * §15416), and the backend refuses such an order at checkout. Offering a
+ * Las Vegas address here, only to refuse it two screens later, would be the
+ * store contradicting itself — so the suggester never proposes one. Free text
+ * is untouched: this narrows what we SUGGEST, not what can be typed.
  *
  * Community service, no SLA — so: tight timeout, per-client throttle, an hour
  * of per-query caching, and empty-on-failure (a dead suggester must never
@@ -62,6 +69,7 @@ export async function GET(req: Request): Promise<Response> {
     const seen = new Set<string>();
     const suggestions = (data.features ?? [])
       .filter((f) => f.properties?.countrycode?.toUpperCase() === "US")
+      .filter((f) => (f.properties?.state ?? "").trim().toLowerCase() === "california")
       .map((f) => label(f.properties!))
       .filter((s) => s.length > 5 && !seen.has(s) && seen.add(s))
       .slice(0, 6);

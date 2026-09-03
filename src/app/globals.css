@@ -6609,3 +6609,71 @@ body::after {
     margin-top: -0.75rem;
   }
 }
+
+/* ── rail arrows (ScrollRail) ─────────────────────────────────────────────
+   The shelves hide their scrollbars on purpose, which leaves a Windows mouse
+   with no way to move them at all. These are that way. Rendered only while the
+   rail can actually move in that direction, so a rail that fits looks exactly
+   as it did before this existed. */
+.rail {
+  position: relative;
+}
+
+.rail-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--rule);
+  border-radius: 50%;
+  background: var(--paper, #fff);
+  color: var(--ink);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  /* Lifted off the tiles it sits over, matching the card shadows around it. */
+  box-shadow: 0 2px 10px rgb(0 0 0 / 18%);
+  transition: background 0.18s var(--ease), box-shadow 0.18s var(--ease);
+}
+
+.rail-nav:hover {
+  background: var(--ground-deep);
+  box-shadow: 0 3px 14px rgb(0 0 0 / 24%);
+}
+
+/* Sat ON the first/last tile rather than beside it: the rails run the full
+   width of the shell, so an arrow outside them would be off-screen. */
+.rail-nav-prev {
+  left: 4px;
+}
+
+.rail-nav-next {
+  right: 4px;
+}
+
+/* Touch scrolls by swiping and already works — the arrows would be clutter
+   over the tiles. Shown only to a fine pointer, i.e. the mouse that needs them. */
+@media (hover: none), (pointer: coarse) {
+  .rail-nav {
+    display: none;
+  }
+}
+
+/* The brand rail fades its right edge to say "there is more this way". With an
+   arrow sitting in that fade, the fade is doing the arrow's job badly — and it
+   dims the button too, since a mask applies to the whole subtree. */
+.rail .brand-rail {
+  mask-image: none;
+  -webkit-mask-image: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rail-nav {
+    transition: none;
+  }
+}

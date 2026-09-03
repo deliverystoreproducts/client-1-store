@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ScrollRail } from "@/components/ScrollRail";
 import { MediaSlot } from "@/components/MediaSlot";
 import { MEDIA_HINTS } from "@/lib/site";
 import type { PublicBrand } from "@/lib/public-types";
@@ -37,7 +38,7 @@ export function BrandRail({ brands }: { brands: PublicBrand[] }) {
 
       {/* Horizontal scroll rather than a wrapping grid: a shop with 40 brands
           would otherwise push the entire shelf below the fold. */}
-      <ul className="brand-rail">
+      <ScrollRail className="brand-rail" label="brands">
         {ordered.map((b) => (
           <li key={b.id}>
             <Link href={`/brand/${b.id}`} className="brand-tile">
@@ -61,7 +62,7 @@ export function BrandRail({ brands }: { brands: PublicBrand[] }) {
             </Link>
           </li>
         ))}
-      </ul>
+      </ScrollRail>
     </section>
   );
 }
