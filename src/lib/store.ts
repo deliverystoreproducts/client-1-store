@@ -189,9 +189,17 @@ export async function getCategories(): Promise<PublicCategory[]> {
   }
 }
 
-export async function getBrands(): Promise<PublicBrand[]> {
+/**
+ * The shop's brands, optionally scoped to ONE category.
+ *
+ * Pass `categoryId` wherever the list is offered as a CHOICE inside a category
+ * — a dropdown entry that renders an empty page is a broken shop, not a filter
+ * that found nothing. Omit it where the list is the subject itself (/brands,
+ * the home rail, search suggestions), which is the whole catalogue.
+ */
+export async function getBrands(categoryId?: number): Promise<PublicBrand[]> {
   try {
-    const res = await api.listBrands({ limit: 100 });
+    const res = await api.listBrands({ limit: 100, categoryId });
     return (res.brands ?? []).map(toPublicBrand);
   } catch (e) {
     logPageFailure("brands", e);

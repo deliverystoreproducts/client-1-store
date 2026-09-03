@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { ActiveFilters, FilterRail } from "@/components/FilterRail";
 import { ProductResults } from "@/components/ProductResults";
 import { parseBrowseFilters, toCatalogQuery } from "@/lib/catalog-query";
-import { getBrands, getCatalogPage, getCategories, getCategory, getStoreProfile } from "@/lib/store";
+import { getBrand, getBrands, getCatalogPage, getCategories, getCategory, getStoreProfile } from "@/lib/store";
 
 /**
  * A category landing page.
@@ -48,11 +48,23 @@ export default async function CategoryPage({
     getStoreProfile(),
     getCategory(id),
     getCategories(),
-    getBrands(),
+    // Only brands that actually have something in THIS category. The dropdown
+    // used to list the whole shop with shop-wide counts, so Vape Pens offered
+    // "Froot (9)" — nine products, all Edibles — and 26 other dead ends.
+    getBrands(id),
     getCatalogPage(toCatalogQuery(filters, PAGE_SIZE)),
   ]);
 
   if (!category) notFound();
+
+  // A bookmark or a shared link can still carry a brand that has nothing here —
+  // that is the bug above, and links outlive it. Resolve its NAME anyway so the
+  // active-filter chip reads "Froot ×" instead of the bare fallback "Brand ×".
+  const missingSelected =
+    filters.brandId && !brands.some((b) => b.id === filters.brandId)
+      ? await getBrand(filters.brandId)
+      : null;
+  const chipBrands = missingSelected ? [...brands, missingSelected] : brands;
 
   const basePath = `/category/${id}`;
 
@@ -90,7 +102,7 @@ export default async function CategoryPage({
           <ActiveFilters
             filters={filters}
             categories={categories}
-            brands={brands}
+            brands={chipBrands}
             basePath={basePath}
             pinned="category"
             showCannabinoids={profile.showCannabinoids}

@@ -32,7 +32,9 @@ export default async function ProductsPage({
   const [profile, categories, brands, results] = await Promise.all([
     getStoreProfile(),
     getCategories(),
-    getBrands(),
+    // Same rule as /category: with a category selected, the brand dropdown must
+    // only offer brands that have something in it. Undefined = the whole shop.
+    getBrands(filters.categoryId),
     getCatalogPage(toCatalogQuery(filters, PAGE_SIZE)),
   ]);
 

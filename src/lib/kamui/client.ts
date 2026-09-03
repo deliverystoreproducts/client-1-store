@@ -281,11 +281,17 @@ export function listCategories(): Promise<ListCategoriesResponse> {
   });
 }
 
-export function listBrands(q: { page?: number; limit?: number; search?: string } = {}): Promise<ListBrandsResponse> {
+export function listBrands(
+  q: { page?: number; limit?: number; search?: string; categoryId?: number } = {},
+): Promise<ListBrandsResponse> {
   const sp = new URLSearchParams();
   if (q.page) sp.set("page", String(q.page));
   if (q.limit) sp.set("limit", String(q.limit));
   if (q.search) sp.set("search", q.search);
+  // Scopes BOTH which brands come back and what productCount counts. Without
+  // it the platform answers shop-wide, which is how a Vape Pens page offered
+  // "Froot (9)" — nine products, every one of them an Edible.
+  if (q.categoryId) sp.set("categoryId", String(q.categoryId));
   const qs = sp.toString();
   return call<ListBrandsResponse>("GET", `${API_PREFIX}/brands${qs ? `?${qs}` : ""}`, {}, {
     revalidate: 300,
