@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { apiGet, apiPatch, apiPost, apiPostForm, ClientApiError } from "@/lib/client-api";
 import { CouponWallet } from "@/components/CouponWallet";
+import { ReferralPanel } from "@/components/ReferralPanel";
 import { formatUsd } from "@/lib/money";
 import { formatPhone } from "@/lib/phone";
 import type { PublicOrderSummary, SessionState } from "@/lib/public-types";
@@ -354,6 +355,7 @@ export function AccountView() {
       </section>
 
       {/* Renders nothing at all when there are no offers. */}
+      <ReferralPanel />
       <CouponWallet />
     </div>
   );

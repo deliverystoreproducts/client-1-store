@@ -212,6 +212,8 @@ export interface CheckoutRequestV1 {
   address: string;
   notes?: string | null;
   couponCode?: string | null;
+  /** REF-01: the referrer's phone, recovered server-side from the share-link cookie or typed at checkout. */
+  referredBy?: string | null;
   /** Whether to persist `address` back onto the customer record. Upstream
    *  default is `true` when omitted. */
   addressUpdate?: boolean;

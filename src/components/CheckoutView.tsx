@@ -86,6 +86,8 @@ export function CheckoutView({
   const [lookingUp, setLookingUp] = useState(true);
   const [notes, setNotes] = useState("");
   const [coupon, setCoupon] = useState("");
+  // REF-01: a friend's number, for people who came without the share link.
+  const [referral, setReferral] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState(autoPromoCode);
 
   // Promo links arrive as /checkout?promo=CODE. Prefill AND apply — the
@@ -262,6 +264,7 @@ export function CheckoutView({
           address,
           notes,
           couponCode: appliedCoupon || null,
+          referredBy: referral.trim() || null,
           saveAddress,
         }),
       );
@@ -742,6 +745,29 @@ export function CheckoutView({
                 A code replaces the automatic {cart.autoDiscount.percent}%.
               </p>
             ) : null}
+          </details>
+
+          {/* REF-01: the referral programme's manual door. The share link sets a
+              cookie and needs nothing here; this is for the friend who was told
+              a number at the door or in a chat. First order only — the platform
+              ignores it otherwise. */}
+          <details className="info-fold mb-2" open={referral ? true : undefined}>
+            <summary>Referred by a friend?</summary>
+            <div className="row mt-2" style={{ gap: "0.5rem", flexWrap: "nowrap" }}>
+              <label className="sr-only" htmlFor="referral">
+                Your friend&apos;s phone number
+              </label>
+              <input
+                id="referral"
+                className="input"
+                inputMode="tel"
+                autoComplete="off"
+                value={referral}
+                onChange={(e) => setReferral(e.target.value)}
+                placeholder="Friend's phone number"
+              />
+            </div>
+            <p className="faint mt-1 mb-0">They get $10 off after this order. Only counts on your first order.</p>
           </details>
 
           <div className="totals">

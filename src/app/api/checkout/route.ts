@@ -4,6 +4,7 @@ import { UpstreamError } from "@/lib/kamui/errors";
 import { fail, failFromUpstream, json } from "@/lib/http";
 import { formatUsd } from "@/lib/money";
 import { readCustomerToken, readPendingToken } from "@/lib/session";
+import { readReferral, clearReferralCookie, phoneDigits } from "@/lib/referral";
 import { getStoreProfile, sanitizeCartLines } from "@/lib/store";
 
 /**
@@ -23,6 +24,8 @@ interface Body {
   address?: unknown;
   notes?: unknown;
   couponCode?: unknown;
+  /** REF-01: a friend's phone typed at checkout (the share-link cookie is read server-side). */
+  referredBy?: unknown;
   saveAddress?: unknown;
 }
 
@@ -146,15 +149,22 @@ export async function POST(req: Request): Promise<Response> {
   // No purchase-quantity gate here — the owner's decision (2026-08-27): the
   // storefront never stops a customer from buying. Compliance with per-customer
   // limits is the retailer's, enforced at fulfilment, not by this form.
+  // REF-01: a typed-in number wins over the share-link cookie. Both are the
+  // referrer's PHONE — the key the platform's referral reward uses.
+  const typed = typeof body.referredBy === "string" ? phoneDigits(body.referredBy) : null;
+  const referredBy = typed ? `+1${typed}` : await readReferral();
   try {
     const res = await api.checkout(token, {
       items,
       address,
       notes,
       couponCode,
+      referredBy,
       // Whether the address is remembered on the customer record.
       addressUpdate: body.saveAddress !== false,
     });
+    // One referral per new customer; the cookie has done its job.
+    if (referredBy) await clearReferralCookie().catch(() => {});
     return json({
       orderId: res.orderId,
       orderNumber: res.orderNumber == null ? null : String(res.orderNumber),
