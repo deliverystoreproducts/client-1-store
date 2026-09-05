@@ -4,6 +4,7 @@ import {
 } from "@/lib/site";
 import { getStoreProfile } from "@/lib/store";
 import { TrackOrderPlaced } from "@/components/TrackOrderPlaced";
+import { PushPrompt } from "@/components/PushPrompt";
 
 /**
  * Order confirmation.
@@ -64,6 +65,7 @@ export default async function ConfirmationPage({
   return (
     <div className="track-card center" data-reveal>
     <TrackOrderPlaced order={orderNumber ?? null} />
+      <PushPrompt context="confirmation" />
       <span className="eyebrow" style={{ "--i": 0 } as React.CSSProperties}>
         Confirmed
       </span>

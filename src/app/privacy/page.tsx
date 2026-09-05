@@ -203,6 +203,12 @@ export default async function PrivacyPage() {
         checkout is abandoned. If you are signed in, an abandoned cart may be linked to your account
         so we can help you finish it. It is not shared with anyone and it is not used for advertising.
       </p>
+      <p>
+        If you turn on notifications, your browser gives us a delivery address for this device only —
+        not your phone number and not your name. We use it for order updates and, now and then, an
+        offer. Turning it off is one tap in your browser or on your account page, and we stop the
+        moment you do.
+      </p>
 
       <h2>Other parties tracking you here</h2>
       <p>

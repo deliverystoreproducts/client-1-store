@@ -75,3 +75,38 @@ self.addEventListener("fetch", (event) => {
     );
   }
 });
+
+// ── Web push (PUSH-WEB-01) ──────────────────────────────────────────────────
+// Payload is JSON from the platform: { title, body, url?, tag?, icon? }.
+// A push with no readable payload still shows SOMETHING — Chrome revokes the
+// subscription of a worker that receives a push and shows nothing.
+self.addEventListener("push", (event) => {
+  let data = { title: "Update", body: "", url: "/", tag: undefined, icon: undefined };
+  try {
+    if (event.data) data = { ...data, ...event.data.json() };
+  } catch (e) {
+    try { data.body = event.data ? event.data.text() : ""; } catch (_) {}
+  }
+  event.waitUntil(
+    self.registration.showNotification(data.title || "Update", {
+      body: data.body || "",
+      icon: data.icon || "/icons/icon-192.png",
+      badge: "/icons/icon-192.png",
+      tag: data.tag,
+      data: { url: data.url || "/" },
+    }),
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const target = new URL((event.notification.data && event.notification.data.url) || "/", self.location.origin).href;
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
+      for (const c of list) {
+        if ("focus" in c) { c.navigate(target); return c.focus(); }
+      }
+      return self.clients.openWindow(target);
+    }),
+  );
+});

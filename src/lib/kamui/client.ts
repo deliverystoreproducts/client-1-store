@@ -518,3 +518,17 @@ export function trackEvent(
 ): Promise<void> {
   return call<void>("POST", `${API_PREFIX}/events`, { json: event }, { customerToken });
 }
+
+// ── Web push (PUSH-WEB-01) — relayed by /api/push/* ────────────────────────
+export function pushConfig(): Promise<{ enabled: boolean; publicKey: string | null }> {
+  return call("GET", `${API_PREFIX}/push/config`, {}, { revalidate: 300, tags: ["catalog"] });
+}
+export function pushSubscribe(
+  body: { endpoint: string; keys: { p256dh: string; auth: string }; visitorId?: string | null; userAgent?: string | null },
+  customerToken?: string,
+): Promise<void> {
+  return call<void>("POST", `${API_PREFIX}/push/subscribe`, { json: body }, { customerToken });
+}
+export function pushUnsubscribe(endpoint: string): Promise<void> {
+  return call<void>("POST", `${API_PREFIX}/push/unsubscribe`, { json: { endpoint } }, {});
+}
