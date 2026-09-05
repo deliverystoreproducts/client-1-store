@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { SignInPanel } from "@/components/SignInPanel";
 import { getStoreProfile } from "@/lib/store";
 
-export const metadata: Metadata = { title: "Sign in" };
+export const metadata: Metadata = {
+  robots: { index: false, follow: false }, title: "Sign in" };
 export const dynamic = "force-dynamic";
 
 /**

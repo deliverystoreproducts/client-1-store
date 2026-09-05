@@ -45,6 +45,13 @@ const config: NextConfig = {
   async headers() {
     return [
       {
+        // SEO-01: pages that are the same for everyone may be cached at the
+        // edge. The catalogue is NOT here on purpose — its HTML differs by the
+        // age cookie (overlay or not) — so it keeps Next's private default.
+        source: "/(privacy|terms|faq|returns|contact|robots.txt|sitemap.xml)",
+        headers: [{ key: "Cache-Control", value: "public, s-maxage=3600, stale-while-revalidate=86400" }],
+      },
+      {
         source: "/:path*",
         headers: [
           { key: "X-Content-Type-Options", value: "nosniff" },

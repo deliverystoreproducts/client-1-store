@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import Link from "next/link";
 import "./globals.css";
 import { AgeGate } from "@/components/AgeGate";
+import { JsonLd } from "@/components/JsonLd";
 import { CartProvider } from "@/components/CartProvider";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -16,7 +17,14 @@ import { hasPassedAgeGate } from "@/lib/session";
 import { getStoreProfile } from "@/lib/store";
 import { SITE_TAGLINE } from "@/lib/site";
 
+/**
+ * SEO-01: absolute URLs for canonical/OG/sitemap come from SITE_ORIGIN (the
+ * public domain), which the CSRF check already relies on. Unset → relative.
+ */
+const SITE_ORIGIN = (process.env.SITE_ORIGIN || "").trim();
+
 export const metadata: Metadata = {
+  ...(SITE_ORIGIN ? { metadataBase: new URL(SITE_ORIGIN), alternates: { canonical: "./" } } : {}),
   title: {
     default: process.env.NEXT_PUBLIC_SITE_NAME || "YB Cannabis Co.",
     template: `%s · ${process.env.NEXT_PUBLIC_SITE_NAME || "YB Cannabis Co."}`,
@@ -109,7 +117,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     // data-scroll-behavior is Next's handshake for CSS smooth scrolling: it
     // keeps ROUTE-change scroll resets instant while same-page anchor jumps
     // (banner → #catalogue, pager) animate.
-    <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
+    <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth" data-gated={gated || undefined}>
       <body>
         {/* Applies the saved theme before first paint — no flash. */}
         <script
@@ -130,14 +138,37 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
         {!configured ? (
           <StoreUnavailable storeName={process.env.NEXT_PUBLIC_SITE_NAME} />
-        ) : gated ? (
-          // The store is not rendered at all until the visitor answers. This is a
-          // server-side decision, so there is no frame in which the catalog is
-          // in the DOM for someone who has not passed the gate.
-          <AgeGate minAge={profile.minAge} storeName={storeName} licenseNumber={profile.licenseNumber} />
         ) : (
           <CartProvider>
-            <div className="shell">
+            {/* SEO-01: the store is SERVED underneath and the gate sits on top
+                until the visitor answers. Still decided server-side from the
+                cookie, still unconditional (no dashboard flag reaches it), and
+                the shell behind it is inert + hidden from assistive tech, so
+                nothing can be tapped, tabbed to or read until the answer is
+                given. What changed is only that a crawler — and view-source —
+                now sees the catalogue, which is the whole point of a store
+                that wants to be found. */}
+            {gated ? (
+              <AgeGate overlay minAge={profile.minAge} storeName={storeName} licenseNumber={profile.licenseNumber} />
+            ) : null}
+            <div className="shell" inert={gated || undefined} aria-hidden={gated || undefined}>
+              <JsonLd
+                data={{
+                  "@context": "https://schema.org",
+                  "@type": "Store",
+                  name: storeName,
+                  ...(SITE_ORIGIN ? { url: SITE_ORIGIN } : {}),
+                  ...(profile.contactPhone ? { telephone: profile.contactPhone } : {}),
+                  ...(profile.contactEmail ? { email: profile.contactEmail } : {}),
+                  ...(profile.logo && SITE_ORIGIN ? { image: new URL(profile.logo, SITE_ORIGIN).toString() } : {}),
+                  ...(profile.deliveryCities.length
+                    ? { areaServed: profile.deliveryCities.map((c) => ({ "@type": "City", name: c })) }
+                    : {}),
+                  ...(profile.privacyContactAddress
+                    ? { address: { "@type": "PostalAddress", streetAddress: profile.privacyContactAddress } }
+                    : {}),
+                }}
+              />
               {/* One sticky block — promo strip + header — padded for the
                   phone's status bar so the black reaches the top edge. */}
               <ScrollChrome />

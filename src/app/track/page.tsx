@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
-export const metadata: Metadata = { title: "Track your order" };
+export const metadata: Metadata = {
+  robots: { index: false, follow: false }, title: "Track your order" };
 export const dynamic = "force-dynamic";
 
 /**

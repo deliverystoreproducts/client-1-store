@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { CheckoutView } from "@/components/CheckoutView";
 import { getBannerPromo, getStoreProfile } from "@/lib/store";
 
-export const metadata: Metadata = { title: "Checkout" };
+export const metadata: Metadata = {
+  robots: { index: false, follow: false }, title: "Checkout" };
 export const dynamic = "force-dynamic";
 
 export default async function CheckoutPage() {

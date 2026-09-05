@@ -6677,3 +6677,19 @@ body::after {
     transition: none;
   }
 }
+
+/* ── SEO-01: the age gate as an OVERLAY ─────────────────────────────────────
+   The store is served underneath (so it can be indexed and so a shared link
+   resolves to a real page); this sits on top until the visitor answers. The
+   shell behind it is `inert` + aria-hidden, and the body cannot scroll. */
+.gate-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  min-height: 100dvh;
+  overflow: auto;
+  background: var(--ground);
+}
+html[data-gated] body {
+  overflow: hidden;
+}

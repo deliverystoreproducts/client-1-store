@@ -16,7 +16,8 @@ import { hasPassedAgeGate } from "@/lib/session";
  * leaving a blank page.
  */
 
-export const metadata: Metadata = { title: "Age check" };
+export const metadata: Metadata = {
+  robots: { index: false, follow: false }, title: "Age check" };
 export const dynamic = "force-dynamic";
 
 export default async function AgePage() {

@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { AddToCartButton } from "@/components/AddToCartButton";
 import { Prop65WarningBox, VapeDisposalBox } from "@/components/ComplianceNotices";
 import { ProductCard } from "@/components/ProductCard";
+import { JsonLd } from "@/components/JsonLd";
 import {
   POTENCY_LABEL_QUALIFIER,
   reportCopyFindings,
@@ -124,6 +125,30 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
 
   return (
     <>
+      {/* SEO-01: Product + Offer for rich results. Price is what one unit costs
+          today (unitPrice = sale price when on sale). Description is the
+          operator's own copy; JsonLd escapes "<" so it can never break out. */}
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: product.name,
+          ...(product.description ? { description: product.description } : {}),
+          ...(product.image ? { image: product.image } : {}),
+          ...(product.brand ? { brand: { "@type": "Brand", name: product.brand.name } } : {}),
+          ...(product.category ? { category: product.category.name } : {}),
+          sku: String(product.id),
+          offers: {
+            "@type": "Offer",
+            priceCurrency: "USD",
+            price: product.unitPrice.toFixed(2),
+            availability: product.available ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+            ...(process.env.SITE_ORIGIN
+              ? { url: `${process.env.SITE_ORIGIN.replace(/\/$/, "")}/product/${product.id}` }
+              : {}),
+          },
+        }}
+      />
       <Link className="crumb" href="/" data-reveal style={{ "--i": 0 } as React.CSSProperties}>
         ← Back to the shelf
       </Link>

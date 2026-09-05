@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { StoreUnavailable } from "@/components/StoreUnavailable";
 
-export const metadata: Metadata = { title: "Temporarily closed" };
+export const metadata: Metadata = {
+  robots: { index: false, follow: false }, title: "Temporarily closed" };
 export const dynamic = "force-dynamic";
 
 export default function UnavailablePage() {

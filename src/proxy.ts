@@ -59,9 +59,12 @@ export default function proxy(req: NextRequest) {
     return NextResponse.next(forward);
   }
 
-  if (pathname === GATE_PATH || open) return NextResponse.next(forward);
-
-  return NextResponse.rewrite(new URL(GATE_PATH, req.url), forward);
+  // SEO-01: the catalogue is SERVED to everyone now, and the gate is an
+  // overlay the layout draws on top of it (see layout.tsx). Rewriting every
+  // URL to /age made the whole site one "Age check" page to a crawler —
+  // x-middleware-rewrite: /age on /sitemap.xml included — so nothing could
+  // ever index. The cookie still decides whether the overlay is shown.
+  return NextResponse.next(forward);
 }
 
 export const config = {

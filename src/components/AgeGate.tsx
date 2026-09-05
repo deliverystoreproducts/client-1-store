@@ -7,10 +7,14 @@ import { useState } from "react";
 /**
  * Legal-age confirmation.
  *
- * Rendered by the layout INSTEAD of the store — not on top of it. The decision
- * is made server-side from a cookie before any markup is produced, so the
- * catalog is never in the DOM for someone who has not answered, not even for a
- * frame, and not in view-source.
+ * SEO-01 (2026-09-04): rendered by the layout ON TOP of the store as a modal
+ * overlay (`overlay` prop), no longer instead of it. The decision is still
+ * made server-side from the cookie, the shell behind it is `inert` and
+ * aria-hidden, and the body cannot scroll — nothing can be tapped, tabbed to
+ * or read until the visitor answers. What changed: the catalogue is now in the
+ * served HTML (and in view-source), because a store that replaces every page
+ * with the gate is one "Age check" page to a search engine and can never be
+ * found. /age still renders it standalone for deep links.
  *
  * UNCONDITIONAL BY DESIGN. This component takes no "enabled" prop and the layout
  * reads no upstream flag: the store profile's `ageGate` boolean is dropped at
@@ -26,7 +30,22 @@ import { useState } from "react";
  * Self-attestation is what the law asks a delivery storefront for at browse
  * time; real identity checks happen at signup and at the door.
  */
-export function AgeGate({ minAge, storeName, licenseNumber }: { minAge: number; storeName: string; licenseNumber: string | null }) {
+export function AgeGate({
+  minAge,
+  storeName,
+  licenseNumber,
+  overlay = false,
+}: {
+  minAge: number;
+  storeName: string;
+  licenseNumber: string | null;
+  /** SEO-01: drawn OVER the served store (fixed, modal) instead of instead of it. */
+  overlay?: boolean;
+}) {
+  const Root = overlay ? "div" : "main";
+  const rootProps = overlay
+    ? { className: "gate gate-overlay", role: "dialog", "aria-modal": true, "aria-label": "Age confirmation" }
+    : { className: "gate" };
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [declined, setDeclined] = useState(false);
@@ -47,7 +66,7 @@ export function AgeGate({ minAge, storeName, licenseNumber }: { minAge: number; 
 
   if (declined) {
     return (
-      <main className="gate">
+      <Root {...rootProps}>
         <div className="gate-inner" data-reveal>
           <span className="gate-mark">
             <span className="brand-seal" aria-hidden />
@@ -66,12 +85,12 @@ export function AgeGate({ minAge, storeName, licenseNumber }: { minAge: number; 
             </button>
           </div>
         </div>
-      </main>
+      </Root>
     );
   }
 
   return (
-    <main className="gate">
+    <Root {...rootProps}>
       <div className="gate-inner">
         <span className="gate-mark" data-reveal style={{ "--i": 0 } as React.CSSProperties}>
           <span className="brand-seal" aria-hidden />
@@ -148,6 +167,6 @@ export function AgeGate({ minAge, storeName, licenseNumber }: { minAge: number; 
           </Link>
         </p>
       </div>
-    </main>
+    </Root>
   );
 }
