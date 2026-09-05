@@ -90,6 +90,9 @@ export function CheckoutView({
   // REF-01: a friend's number, for people who came without the share link.
   const [referral, setReferral] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState(autoPromoCode);
+  // APP-REWARD-01: the code checkout filled in by itself, and what it is —
+  // so the fold can say "applied automatically" instead of asking for it.
+  const [autoFilled, setAutoFilled] = useState<{ code: string; label: string; value: number; type: string } | null>(null);
 
   // Promo links arrive as /checkout?promo=CODE. Prefill AND apply — the
   // "Apply it at checkout" button must mean applied, not "now retype it"
@@ -112,9 +115,10 @@ export function CheckoutView({
     let live = true;
     fetch("/api/coupons")
       .then((r) => (r.ok ? r.json() : null))
-      .then((w: { coupons?: { code: string; autoApplied?: boolean }[] } | null) => {
+      .then((w: { coupons?: { code: string; autoApplied?: boolean; label: string; value: number; type: string }[] } | null) => {
         const c = w?.coupons?.find((x) => x.autoApplied && x.code);
         if (!live || !c) return;
+        setAutoFilled({ code: c.code, label: c.label, value: c.value, type: c.type });
         setCoupon((cur) => cur || c.code);
         setAppliedCoupon((cur) => cur || c.code);
       })
@@ -753,28 +757,50 @@ export function CheckoutView({
               The code box is there for whoever has one, folded away for
               everyone else. */}
           <details className="info-fold mb-2" open={appliedCoupon ? true : undefined}>
-            <summary>Have a promo code?</summary>
-            <div className="row mt-2" style={{ gap: "0.5rem", flexWrap: "nowrap" }}>
-              <label className="sr-only" htmlFor="coupon">
-                Promo code
-              </label>
-              <input
-                id="coupon"
-                className="input"
-                value={coupon}
-                onChange={(e) => setCoupon(e.target.value)}
-                placeholder="Code"
-              />
-              <button
-                type="button"
-                className="btn btn-ghost btn-sm"
-                onClick={() => setAppliedCoupon(coupon.trim())}
-              >
-                Apply
-              </button>
-            </div>
-            {cart?.couponMessage ? <p className="faint mt-1 mb-0">{cart.couponMessage}</p> : null}
-            {cart?.autoDiscount ? (
+            <summary>{cart?.couponApplied && appliedCoupon ? "Promo code applied" : "Have a promo code?"}</summary>
+            {cart?.couponApplied && appliedCoupon ? (
+              /* An applied code is a fact, not a form: say which, say what it
+                 does, and offer the one action left — taking it off. */
+              <div className="row mt-2" style={{ gap: "0.5rem", alignItems: "baseline", flexWrap: "wrap" }}>
+                <p className="mb-0">
+                  <code className="reward-code">{appliedCoupon}</code>
+                  {autoFilled && autoFilled.code === appliedCoupon ? (
+                    <span className="faint"> — {autoFilled.label}, {autoFilled.type === "percent" ? `${autoFilled.value}% off` : autoFilled.type === "fixed" ? `$${autoFilled.value} off` : "applied"}, added automatically.</span>
+                  ) : (
+                    <span className="faint"> — applied.</span>
+                  )}
+                </p>
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  onClick={() => { setCoupon(""); setAppliedCoupon(""); }}
+                >
+                  Remove
+                </button>
+              </div>
+            ) : (
+              <div className="row mt-2" style={{ gap: "0.5rem", flexWrap: "nowrap" }}>
+                <label className="sr-only" htmlFor="coupon">
+                  Promo code
+                </label>
+                <input
+                  id="coupon"
+                  className="input"
+                  value={coupon}
+                  onChange={(e) => setCoupon(e.target.value)}
+                  placeholder="Code"
+                />
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  onClick={() => setAppliedCoupon(coupon.trim())}
+                >
+                  Apply
+                </button>
+              </div>
+            )}
+            {cart?.couponMessage && !cart.couponApplied ? <p className="faint mt-1 mb-0">{cart.couponMessage}</p> : null}
+            {cart?.autoDiscount && !cart.couponApplied ? (
               <p className="faint mt-1 mb-0">
                 A code replaces the automatic {cart.autoDiscount.percent}%.
               </p>
@@ -812,7 +838,11 @@ export function CheckoutView({
             {cart && cart.discount > 0 ? (
               <div>
                 <span>
-                  {cart.autoDiscount ? `Automatic discount (${cart.autoDiscount.percent}%)` : "Discount"}
+                  {cart.couponApplied && appliedCoupon
+                    ? `Promo code ${appliedCoupon}`
+                    : cart.autoDiscount
+                      ? `Automatic discount (${cart.autoDiscount.percent}%)`
+                      : "Discount"}
                 </span>
                 <span>−{formatUsd(cart.discount)}</span>
               </div>
