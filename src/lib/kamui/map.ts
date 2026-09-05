@@ -199,6 +199,8 @@ function couponLabel(source: string): string {
       return "Store promo";
     case "signup":
       return "Welcome offer";
+    case "app_install":
+      return "App reward";
     default:
       return "Offer";
   }
@@ -211,7 +213,9 @@ export function toPublicCoupon(c: StoreCouponV1, autoApplied = false): PublicCou
     value: Number(c.value) || 0,
     label: couponLabel(c.source),
     expiresAt: c.expiresAt,
-    autoApplied,
+    // APP-REWARD-01: the app reward is a real code, but checkout fills it in
+    // by itself from the wallet, so to the customer it applies on its own.
+    autoApplied: autoApplied || c.source === "app_install",
     // Only whether it is restricted, never to WHAT. The restriction is enforced
     // upstream at redemption; naming the products here would leak merchandising
     // decisions and cannot change the outcome.

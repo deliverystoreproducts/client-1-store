@@ -96,13 +96,31 @@ export function CheckoutView({
   // (owner found the gap). window.location in a mount effect rather than
   // useSearchParams: no Suspense-boundary requirement, runs client-only.
   useEffect(() => {
+    let code = "";
     try {
-      const code = new URLSearchParams(window.location.search).get("promo")?.trim();
-      if (code) {
-        setCoupon(code);
-        setAppliedCoupon(code); // the pricing effect picks this up and reprices
-      }
+      code = new URLSearchParams(window.location.search).get("promo")?.trim() ?? "";
     } catch {}
+    if (code) {
+      setCoupon(code);
+      setAppliedCoupon(code); // the pricing effect picks this up and reprices
+      return;
+    }
+    if (autoPromoCode) return;
+    // APP-REWARD-01: the app reward promised "applied automatically". The
+    // wallet marks it autoApplied; fill it in as if the customer had typed it.
+    // Signed out → 401 → nothing happens, which is right.
+    let live = true;
+    fetch("/api/coupons")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((w: { coupons?: { code: string; autoApplied?: boolean }[] } | null) => {
+        const c = w?.coupons?.find((x) => x.autoApplied && x.code);
+        if (!live || !c) return;
+        setCoupon((cur) => cur || c.code);
+        setAppliedCoupon((cur) => cur || c.code);
+      })
+      .catch(() => {});
+    return () => { live = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const [saveAddress, setSaveAddress] = useState(true);
   // CONSENT-01: marketing texts. Unchecked by default — a pre-ticked box is not consent.

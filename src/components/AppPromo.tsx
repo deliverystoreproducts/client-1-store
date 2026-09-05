@@ -106,6 +106,7 @@ export function AppPromo({ siteName, requireIdPhoto }: { siteName: string; requi
   const step1 = installed ? "done" : "current";
   const step2 = signedIn ? "done" : installed || !platform?.coarse ? "current" : "todo";
   const step3 = push === "on" ? "done" : signedIn ? "current" : "todo";
+  const allDone = (installed || !platform?.coarse) && signedIn && push === "on";
   const expires = reward ? new Date(reward.expiresAt).toLocaleDateString(undefined, { month: "long", day: "numeric" }) : "";
 
   return (
@@ -131,11 +132,20 @@ export function AppPromo({ siteName, requireIdPhoto }: { siteName: string; requi
 
       {reward ? (
         <section className="panel app-promo-reward" aria-live="polite">
-          <p className="app-promo-reward-label">Your {reward.value}% off code</p>
-          <code className="reward-code reward-code-big">{reward.code}</code>
-          <p className="faint mb-0">
-            Enter it at checkout, or tap it under Your offers in <Link className="link" href="/account">your account</Link>. Valid until {expires}. One per customer.
+          <p className="app-promo-reward-label">You&rsquo;re all set</p>
+          <p className="app-promo-done">
+            Your <strong>{reward.value}% off</strong> comes off automatically at checkout — nothing to type.
           </p>
+          <p className="faint mb-0">
+            Code <code className="reward-code">{reward.code}</code>, valid until {expires}, one per customer. It&rsquo;s also under Your offers in <Link className="link" href="/account">your account</Link>.
+          </p>
+          <Link className="btn" href="/products">Start shopping</Link>
+        </section>
+      ) : allDone ? (
+        <section className="panel app-promo-reward" aria-live="polite">
+          <p className="app-promo-reward-label">You&rsquo;re all set</p>
+          <p className="app-promo-done">You&rsquo;ll know the moment your driver is on the way.</p>
+          <Link className="btn" href="/products">Start shopping</Link>
         </section>
       ) : null}
 
