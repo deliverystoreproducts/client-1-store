@@ -132,7 +132,7 @@ async function fetchExternalImage(start: URL): Promise<Response | null> {
 }
 
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ path: string[] }> },
 ): Promise<Response> {
   const { path } = await params;
@@ -150,7 +150,7 @@ export async function GET(
     if (!upstreamPath) return notFound();
     try {
       // No API key: the upload route is public upstream and does not read one.
-      upstream = await getUpstreamStream(upstreamPath, { timeoutMs: 15_000 });
+      upstream = await getUpstreamStream(upstreamPath, { timeoutMs: 15_000, range: req.headers.get("range") });
     } catch {
       // Never surface which host failed, or why.
       return new Response("Image unavailable", {
@@ -186,6 +186,12 @@ export async function GET(
   });
   const length = upstream.headers.get("content-length");
   if (length) headers.set("Content-Length", length);
+  // Video plays progressively only when the browser can ask for byte ranges —
+  // Safari on iPhone will not start a <video> without them. The object store
+  // answers a Range with 206 + Content-Range; relay exactly those two facts.
+  const partial = upstream.status === 206 && !!upstream.headers.get("content-range");
+  if (safeType.startsWith("video/")) headers.set("Accept-Ranges", "bytes");
+  if (partial) headers.set("Content-Range", upstream.headers.get("content-range") as string);
 
   // Content-Length is a claim, not a guarantee. Cap the actual bytes so a hostile
   // or misbehaving origin can't stream forever through us.
@@ -203,5 +209,5 @@ export async function GET(
     }),
   );
 
-  return new Response(capped, { status: 200, headers });
+  return new Response(capped, { status: partial ? 206 : 200, headers });
 }

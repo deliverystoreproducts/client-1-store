@@ -180,7 +180,7 @@ async function call<T>(
  *  timeout discipline; the caller owns the body. */
 export async function getUpstreamStream(
   path: string,
-  opts: { timeoutMs?: number; withApiKey?: boolean } = {},
+  opts: { timeoutMs?: number; withApiKey?: boolean; range?: string | null } = {},
 ): Promise<Response> {
   let cfg;
   try {
@@ -193,6 +193,9 @@ export async function getUpstreamStream(
   // The uploads route is public upstream and does not read the key. We do not
   // send a credential to an endpoint that does not need one.
   if (opts.withApiKey) headers.Authorization = `Bearer ${cfg.apiKey}`;
+  // A byte range from the browser (video seeking; iOS refuses to play a video
+  // at all unless ranges work) rides through to the object store as-is.
+  if (opts.range) headers.Range = opts.range;
 
   try {
     return await fetch(`${cfg.baseUrl}${path}`, {

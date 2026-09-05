@@ -4,6 +4,7 @@ import { HeroAI } from "@/components/HeroAI";
 import { HERO_AI } from "@/lib/site";
 import { BrandRail } from "@/components/BrandRail";
 import { MediaSlot } from "@/components/MediaSlot";
+import { HeroVideo } from "@/components/HeroVideo";
 import { CategoryFeature } from "@/components/CategoryFeature";
 import { CategoryRow } from "@/components/CategoryRow";
 import { FeaturedCarousel } from "@/components/FeaturedCarousel";
@@ -123,17 +124,7 @@ export default async function HomePage({
                empty while it buffers, so a slow connection degrades to the
                image rather than to a black box. No controls and aria-hidden:
                it is scenery, not media anyone came to watch. */
-            <video
-              className="hero-media hero-video"
-              src={heroVideo}
-              poster={heroSrc ?? undefined}
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="metadata"
-              aria-hidden
-            />
+            <HeroVideo src={heroVideo} poster={heroSrc ?? null} />
           ) : heroSrc ? (
             <>
               {/* The hero is a CSS background, invisible to the preload
