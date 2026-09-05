@@ -1,4 +1,5 @@
 import { isSameOriginRequest } from "@/lib/csrf";
+import { MARKETING_CONSENT_TEXT } from "@/lib/site";
 import * as api from "@/lib/kamui/client";
 import { toPublicCustomer } from "@/lib/kamui/map";
 import { fail, failFromUpstream, json, readJson } from "@/lib/http";
@@ -66,10 +67,15 @@ export async function PATCH(req: Request): Promise<Response> {
   const token = await readCustomerToken();
   if (!token) return fail(401, "not_authenticated", { message: "Please sign in." });
 
-  const body = await readJson<{ name?: unknown; address?: unknown }>(req);
-  const patch: { name?: string; address?: string } = {};
+  const body = await readJson<{ name?: unknown; address?: unknown; marketingConsent?: unknown }>(req);
+  const patch: { name?: string; address?: string; marketingConsent?: boolean; consentText?: string } = {};
   if (typeof body?.name === "string" && body.name.trim()) patch.name = body.name.trim().slice(0, 120);
   if (typeof body?.address === "string") patch.address = body.address.trim().slice(0, 300);
+  // CONSENT-01: the words are the server's constant — the client sends only the tick.
+  if (typeof body?.marketingConsent === "boolean") {
+    patch.marketingConsent = body.marketingConsent;
+    if (body.marketingConsent) patch.consentText = MARKETING_CONSENT_TEXT;
+  }
   if (Object.keys(patch).length === 0) {
     return fail(400, "nothing_to_update", { message: "Nothing to update." });
   }

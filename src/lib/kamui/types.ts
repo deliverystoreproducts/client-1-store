@@ -171,6 +171,8 @@ export interface CustomerProfileV1 {
   address: string | null;
   hasId: boolean;
   referredFrom: string | null;
+  /** CONSENT-01: recorded marketing consent (platform Customer.marketing). */
+  marketingConsent: boolean;
 }
 
 /** verify-code / send-code(OTP-disabled) for a KNOWN phone. */
@@ -214,6 +216,9 @@ export interface CheckoutRequestV1 {
   couponCode?: string | null;
   /** REF-01: the referrer's phone, recovered server-side from the share-link cookie or typed at checkout. */
   referredBy?: string | null;
+  /** CONSENT-01: the checkout checkbox + the exact words shown. */
+  marketingConsent?: boolean;
+  consentText?: string;
   /** Whether to persist `address` back onto the customer record. Upstream
    *  default is `true` when omitted. */
   addressUpdate?: boolean;

@@ -121,7 +121,7 @@ export default async function PrivacyPage() {
       <ul>
         <li>
           <strong>Your mobile number.</strong> This is how you sign in — we text you a code — and
-          it is how the driver reaches you. We do not use it for marketing.
+          it is how the driver reaches you. We do not use it for marketing unless you tick the box that asks — at checkout or in your account — and you can untick it, or reply STOP, at any time.
         </li>
         <li>
           <strong>Your name.</strong> Collected when you create an account, so an order can be

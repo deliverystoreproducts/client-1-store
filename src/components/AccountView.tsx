@@ -7,6 +7,7 @@ import { apiGet, apiPatch, apiPost, apiPostForm, ClientApiError } from "@/lib/cl
 import { CouponWallet } from "@/components/CouponWallet";
 import { ReferralPanel } from "@/components/ReferralPanel";
 import { PushPrompt } from "@/components/PushPrompt";
+import { ConsentToggle } from "@/components/ConsentToggle";
 import { formatUsd } from "@/lib/money";
 import { formatPhone } from "@/lib/phone";
 import type { PublicOrderSummary, SessionState } from "@/lib/public-types";
@@ -356,6 +357,7 @@ export function AccountView() {
       </section>
 
       {/* Renders nothing at all when there are no offers. */}
+      <ConsentToggle initial={!!c?.marketingConsent} />
       <PushPrompt context="account" />
       <ReferralPanel />
       <CouponWallet />

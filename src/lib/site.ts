@@ -113,3 +113,17 @@ export const CART_STORAGE_KEY = "ybs.cart.v1";
 export const HERO_AI = (process.env.NEXT_PUBLIC_HERO_AI || "").trim().toLowerCase() === "on";
 
 export const MEDIA_HINTS = (process.env.NEXT_PUBLIC_MEDIA_HINTS || "").trim().toLowerCase() === "on";
+
+/**
+ * CONSENT-01 — the marketing-consent wording, ONE string.
+ *
+ * Shown next to the checkbox at checkout and in the account, sent with the
+ * tick, and stored on the customer by the platform. If a TCPA question is
+ * ever asked, this exact sentence plus a timestamp is the answer — which is
+ * why it is a constant and not prose typed twice. Unchecked by default,
+ * always; a pre-ticked box is not consent.
+ *
+ * DRAFT wording — to be confirmed by counsel before the first campaign.
+ */
+export const MARKETING_CONSENT_TEXT =
+  `Yes, text me deals and updates from ${SITE_NAME}. Message frequency varies; message and data rates may apply. Reply STOP to opt out, HELP for help. I am 21 or older.`;

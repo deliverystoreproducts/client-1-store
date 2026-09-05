@@ -1,4 +1,5 @@
 import { isSameOriginRequest } from "@/lib/csrf";
+import { MARKETING_CONSENT_TEXT } from "@/lib/site";
 import * as api from "@/lib/kamui/client";
 import { UpstreamError } from "@/lib/kamui/errors";
 import { fail, failFromUpstream, json } from "@/lib/http";
@@ -26,6 +27,8 @@ interface Body {
   couponCode?: unknown;
   /** REF-01: a friend's phone typed at checkout (the share-link cookie is read server-side). */
   referredBy?: unknown;
+  /** CONSENT-01: the checkbox. The words are the server's constant, never the client's. */
+  marketingConsent?: unknown;
   saveAddress?: unknown;
 }
 
@@ -160,6 +163,8 @@ export async function POST(req: Request): Promise<Response> {
       notes,
       couponCode,
       referredBy,
+      // CONSENT-01: unchecked by default; sent only as a true tick, with the exact words shown.
+      ...(body.marketingConsent === true ? { marketingConsent: true, consentText: MARKETING_CONSENT_TEXT } : {}),
       // Whether the address is remembered on the customer record.
       addressUpdate: body.saveAddress !== false,
     });

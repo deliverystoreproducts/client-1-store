@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { MARKETING_CONSENT_TEXT } from "@/lib/site";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, useRef } from "react";
 import { track } from "@/lib/track";
@@ -104,6 +105,8 @@ export function CheckoutView({
     } catch {}
   }, []);
   const [saveAddress, setSaveAddress] = useState(true);
+  // CONSENT-01: marketing texts. Unchecked by default — a pre-ticked box is not consent.
+  const [marketingConsent, setMarketingConsent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   /**
    * ID photo — the ORIGINAL flow, restored 2026-08-27 at the owner's request:
@@ -265,6 +268,7 @@ export function CheckoutView({
           notes,
           couponCode: appliedCoupon || null,
           referredBy: referral.trim() || null,
+          marketingConsent,
           saveAddress,
         }),
       );
@@ -688,6 +692,18 @@ export function CheckoutView({
                   )}
                 </div>
               </details>
+
+              {/* CONSENT-01: the marketing opt-in. Separate from placing the
+                  order, unchecked, and worded so the tick means something. */}
+              <label className="row mt-2 mb-2" style={{ gap: "0.6rem", alignItems: "flex-start" }}>
+                <input
+                  type="checkbox"
+                  checked={marketingConsent}
+                  onChange={(e) => setMarketingConsent(e.target.checked)}
+                  style={{ marginTop: "0.25rem" }}
+                />
+                <span className="faint" style={{ fontSize: "0.85rem", lineHeight: 1.4 }}>{MARKETING_CONSENT_TEXT}</span>
+              </label>
 
               <button className="btn btn-block cta-inline" disabled={!canSubmit}>
                 {submitting ? "Placing your order…" : "Place order"}
