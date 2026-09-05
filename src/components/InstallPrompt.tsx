@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import { fetchPushConfig } from "@/lib/push-client";
 
 /**
  * The home-screen nudge. Two platforms, two truths:
@@ -15,6 +17,8 @@ import { useEffect, useState } from "react";
  * Shows immediately on the first post-gate page (the layout mounts this only
  * past the age check, so it can never front-run it), coarse-pointer devices
  * only, never inside an installed app, and a dismissal sleeps for two weeks.
+ * APP-REWARD-01: when the shop runs the install offer the bar leads with the
+ * discount and the copy is a link to /app, where the steps are spelled out.
  */
 
 const SNOOZE_KEY = "ybs.install.snooze";
@@ -33,6 +37,7 @@ export function InstallPrompt() {
   const [mode, setMode] = useState<"hidden" | "android" | "ios" | "embedded">("hidden");
   const [bip, setBip] = useState<BipEvent | null>(null);
   const [iosHint, setIosHint] = useState<"safari" | "chrome" | "other">("other");
+  const [percent, setPercent] = useState(0);
 
   useEffect(() => {
     if (window.matchMedia("(display-mode: standalone)").matches) return;
@@ -41,6 +46,7 @@ export function InstallPrompt() {
       if (Number(localStorage.getItem(SNOOZE_KEY) || 0) > Date.now()) return;
     } catch {}
     if (!window.matchMedia("(pointer: coarse)").matches) return;
+    fetchPushConfig().then((c) => setPercent(c.enabled ? c.rewardPercent : 0));
 
     const ua = navigator.userAgent;
     const iosDevice =
@@ -120,8 +126,8 @@ export function InstallPrompt() {
   return (
     <div className="install-bar" role="region" aria-label="Add to home screen">
       <img className="install-icon" src="/icons/icon-192.png" alt="" width={40} height={40} />
-      <div className="install-copy">
-        <strong>Keep {shortName} on your home screen</strong>
+      <Link href="/app" className="install-copy install-link" onClick={() => setMode("hidden")}>
+        <strong>{percent ? `Add ${shortName} to your home screen — get ${percent}% off` : `Keep ${shortName} on your home screen`}</strong>
         {mode === "android" ? (
           <span>One tap to install — opens full screen, like an app.</span>
         ) : mode === "embedded" ? (
@@ -146,7 +152,7 @@ export function InstallPrompt() {
             <strong>Add to Home Screen</strong>.
           </span>
         )}
-      </div>
+      </Link>
       {mode === "android" && (
         <button className="btn btn-sm" onClick={install}>
           Install

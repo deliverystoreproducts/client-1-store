@@ -520,7 +520,7 @@ export function trackEvent(
 }
 
 // ── Web push (PUSH-WEB-01) — relayed by /api/push/* ────────────────────────
-export function pushConfig(): Promise<{ enabled: boolean; publicKey: string | null }> {
+export function pushConfig(): Promise<{ enabled: boolean; publicKey: string | null; rewardPercent: number }> {
   return call("GET", `${API_PREFIX}/push/config`, {}, { revalidate: 300, tags: ["catalog"] });
 }
 export function pushSubscribe(
@@ -531,4 +531,11 @@ export function pushSubscribe(
 }
 export function pushUnsubscribe(endpoint: string): Promise<void> {
   return call<void>("POST", `${API_PREFIX}/push/unsubscribe`, { json: { endpoint } }, {});
+}
+/** APP-REWARD-01 — the install + notifications coupon for this subscription. */
+export function pushReward(
+  endpoint: string,
+  customerToken: string,
+): Promise<{ already: boolean; code: string; value: number; expiresAt: string }> {
+  return call("POST", `${API_PREFIX}/push/reward`, { json: { endpoint } }, { customerToken });
 }

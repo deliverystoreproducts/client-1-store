@@ -6693,3 +6693,165 @@ body::after {
 html[data-gated] body {
   overflow: hidden;
 }
+
+/* ═══════════════════ GET THE APP (APP-REWARD-01) ═══════════════════ */
+/* The install bar's copy is a link now; keep it looking like the copy. */
+.install-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.install-link:hover strong {
+  text-decoration: underline;
+}
+
+.app-promo {
+  max-width: 40rem;
+  margin-inline: auto;
+  padding-block: 1rem 2rem;
+}
+
+.app-promo-head {
+  display: grid;
+  justify-items: start;
+  gap: 0.6rem;
+  margin-bottom: 1.4rem;
+}
+
+.app-promo-icon {
+  border-radius: 16px;
+  box-shadow: 0 10px 24px -12px rgb(0 0 0 / 0.45);
+}
+
+.app-promo-head h1 {
+  font-family: var(--font-display);
+  font-size: var(--t-2);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  margin: 0.2rem 0 0;
+  text-wrap: balance;
+}
+
+.app-promo-lede {
+  max-width: 34rem;
+  color: var(--pine-2);
+  margin: 0;
+}
+
+.app-promo-reward {
+  display: grid;
+  gap: 0.35rem;
+  margin-bottom: 1.4rem;
+  border-color: var(--fern);
+}
+
+.app-promo-reward-label {
+  margin: 0;
+  font-size: var(--t--2);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fern);
+}
+
+.reward-code {
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 0.1em 0.45em;
+  border-radius: 6px;
+  background: var(--ground-deep);
+  border: 1px solid var(--rule-hi);
+  user-select: all;
+}
+
+.reward-code-big {
+  justify-self: start;
+  font-size: var(--t-1);
+  padding: 0.35em 0.7em;
+}
+
+.reward-line {
+  margin: 0 0 0.8rem;
+}
+
+.app-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.9rem;
+}
+
+.app-step {
+  display: grid;
+  grid-template-columns: 2rem 1fr;
+  gap: 0.9rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  background: var(--ground-raise);
+}
+
+.app-step[data-state="current"] {
+  border-color: var(--fern);
+}
+
+.app-step[data-state="todo"] {
+  opacity: 0.6;
+}
+
+.app-step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border: 1px solid var(--rule-hi);
+  font-weight: 700;
+  font-size: var(--t--1);
+  color: var(--pine-3);
+}
+
+.app-step[data-state="current"] .app-step-num {
+  background: var(--fern);
+  border-color: var(--fern);
+  color: var(--ground);
+}
+
+.app-step[data-state="done"] .app-step-num {
+  border-color: var(--fern);
+  color: var(--fern);
+}
+
+.app-step-body {
+  min-width: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.app-step-body h2 {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0.2rem 0 0;
+}
+
+.app-step-body p {
+  margin: 0;
+}
+
+.app-step-body .btn {
+  justify-self: start;
+}
+
+.app-step-signin {
+  margin-top: 0.3rem;
+}
+
+.app-promo-fine {
+  margin-top: 1.4rem;
+  font-size: var(--t--2);
+}

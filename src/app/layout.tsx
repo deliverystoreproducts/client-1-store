@@ -8,6 +8,7 @@ import { TrackPageView } from "@/components/TrackPageView";
 import { Suspense } from "react";
 import { CartProvider } from "@/components/CartProvider";
 import { InstallPrompt } from "@/components/InstallPrompt";
+import { AppNudge } from "@/components/AppNudge";
 import { SiteHeader } from "@/components/SiteHeader";
 import { PromoBar } from "@/components/PromoBar";
 import { ScrollChrome } from "@/components/ScrollChrome";
@@ -229,6 +230,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
                     <nav className="footer-col" aria-label="Info">
                       <span className="footer-head">Info</span>
+                      <Link href="/app">Get the app</Link>
                       <Link href="/faq">FAQ</Link>
                       <Link href="/returns">Return Policy</Link>
                       {/* CalOPPA (B&P § 22575) requires the privacy policy to be
@@ -263,6 +265,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               </footer>
             </div>
             <InstallPrompt />
+            <AppNudge />
           </CartProvider>
         )}
         <SwRegister />

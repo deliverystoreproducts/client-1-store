@@ -101,6 +101,7 @@ export function SiteHeader({
             <div className="nav-more-pop">
               <Link href="/deals">Deals</Link>
               <Link href="/track">Track an order</Link>
+              <Link href="/app">Get the app</Link>
               <Link href="/faq">FAQ</Link>
               <Link href="/contact">Contact</Link>
               <div className="nav-more-row">
@@ -146,6 +147,7 @@ export function SiteHeader({
           <Link href="/deals">Deals</Link>
           <Link href="/track">Track an order</Link>
           <Link href={accountHref}>{accountLabel}</Link>
+          <Link href="/app">Get the app</Link>
           <Link href="/faq">FAQ</Link>
           <Link href="/contact">Contact</Link>
           <div className="mobile-menu-row">
