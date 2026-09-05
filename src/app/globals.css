@@ -6877,46 +6877,13 @@ html[data-gated] body {
   inset: 0;
   display: grid;
   place-items: center;
-  background:
-    radial-gradient(60% 80% at 30% 40%, rgb(22 163 74 / 0.28), transparent 70%),
-    linear-gradient(160deg, #0f2a1a, #16302a 55%, #0b1a12);
+  background: var(--ground-deep);
+  color: var(--pine-3);
 }
 
-.hero-blunt {
-  width: min(52vw, 360px);
+.hero-placeholder-icon {
+  width: clamp(56px, 8vw, 96px);
   height: auto;
-  filter: drop-shadow(0 18px 30px rgb(0 0 0 / 0.45));
+  opacity: 0.35;
 }
-
-.hero-smoke path {
-  stroke: #e8f5ec;
-  stroke-opacity: 0.55;
-  stroke-dasharray: 120;
-  stroke-dashoffset: 120;
-  animation: hero-smoke 4.5s ease-out infinite;
-}
-
-.hero-smoke-2 { animation-delay: 1.2s; }
-.hero-smoke-3 { animation-delay: 2.6s; }
-
-@keyframes hero-smoke {
-  0%   { stroke-dashoffset: 120; opacity: 0; transform: translateY(0); }
-  15%  { opacity: 0.9; }
-  70%  { stroke-dashoffset: 0; opacity: 0.35; }
-  100% { stroke-dashoffset: 0; opacity: 0; transform: translateY(-14px); }
-}
-
-.hero-ember {
-  animation: hero-ember 1.6s ease-in-out infinite alternate;
-  transform-origin: 58px 136px;
-}
-
-@keyframes hero-ember {
-  from { opacity: 0.75; transform: scale(0.9); }
-  to   { opacity: 1; transform: scale(1.15); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hero-smoke path, .hero-ember { animation: none; }
-  .hero-smoke path { stroke-dashoffset: 0; opacity: 0.4; }
 }
