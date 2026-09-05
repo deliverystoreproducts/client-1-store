@@ -191,9 +191,17 @@ export default async function PrivacyPage() {
           to switch off, and this site does not respond to one.
         </strong>{" "}
         This is not a policy position; it is how the site is built. Every page you load comes from
-        this one server. There are no advertising pixels, no analytics scripts, no social media
+        this one server. There are no advertising pixels, no third-party analytics, no social media
         buttons, no embedded video, no third-party fonts and no content delivery network. Your
         browser makes no request to anyone but us while you are on this site.
+      </p>
+      <p>
+        We do keep our own record of how the store is used — which pages and products are viewed,
+        what is searched for, what is added to a cart and whether an order follows. That record is
+        made by us, stored on our own server, tied to a random identifier on your device rather than
+        to you, and used to run the store: to see what people are looking for, and to notice when a
+        checkout is abandoned. If you are signed in, an abandoned cart may be linked to your account
+        so we can help you finish it. It is not shared with anyone and it is not used for advertising.
       </p>
 
       <h2>Other parties tracking you here</h2>

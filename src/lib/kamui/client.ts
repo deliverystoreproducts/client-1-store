@@ -499,3 +499,22 @@ export function lookupCoupon(code: string): Promise<CouponLookupResponseV1> {
 }
 
 export type { CheckoutErrorBodyV1 };
+
+/**
+ * ANALYTICS-01: one first-party usage event → the platform's ShopEvent table.
+ * Called only from our /api/track relay. Short timeout is inherited from call();
+ * the relay swallows every failure.
+ */
+export function trackEvent(
+  event: {
+    visitorId: string;
+    sessionId: string;
+    event: string;
+    page: string | null;
+    productId: number | null;
+    meta: Record<string, unknown> | null;
+  },
+  customerToken?: string,
+): Promise<void> {
+  return call<void>("POST", `${API_PREFIX}/events`, { json: event }, { customerToken });
+}

@@ -4,6 +4,8 @@ import Link from "next/link";
 import "./globals.css";
 import { AgeGate } from "@/components/AgeGate";
 import { JsonLd } from "@/components/JsonLd";
+import { TrackPageView } from "@/components/TrackPageView";
+import { Suspense } from "react";
 import { CartProvider } from "@/components/CartProvider";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -140,6 +142,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <StoreUnavailable storeName={process.env.NEXT_PUBLIC_SITE_NAME} />
         ) : (
           <CartProvider>
+            {/* ANALYTICS-01: first-party page/product/search events → /api/track.
+                Suspense because useSearchParams opts the subtree into CSR. */}
+            <Suspense fallback={null}>
+              <TrackPageView />
+            </Suspense>
             {/* SEO-01: the store is SERVED underneath and the gate sits on top
                 until the visitor answers. Still decided server-side from the
                 cookie, still unconditional (no dashboard flag reaches it), and

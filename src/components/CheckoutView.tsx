@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
+import { track } from "@/lib/track";
 import { BasketComplianceNotices } from "@/components/ComplianceNotices";
 import { useCart } from "@/components/CartProvider";
 import { AddressField } from "@/components/AddressField";
@@ -68,6 +69,16 @@ export function CheckoutView({
 
   const [session, setSession] = useState<SessionState | null>(null);
   const [cart, setCart] = useState<PricedCart | null>(null);
+  // ANALYTICS-01: checkout_start with the priced contents, once.
+  const trackedStart = useRef(false);
+  useEffect(() => {
+    if (!cart || trackedStart.current || cart.lines.length === 0) return;
+    trackedStart.current = true;
+    track("checkout_start", { page: "/checkout", meta: {
+        cart: cart.lines.map((l) => ({ name: l.name, quantity: l.quantity, price: l.unitPrice })),
+        totalPrice: Math.max(0, cart.subtotal - (cart.discount || 0)),
+      } });
+  }, [cart]);
   const [address, setAddress] = useState("");
   const [addressTouched, setAddressTouched] = useState(false);
   const [lastAddress, setLastAddress] = useState<string | null>(null);

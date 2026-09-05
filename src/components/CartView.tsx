@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
+import { track } from "@/lib/track";
 import { BasketComplianceNotices } from "@/components/ComplianceNotices";
 import { useCart } from "@/components/CartProvider";
 import { apiPost, ClientApiError } from "@/lib/client-api";
@@ -20,6 +21,17 @@ import type { PricedCart } from "@/lib/public-types";
 export function CartView() {
   const { items, ready, setQuantity, remove } = useCart();
   const [cart, setCart] = useState<PricedCart | null>(null);
+  // ANALYTICS-01: cart_view with the priced contents, once per visit to this
+  // page — the abandoned-cart view reads meta.cart / meta.totalPrice off it.
+  const trackedCart = useRef(false);
+  useEffect(() => {
+    if (!cart || trackedCart.current || cart.lines.length === 0) return;
+    trackedCart.current = true;
+    track("cart_view", { page: "/cart", meta: {
+        cart: cart.lines.map((l) => ({ name: l.name, quantity: l.quantity, price: l.unitPrice })),
+        totalPrice: Math.max(0, cart.subtotal - (cart.discount || 0)),
+      } });
+  }, [cart]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { track } from "@/lib/track";
 import { AddressField } from "@/components/AddressField";
 import { apiPost, apiPostForm, ClientApiError } from "@/lib/client-api";
 import { formatPhone } from "@/lib/phone";
@@ -68,6 +69,13 @@ interface Props {
   initialStep?: Step;
 }
 
+// ANALYTICS-01: the funnel's phone/OTP steps — only when this flow is the
+// checkout's; the same component signs people in on /signin, and those are
+// not checkout steps.
+function trackCheckoutStep(step: "checkout_phone" | "checkout_otp") {
+  if (typeof window !== "undefined" && window.location.pathname.startsWith("/checkout")) track(step);
+}
+
 export function SignInFlow({ onSignedIn, requireIdPhoto, initialStep = "phone" }: Props) {
   const [step, setStep] = useState<Step>(initialStep);
   const [phone, setPhone] = useState("");
@@ -103,6 +111,7 @@ export function SignInFlow({ onSignedIn, requireIdPhoto, initialStep = "phone" }
       );
       if (res.status === "signed_in") return signedIn(res.customer ?? null);
       if (res.status === "needs_profile") return setStep("profile");
+      trackCheckoutStep("checkout_phone");
       setStep("code");
       if (resend) setNote("We sent a new code.");
     } catch (e) {
@@ -121,6 +130,7 @@ export function SignInFlow({ onSignedIn, requireIdPhoto, initialStep = "phone" }
         "/api/auth/verify-code",
         { phone, code },
       );
+      trackCheckoutStep("checkout_otp");
       if (res.status === "signed_in") return signedIn(res.customer ?? null);
       setStep("profile");
     } catch (e) {

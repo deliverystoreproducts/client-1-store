@@ -3,6 +3,7 @@ import Link from "next/link";
 import {
 } from "@/lib/site";
 import { getStoreProfile } from "@/lib/store";
+import { TrackOrderPlaced } from "@/components/TrackOrderPlaced";
 
 /**
  * Order confirmation.
@@ -62,6 +63,7 @@ export default async function ConfirmationPage({
 
   return (
     <div className="track-card center" data-reveal>
+    <TrackOrderPlaced order={orderNumber ?? null} />
       <span className="eyebrow" style={{ "--i": 0 } as React.CSSProperties}>
         Confirmed
       </span>

@@ -11,6 +11,7 @@ import {
 } from "react";
 import { CART_STORAGE_KEY } from "@/lib/site";
 import type { CartLineInput } from "@/lib/public-types";
+import { track } from "@/lib/track";
 
 /**
  * The browser-side cart: product ids and quantities, nothing else.
@@ -75,6 +76,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [items, ready]);
 
   const add = useCallback((productId: number, quantity = 1) => {
+    track("add_to_cart", { productId, meta: { quantity } }); // ANALYTICS-01
     setItems((prev) => {
       const existing = prev.find((i) => i.productId === productId);
       if (!existing) return [...prev, { productId, quantity: Math.min(MAX_QTY, quantity) }];
