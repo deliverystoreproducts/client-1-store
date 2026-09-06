@@ -159,3 +159,32 @@ export function storedReward(): RewardResult | null {
     return null;
   }
 }
+
+/**
+ * Heartbeat. Apple never tells us when a deleted home-screen app's endpoint
+ * died, so the LIVE app re-reports its subscription instead: once a day per
+ * browser, on open. The platform refreshes lastSeenAt and, when signed in,
+ * retires this customer's older endpoints from the same browser. Best effort;
+ * a failure costs nothing and is retried next open.
+ */
+const HEARTBEAT_KEY = "ybs.push.seen";
+const HEARTBEAT_MS = 24 * 60 * 60 * 1000;
+
+export async function heartbeatPush(): Promise<void> {
+  try {
+    if (Number(localStorage.getItem(HEARTBEAT_KEY) || 0) > Date.now() - HEARTBEAT_MS) return;
+  } catch {}
+  const sub = await currentSubscription();
+  if (!sub) return;
+  const json = sub.toJSON();
+  let visitorId: string | null = null;
+  try { visitorId = localStorage.getItem("ybs.vid"); } catch {}
+  try {
+    const res = await fetch("/api/push/subscribe", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ endpoint: sub.endpoint, keys: json.keys, visitorId }),
+    });
+    if (res.ok) localStorage.setItem(HEARTBEAT_KEY, String(Date.now()));
+  } catch {}
+}
