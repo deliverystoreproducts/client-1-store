@@ -17,6 +17,7 @@ export async function GET(): Promise<Response> {
       heroImage: p.heroImage,
       heroVideo: p.heroVideo,
       minAge: p.minAge,
+      requireIdVerification: p.requireIdVerification,
     },
     { headers: { "cache-control": "public, max-age=300" } },
   );
