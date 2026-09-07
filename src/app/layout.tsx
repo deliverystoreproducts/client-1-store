@@ -33,6 +33,12 @@ export const metadata: Metadata = {
     template: `%s · ${process.env.NEXT_PUBLIC_SITE_NAME || "YB Cannabis Co."}`,
   },
   description: SITE_TAGLINE,
+  // iOS App Clip card in Safari (kamui-clip). Off until both env vars exist:
+  //   APPLE_APP_ID         the App Store numeric id of the parent app
+  //   APPLE_APP_BUNDLE_ID  its bundle id; the Clip is <bundle>.Clip
+  ...(process.env.APPLE_APP_ID && process.env.APPLE_APP_BUNDLE_ID
+    ? { other: { "apple-itunes-app": `app-id=${process.env.APPLE_APP_ID}, app-clip-bundle-id=${process.env.APPLE_APP_BUNDLE_ID}.Clip, app-clip-display=card` } }
+    : {}),
   // No indexing by default: a store should opt in to search engines once its
   // real domain, hours and legal pages are in place. Launch day flips ONE env
   // var (SEO_INDEX=on) — until then this is also the single deliberate
