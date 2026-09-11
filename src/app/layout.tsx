@@ -26,12 +26,40 @@ import { SITE_TAGLINE } from "@/lib/site";
  */
 const SITE_ORIGIN = (process.env.SITE_ORIGIN || "").trim();
 
-export const metadata: Metadata = {
+/**
+ * SEO-03: the name search engines show beside every result — and the title
+ * suffix on every page — is the shop's OWN name from the dashboard
+ * (Settings → Storefront), not a deploy-time env var. NEXT_PUBLIC_SITE_NAME
+ * stays as the fallback for a build with the backend unreachable. Google
+ * reads the site name from the WebSite structured data, og:site_name and
+ * the title, in that order; all three now agree.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const fallback = process.env.NEXT_PUBLIC_SITE_NAME || "YB Cannabis Co.";
+  let name = fallback;
+  try {
+    const p = await getStoreProfile();
+    if (p.storeName?.trim()) name = p.storeName.trim();
+  } catch {}
+  return {
+    ...baseMetadata,
+    title: { default: name, template: `%s · ${name}` },
+    openGraph: { siteName: name, type: "website", ...(SITE_ORIGIN ? { url: SITE_ORIGIN } : {}) },
+    // Google wants a favicon it can fetch at a stable URL, at least 48×48;
+    // the hashed SVG link alone left the result with a generic globe.
+    icons: {
+      icon: [
+        { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+        { url: "/icon.svg", type: "image/svg+xml" },
+      ],
+      shortcut: "/icons/icon-192.png",
+      apple: "/apple-icon.png",
+    },
+  };
+}
+
+const baseMetadata: Metadata = {
   ...(SITE_ORIGIN ? { metadataBase: new URL(SITE_ORIGIN), alternates: { canonical: "./" } } : {}),
-  title: {
-    default: process.env.NEXT_PUBLIC_SITE_NAME || "YB Cannabis Co.",
-    template: `%s · ${process.env.NEXT_PUBLIC_SITE_NAME || "YB Cannabis Co."}`,
-  },
   description: SITE_TAGLINE,
   // iOS App Clip card in Safari (kamui-clip). Off until both env vars exist:
   //   APPLE_APP_ID         the App Store numeric id of the parent app
@@ -163,6 +191,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 now sees the catalogue, which is the whole point of a store
                 that wants to be found. */}
             <div className="shell" inert={gated || undefined} aria-hidden={gated || undefined}>
+              {/* SEO-03: WebSite is what Google's "site name" reads first. */}
+              <JsonLd
+                data={{
+                  "@context": "https://schema.org",
+                  "@type": "WebSite",
+                  name: storeName,
+                  ...(SITE_ORIGIN ? { url: SITE_ORIGIN } : {}),
+                }}
+              />
               <JsonLd
                 data={{
                   "@context": "https://schema.org",
