@@ -101,9 +101,9 @@ export function AgeGate({
           {minAge}
         </span>
 
-        <h1 className="gate-q" data-reveal style={{ "--i": 2 } as React.CSSProperties}>
+        <h2 className="gate-q" data-reveal style={{ "--i": 2 } as React.CSSProperties}>
           Are you {minAge} or older?
-        </h1>
+        </h2>
 
         <p
           className="muted"

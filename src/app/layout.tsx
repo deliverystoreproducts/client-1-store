@@ -162,9 +162,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 given. What changed is only that a crawler — and view-source —
                 now sees the catalogue, which is the whole point of a store
                 that wants to be found. */}
-            {gated ? (
-              <AgeGate overlay minAge={profile.minAge} storeName={storeName} licenseNumber={profile.licenseNumber} />
-            ) : null}
             <div className="shell" inert={gated || undefined} aria-hidden={gated || undefined}>
               <JsonLd
                 data={{
@@ -270,6 +267,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 </div>
               </footer>
             </div>
+            {/* SEO-02: the overlay renders AFTER the shell so the page's own
+                <h1>, title and product markup come first in the document — a
+                crawler reads the store, not the question. Fixed positioning
+                puts it on top regardless of order. */}
+            {gated ? (
+              <AgeGate overlay minAge={profile.minAge} storeName={storeName} licenseNumber={profile.licenseNumber} />
+            ) : null}
             <InstallPrompt />
             <AppNudge />
           </CartProvider>
