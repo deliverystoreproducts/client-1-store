@@ -117,8 +117,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // rather than a shop whose every shelf happens to be empty.
   const configured = isUpstreamConfigured();
   const profile = await getStoreProfile();
+  // SEO-03: the dashboard's name wins; the env var is only the fallback for a
+  // build with the backend unreachable. It used to be the other way round,
+  // which is how a domain-era placeholder ("Yb13") ended up in the header,
+  // the Store schema and every search result.
   const storeName =
-    process.env.NEXT_PUBLIC_SITE_NAME || profile.storeName || "YB Cannabis Co.";
+    profile.storeName?.trim() || process.env.NEXT_PUBLIC_SITE_NAME || "YB Cannabis Co.";
   const passedGate = await hasPassedAgeGate();
 
   // ── AGE GATE: UNCONDITIONAL ────────────────────────────────────────────
