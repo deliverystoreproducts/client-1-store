@@ -339,3 +339,17 @@ export interface ApiErrorBody {
   /** Only ever set from structured, whitelisted upstream fields. */
   detail?: Record<string, string | number>;
 }
+
+/**
+ * GEO-01: a city the shop delivers to, for the /delivery pages. `freeDelivery`
+ * is the only thing said about the fee: a zero fee is a promise we can keep, a
+ * non-zero one is a number no order path collects (see DeliveryZoneResponse),
+ * so it is never surfaced.
+ */
+export interface PublicDeliveryZone {
+  city: string;
+  slug: string;
+  minimumOrder: number;
+  freeDelivery: boolean;
+  isLocal: boolean;
+}

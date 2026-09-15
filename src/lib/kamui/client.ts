@@ -542,3 +542,14 @@ export function pushReward(
 ): Promise<{ already: boolean; code: string; value: number; expiresAt: string }> {
   return call("POST", `${API_PREFIX}/push/reward`, { json: { endpoint } }, { customerToken });
 }
+
+/** GEO-01: the delivery cities with their minimums — see ListDeliveryZonesResponse. */
+export function listDeliveryZones(): Promise<ListDeliveryZonesResponse> {
+  return call<ListDeliveryZonesResponse>("GET", `${API_PREFIX}/delivery-zones`, {}, {
+    revalidate: 300,
+    tags: ["store-profile"],
+  });
+}
+
+// GEO-01
+import type { ListDeliveryZonesResponse } from "./types";

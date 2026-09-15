@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { headers } from "next/headers";
-import { getBrands, getCatalogPage, getCategories } from "@/lib/store";
+import { getBrands, getCatalogPage, getCategories, getDeliveryZones } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
 
@@ -43,9 +43,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     u("/terms", 0.2, "yearly"),
   ];
 
-  const [categories, brands] = await Promise.all([getCategories(), getBrands()]);
+  const [categories, brands, zones] = await Promise.all([getCategories(), getBrands(), getDeliveryZones()]);
   for (const c of categories) out.push(u(`/category/${c.id}`, 0.8, "daily"));
   for (const b of brands) out.push(u(`/brand/${b.id}`, 0.6, "weekly"));
+  // GEO-01: one page per delivery city — the organic entry for "delivery <city>".
+  if (zones.length > 0) out.push(u("/delivery", 0.7, "weekly"));
+  for (const z of zones) out.push(u(`/delivery/${z.slug}`, 0.7, "weekly"));
 
   for (let page = 1; page <= MAX_PAGES; page++) {
     const res = await getCatalogPage({ page, limit: PAGE });

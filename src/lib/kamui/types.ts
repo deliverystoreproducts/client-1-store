@@ -400,3 +400,21 @@ export interface MyCouponsResponse {
 export interface DeliveryZoneResponse {
   zone: { city: string; name: string; minimumOrder: number; deliveryFee: number } | null;
 }
+
+/**
+ * GEO-01 — `GET /delivery-zones`: every city the shop delivers to, with the
+ * minimum order CHECKOUT enforces there. One entry per city, sorted. Sourced
+ * upstream from the same resolution the order path uses, so a page built on
+ * it never advertises a city an order is then refused for.
+ */
+export interface StoreDeliveryZoneV1 {
+  city: string;
+  name: string;
+  minimumOrder: number;
+  /** On the wire, but see DeliveryZoneResponse: never shown to a customer. */
+  deliveryFee: number;
+  isLocal: boolean;
+}
+export interface ListDeliveryZonesResponse {
+  zones: StoreDeliveryZoneV1[];
+}

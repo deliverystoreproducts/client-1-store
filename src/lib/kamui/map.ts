@@ -260,3 +260,19 @@ export function toPublicTracking(t: TrackingOrderV1): PublicTracking {
     // identifies the dispatch stack behind this store.
   };
 }
+
+// GEO-01
+import type { StoreDeliveryZoneV1 } from "@/lib/kamui/types";
+import type { PublicDeliveryZone } from "@/lib/public-types";
+import { citySlug } from "@/lib/city-slug";
+
+export function toPublicDeliveryZone(z: StoreDeliveryZoneV1): PublicDeliveryZone {
+  const city = z.city.trim();
+  return {
+    city,
+    slug: citySlug(city),
+    minimumOrder: Number.isFinite(z.minimumOrder) && z.minimumOrder > 0 ? z.minimumOrder : 0,
+    freeDelivery: !(Number.isFinite(z.deliveryFee) && z.deliveryFee > 0),
+    isLocal: Boolean(z.isLocal),
+  };
+}

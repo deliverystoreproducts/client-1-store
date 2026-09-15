@@ -656,3 +656,24 @@ function logPageFailure(what: string, e: unknown): void {
   }
   console.error(`[store] ${what} failed`, e);
 }
+
+// ── GEO-01: delivery areas ────────────────────────────────────────────────────
+import { toPublicDeliveryZone } from "@/lib/kamui/map";
+import type { PublicDeliveryZone } from "@/lib/public-types";
+
+/** Every city the shop delivers to, sorted. Never throws — an empty list on failure. */
+export async function getDeliveryZones(): Promise<PublicDeliveryZone[]> {
+  try {
+    const res = await api.listDeliveryZones();
+    return (res.zones ?? []).map(toPublicDeliveryZone).filter((z) => z.city !== "");
+  } catch (e) {
+    logPageFailure("delivery-zones", e);
+    return [];
+  }
+}
+
+/** One city by its URL slug, or null (unknown city, or the list is out of reach). */
+export async function getDeliveryZone(slug: string): Promise<PublicDeliveryZone | null> {
+  const zones = await getDeliveryZones();
+  return zones.find((z) => z.slug === slug) ?? null;
+}
