@@ -34,6 +34,110 @@ export type TrackedEvent =
   | "order_placed"
   | "search";
 
+/**
+ * ATTRIBUTION (ADS-01). Where the visit came from, so "did the ad work?" has an
+ * answer that is ours rather than the ad platform's. Captured from the URL's
+ * utm_* / gclid / fbclid / ttclid and, failing those, the referring host.
+ *
+ * Rule: a campaign click OVERWRITES (last non-direct touch, what every ad tool
+ * reports against); a plain visit keeps whatever was captured within 30 days,
+ * so the shopper who clicks the ad today and buys on Thursday still counts.
+ * It travels on every event's meta, so the funnel can be read per source.
+ *
+ * Nothing here identifies a person: it is the query string the ad put on the
+ * link and the host that linked here.
+ */
+const SRC_KEY = "ybs.src";
+const SRC_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+
+interface Attribution {
+  /** utm_source | referring host | "direct" */
+  s?: string;
+  /** utm_medium */
+  m?: string;
+  /** utm_campaign */
+  c?: string;
+  /** utm_content */
+  n?: string;
+  /** utm_term */
+  t?: string;
+  /** click id (gclid / fbclid / ttclid / msclkid) */
+  k?: string;
+  /** referring host, when it is not us */
+  r?: string;
+  /** the page the visit landed on */
+  lp?: string;
+  /** captured at (ms) */
+  at: number;
+}
+
+function trimmed(v: string | null, max = 120): string | undefined {
+  const x = (v ?? "").trim();
+  return x ? x.slice(0, max) : undefined;
+}
+
+function fromUrl(): Attribution | null {
+  const q = new URLSearchParams(window.location.search);
+  const click =
+    trimmed(q.get("gclid")) ?? trimmed(q.get("fbclid")) ?? trimmed(q.get("ttclid")) ?? trimmed(q.get("msclkid"));
+  const source = trimmed(q.get("utm_source"));
+  if (!source && !click) return null;
+  const a: Attribution = { at: Date.now() };
+  if (source) a.s = source;
+  else if (click) a.s = q.get("gclid") ? "google" : q.get("fbclid") ? "meta" : q.get("ttclid") ? "tiktok" : "bing";
+  const m = trimmed(q.get("utm_medium"));
+  const c = trimmed(q.get("utm_campaign"));
+  const n = trimmed(q.get("utm_content"));
+  const t = trimmed(q.get("utm_term"));
+  if (m) a.m = m;
+  if (c) a.c = c;
+  if (n) a.n = n;
+  if (t) a.t = t;
+  if (click) a.k = click;
+  if (!a.m && click) a.m = "cpc";
+  a.lp = window.location.pathname.slice(0, 200);
+  const r = referringHost();
+  if (r) a.r = r;
+  return a;
+}
+
+function referringHost(): string | undefined {
+  try {
+    const ref = document.referrer;
+    if (!ref) return undefined;
+    const h = new URL(ref).hostname.replace(/^www\./, "");
+    if (h === window.location.hostname.replace(/^www\./, "")) return undefined;
+    return h.slice(0, 120);
+  } catch {
+    return undefined;
+  }
+}
+
+/** The attribution to report with this event, or null for an unattributed visit. */
+function attribution(): Attribution | null {
+  try {
+    const fresh = fromUrl();
+    if (fresh) {
+      localStorage.setItem(SRC_KEY, JSON.stringify(fresh));
+      return fresh;
+    }
+    const raw = localStorage.getItem(SRC_KEY);
+    if (raw) {
+      const saved = JSON.parse(raw) as Attribution;
+      if (saved && typeof saved.at === "number" && Date.now() - saved.at < SRC_TTL_MS) return saved;
+    }
+    const r = referringHost();
+    if (r) {
+      const a: Attribution = { s: r, m: "referral", r, lp: window.location.pathname.slice(0, 200), at: Date.now() };
+      localStorage.setItem(SRC_KEY, JSON.stringify(a));
+      return a;
+    }
+  } catch {
+    /* storage refused — an unattributed event beats a thrown one */
+  }
+  return null;
+}
+
 const VISITOR_KEY = "ybs.vid";
 const SESSION_KEY = "ybs.sid";
 const SESSION_AT_KEY = "ybs.sid.at";
@@ -83,13 +187,15 @@ export function track(
   try {
     // Automation and headless browsers are not shoppers.
     if (navigator.webdriver) return;
+    const src = attribution();
+    const meta = src ? { ...(data.meta ?? {}), src } : (data.meta ?? null);
     const body = JSON.stringify({
       visitorId: visitorId(),
       sessionId: sessionId(),
       event,
       page: data.page ?? window.location.pathname,
       productId: data.productId ?? null,
-      meta: data.meta ?? null,
+      meta,
     });
     const blob = new Blob([body], { type: "application/json" });
     if (navigator.sendBeacon && navigator.sendBeacon("/api/track", blob)) return;
