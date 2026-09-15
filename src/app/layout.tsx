@@ -61,6 +61,11 @@ export async function generateMetadata(): Promise<Metadata> {
 const baseMetadata: Metadata = {
   ...(SITE_ORIGIN ? { metadataBase: new URL(SITE_ORIGIN), alternates: { canonical: "./" } } : {}),
   description: SITE_TAGLINE,
+  // Search Console ownership: set GOOGLE_SITE_VERIFICATION to the token from
+  // the "HTML tag" method and the meta tag appears on every page.
+  ...(process.env.GOOGLE_SITE_VERIFICATION
+    ? { verification: { google: process.env.GOOGLE_SITE_VERIFICATION.trim() } }
+    : {}),
   // iOS App Clip card in Safari (kamui-clip). Off until both env vars exist:
   //   APPLE_APP_ID         the App Store numeric id of the parent app
   //   APPLE_APP_BUNDLE_ID  its bundle id; the Clip is <bundle>.Clip
