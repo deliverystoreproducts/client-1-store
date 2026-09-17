@@ -18,6 +18,7 @@ import type {
   StoreDealV1,
   StoreOrderV1,
   StoreProductV1,
+  StorePostV1,
   TenantProfileV1,
   TrackingOrderV1,
   CustomerProfileV1,
@@ -29,6 +30,7 @@ import type {
   PublicCustomer,
   PublicDeal,
   PublicOrderSummary,
+  PublicPost,
   PublicProduct,
   PublicStoreProfile,
   PublicTracking,
@@ -63,6 +65,25 @@ export function toPublicProduct(p: StoreProductV1): PublicProduct {
     thcPercentage: p.thcPercentage,
     cbdPercentage: p.cbdPercentage,
     featured: !!p.featured,
+    seoTitle: p.seoTitle ?? null,
+    seoBody: p.seoBody ?? null,
+  };
+}
+
+/** BLOG-01 */
+export function toPublicPost(p: StorePostV1 | Omit<StorePostV1, "bodyMd">): PublicPost {
+  return {
+    id: p.id,
+    slug: p.slug,
+    title: p.title,
+    excerpt: p.excerpt,
+    bodyMd: "bodyMd" in p ? p.bodyMd : null,
+    coverImage: toPublicImageUrl(p.coverImage),
+    publishedAt: p.publishedAt,
+    updatedAt: p.updatedAt,
+    seoTitle: p.seoTitle,
+    seoDescription: p.seoDescription,
+    authorName: p.authorName,
   };
 }
 

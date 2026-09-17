@@ -74,6 +74,26 @@ export interface PublicProduct {
   thcPercentage: number | null;
   cbdPercentage: number | null;
   featured: boolean;
+  /** BLOG-01: operator-written strain page (markdown). */
+  seoTitle: string | null;
+  seoBody: string | null;
+}
+
+/** BLOG-01: a published blog post, as the pages see it. */
+export interface PublicPost {
+  id: number;
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  /** Markdown; absent on index cards. */
+  bodyMd: string | null;
+  /** Our own proxied URL or an absolute https URL, or null. */
+  coverImage: string | null;
+  publishedAt: string;
+  updatedAt: string;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  authorName: string | null;
 }
 
 /**

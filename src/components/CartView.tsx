@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { productPath } from "@/lib/product-path";
 import { useCallback, useEffect, useState, useRef } from "react";
 import { track } from "@/lib/track";
 import { BasketComplianceNotices } from "@/components/ComplianceNotices";
@@ -111,7 +112,7 @@ export function CartView() {
         <div className="ledger" data-reveal style={{ "--i": 1 } as React.CSSProperties}>
           {(cart?.lines ?? []).map((line) => (
             <div className="ledger-row" key={line.productId}>
-              <Link href={`/product/${line.productId}`} className="ledger-thumb">
+              <Link href={productPath({ id: line.productId, name: line.name })} className="ledger-thumb">
                 {line.image ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={line.image} alt={line.name} />
@@ -121,7 +122,7 @@ export function CartView() {
               </Link>
 
               <div className="stack" style={{ gap: "0.55rem" }}>
-                <Link href={`/product/${line.productId}`} className="ledger-name">
+                <Link href={productPath({ id: line.productId, name: line.name })} className="ledger-name">
                   {line.name}
                 </Link>
                 <span className="faint num">{formatUsd(line.unitPrice)} each</span>

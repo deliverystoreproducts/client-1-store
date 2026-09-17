@@ -6,6 +6,7 @@ import {
   toPublicBrand,
   toPublicCategory,
   toPublicDeal,
+  toPublicPost,
   toPublicProduct,
   toPublicStoreProfile,
 } from "@/lib/kamui/map";
@@ -36,6 +37,7 @@ import type {
   PublicBrand,
   PublicCategory,
   PublicDeal,
+  PublicPost,
   PublicProduct,
   PublicProductPage,
   PublicStoreProfile,
@@ -676,4 +678,28 @@ export async function getDeliveryZones(): Promise<PublicDeliveryZone[]> {
 export async function getDeliveryZone(slug: string): Promise<PublicDeliveryZone | null> {
   const zones = await getDeliveryZones();
   return zones.find((z) => z.slug === slug) ?? null;
+}
+
+
+// ─────────────────────────── blog (BLOG-01) ───────────────────────────
+
+/** Published posts, newest first. Never throws — an empty blog is a page, not an error. */
+export async function getPosts(): Promise<PublicPost[]> {
+  try {
+    const res = await api.listPosts({ limit: 50 });
+    return (res.posts ?? []).map(toPublicPost);
+  } catch (e) {
+    logPageFailure("posts", e);
+    return [];
+  }
+}
+
+/** One published post by slug, or null (draft, scheduled, unknown, or upstream down). */
+export async function getPost(slug: string): Promise<PublicPost | null> {
+  try {
+    return toPublicPost((await api.getPost(slug)).post);
+  } catch (e) {
+    if (!(e instanceof UpstreamError) || e.code !== "not_found") logPageFailure("post", e);
+    return null;
+  }
 }

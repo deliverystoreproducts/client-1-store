@@ -106,6 +106,8 @@ function matchesIn(text: string, terms: string[]): string[] {
 export interface ReviewableProduct {
   name: string;
   description?: string | null;
+  /** BLOG-01: the operator's strain-page markdown — reviewed like any other copy. */
+  seoBody?: string | null;
   tags?: readonly string[] | null;
   category?: { name: string } | null;
 }
@@ -114,6 +116,7 @@ export function reviewProductCopy(p: ReviewableProduct): CopyFinding[] {
   const fields: { field: string; text: string }[] = [
     { field: "name", text: p.name ?? "" },
     { field: "description", text: p.description ?? "" },
+    { field: "seoBody", text: p.seoBody ?? "" },
     { field: "tags", text: (p.tags ?? []).join(" ") },
     { field: "category", text: p.category?.name ?? "" },
   ];

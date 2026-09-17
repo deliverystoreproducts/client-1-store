@@ -553,3 +553,24 @@ export function listDeliveryZones(): Promise<ListDeliveryZonesResponse> {
 
 // GEO-01
 import type { ListDeliveryZonesResponse } from "./types";
+
+// BLOG-01
+import type { ListPostsResponse, PostDetailResponse } from "./types";
+
+export function listPosts(q: { page?: number; limit?: number } = {}): Promise<ListPostsResponse> {
+  const sp = new URLSearchParams();
+  if (q.page) sp.set("page", String(q.page));
+  if (q.limit) sp.set("limit", String(q.limit));
+  const qs = sp.toString();
+  return call<ListPostsResponse>("GET", `${API_PREFIX}/posts${qs ? `?${qs}` : ""}`, {}, {
+    revalidate: 300,
+    tags: ["posts"],
+  });
+}
+
+export function getPost(slug: string): Promise<PostDetailResponse> {
+  return call<PostDetailResponse>("GET", `${API_PREFIX}/posts/${encodeURIComponent(slug)}`, {}, {
+    revalidate: 300,
+    tags: ["posts"],
+  });
+}

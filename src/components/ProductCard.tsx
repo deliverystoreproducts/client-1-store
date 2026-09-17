@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { productPath } from "@/lib/product-path";
 import { MediaSlot } from "@/components/MediaSlot";
 import { AddToCartButton } from "@/components/AddToCartButton";
 import { formatUsd } from "@/lib/money";
@@ -34,7 +35,7 @@ export function ProductCard({
       data-reveal
       style={{ "--i": Math.min(index ?? 0, 12) } as React.CSSProperties}
     >
-      <Link href={`/product/${product.id}`} className="tile-frame" aria-label={product.name}>
+      <Link href={productPath(product)} className="tile-frame" aria-label={product.name}>
         {ordinal ? (
           <span className="tile-index" aria-hidden>
             {ordinal}
@@ -55,7 +56,7 @@ export function ProductCard({
 
       <div className="tile-brand">{product.brand?.name ?? " "}</div>
 
-      <Link href={`/product/${product.id}`} className="tile-name">
+      <Link href={productPath(product)} className="tile-name">
         {product.name}
       </Link>
 

@@ -278,6 +278,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                       {/* GEO-01: the per-city pages are reachable from every page,
                           which is what makes a crawler find and rank them. */}
                       <Link href="/delivery">Delivery areas</Link>
+                      {/* BLOG-01: same reason — a crawler finds the blog from every page. */}
+                      <Link href="/blog">Blog</Link>
                     </nav>
 
                     <nav className="footer-col" aria-label="Info">

@@ -56,6 +56,39 @@ export interface StoreProductV1 {
   weightPricing: unknown;
   featured: boolean;
   featuredOrder: number | null;
+  /** BLOG-01: the operator's own strain-page copy (markdown). Null until written. */
+  seoTitle: string | null;
+  seoBody: string | null;
+}
+
+// ─────────────────────────── blog (BLOG-01) ───────────────────────────
+// Mirrors packages/store-contract/src/post.ts. Only PUBLISHED posts arrive.
+
+export interface StorePostV1 {
+  id: number;
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  /** Markdown — render with the Markdown component, never as HTML. */
+  bodyMd: string;
+  /** RELATIVE upload path or absolute URL — run through toPublicImageUrl(). */
+  coverImage: string | null;
+  publishedAt: string;
+  updatedAt: string;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  authorName: string | null;
+}
+
+export interface ListPostsResponse {
+  posts: Omit<StorePostV1, "bodyMd">[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
+export interface PostDetailResponse {
+  post: StorePostV1;
 }
 
 export interface ListProductsResponse {

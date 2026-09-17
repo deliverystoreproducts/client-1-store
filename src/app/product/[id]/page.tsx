@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { MediaSlot } from "@/components/MediaSlot";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
+import { Markdown } from "@/components/Markdown";
+import { productIdFromParam, productPath } from "@/lib/product-path";
 import { AddToCartButton } from "@/components/AddToCartButton";
 import { Prop65WarningBox, VapeDisposalBox } from "@/components/ComplianceNotices";
 import { ProductCard } from "@/components/ProductCard";
@@ -22,25 +24,48 @@ import { getProductDetail, getStoreProfile } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
 
+// BLOG-01: the URL carries the name — `/product/wedding-cake-3-5g-300000123`.
+// The id is the identity; the slug is for people and for search. A bare id or
+// a stale slug (Weedmaps renames products on sync) is permanently redirected to
+// the current canonical, so old links keep working and duplicates never index.
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const detail = await getProductDetail(Number(id));
-  return { title: detail?.product.name ?? "Product" };
+  const numeric = productIdFromParam(id);
+  const detail = numeric ? await getProductDetail(numeric) : null;
+  if (!detail) return { title: "Product", robots: { index: false, follow: false } };
+  const { product } = detail;
+  const description =
+    product.seoBody?.replace(/[#*_>`\[\]]/g, " ").replace(/\s+/g, " ").trim().slice(0, 160) ||
+    product.description?.slice(0, 160) ||
+    undefined;
+  return {
+    title: product.seoTitle || product.name,
+    description,
+    alternates: { canonical: productPath(product) },
+    openGraph: {
+      title: product.seoTitle || product.name,
+      description,
+      type: "website",
+      ...(product.image ? { images: [{ url: product.image }] } : {}),
+    },
+  };
 }
 
 export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const numeric = Number(id);
-  if (!Number.isInteger(numeric) || numeric <= 0) notFound();
+  const numeric = productIdFromParam(id);
+  if (!numeric) notFound();
 
   const [detail, profile] = await Promise.all([getProductDetail(numeric), getStoreProfile()]);
   if (!detail) notFound();
 
   const { product, related } = detail;
+  const canonical = productPath(product);
+  if (`/product/${id}` !== canonical) permanentRedirect(canonical);
   const onSale = product.salePrice != null && product.salePrice < product.price;
 
   // ══════════════════════════════════════════════════════════════════════
@@ -89,6 +114,16 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
     vapeMessages.length > 0
       ? redactProhibitedDisposalLanguage(product.description)
       : { text: product.description, removed: [] as string[] };
+  const strain =
+    vapeMessages.length > 0
+      ? redactProhibitedDisposalLanguage(product.seoBody)
+      : { text: product.seoBody, removed: [] as string[] };
+  const strainCopy = strain.text?.trim() || null;
+  if (strain.removed.length > 0) {
+    console.error(
+      `[compliance] product ${product.id} "${product.name}" — B&P § 26152.1(b): withheld ${strain.removed.length} sentence(s) from the strain page copy: ${strain.removed.join(" | ")}`,
+    );
+  }
   if (copy.removed.length > 0) {
     console.error(
       `[compliance] product ${product.id} "${product.name}" — B&P § 26152.1(b): withheld ${copy.removed.length} sentence(s) from the description. Fix the catalogue copy: ${copy.removed.join(" | ")}`,
@@ -144,7 +179,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
             price: product.unitPrice.toFixed(2),
             availability: product.available ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
             ...(process.env.SITE_ORIGIN
-              ? { url: `${process.env.SITE_ORIGIN.replace(/\/$/, "")}/product/${product.id}` }
+              ? { url: `${process.env.SITE_ORIGIN.replace(/\/$/, "")}${canonical}` }
               : {}),
           },
         }}
@@ -283,6 +318,15 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
           </div>
         </div>
       </div>
+
+      {/* BLOG-01: the strain page — the operator's own long copy (effects,
+          lineage, who it's for). Same disposal-language guard as the supplier
+          description: B&P § 26152.1(b) does not care who wrote the sentence. */}
+      {strainCopy ? (
+        <section className="detail-strain" aria-label="About this product">
+          <Markdown>{strainCopy}</Markdown>
+        </section>
+      ) : null}
 
       {related.length > 0 ? (
         <section className="mt-4">
