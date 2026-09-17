@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { productPath } from "@/lib/product-path";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useCart } from "@/components/CartProvider";
 import { apiGet } from "@/lib/client-api";
@@ -34,7 +35,7 @@ function ChatProductCard({ product }: { product: PublicProduct }) {
   const { add } = useCart();
   return (
     <span className="bud-product">
-      <Link href={`/product/${product.id}`} className="bud-product-thumb">
+      <Link href={productPath(product)} className="bud-product-thumb">
         {product.image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={product.image} alt="" loading="lazy" />
@@ -42,7 +43,7 @@ function ChatProductCard({ product }: { product: PublicProduct }) {
           <span aria-hidden>🌿</span>
         )}
       </Link>
-      <Link href={`/product/${product.id}`} className="bud-product-body">
+      <Link href={productPath(product)} className="bud-product-body">
         <span className="bud-product-name">{product.name}</span>
         <span className="bud-product-meta">
           {product.brand?.name ?? product.category?.name ?? ""}

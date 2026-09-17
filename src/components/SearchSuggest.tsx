@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { productPath } from "@/lib/product-path";
 import { useRouter } from "next/navigation";
 import { apiGet } from "@/lib/client-api";
 import { formatUsd } from "@/lib/money";
@@ -83,7 +84,7 @@ export function SearchSuggest({ id = "hdr-q" }: { id?: string }) {
     ...sug.brands.map((b) => ({ key: `b${b.id}`, href: `/brand/${b.id}`, label: b.name })),
     ...sug.products.map((p) => ({
       key: `p${p.id}`,
-      href: `/product/${p.id}`,
+      href: productPath(p),
       label: p.name,
     })),
   ];
@@ -214,7 +215,7 @@ export function SearchSuggest({ id = "hdr-q" }: { id?: string }) {
                     className="hdr-opt"
                     onMouseDown={(e) => {
                       e.preventDefault();
-                      go(`/product/${p.id}`);
+                      go(productPath(p));
                     }}
                     onMouseEnter={() => setActive(i)}
                   >
