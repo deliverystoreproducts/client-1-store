@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { fetchPushConfig } from "@/lib/push-client";
 
 /**
@@ -92,7 +93,13 @@ export function InstallPrompt() {
     };
   }, []);
 
-  if (mode === "hidden") return null;
+  // The cart and checkout pin their own call-to-action to the bottom of the
+  // phone (.cta-bar, z-index 55); this bar sat on top of it (z-index 70) and
+  // covered the Checkout / Place order button. Nobody should meet the
+  // install nudge with a basket in hand — it waits for the next page.
+  const pathname = usePathname();
+  const busy = pathname?.startsWith("/cart") || pathname?.startsWith("/checkout") || pathname?.startsWith("/signin");
+  if (mode === "hidden" || busy) return null;
 
   const snooze = () => {
     setMode("hidden");
