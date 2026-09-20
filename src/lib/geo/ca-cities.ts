@@ -45,6 +45,16 @@ export const CA_CITIES: Record<string, readonly [number, number]> = {
   "van-nuys": [34.19, -118.45], "north-hollywood": [34.17, -118.38], torrance: [33.84, -118.34], inglewood: [33.96, -118.35], downey: [33.94, -118.13],
   whittier: [33.98, -118.03], norwalk: [33.9, -118.08], "el-monte": [34.07, -118.03], "west-covina": [34.07, -117.94], "santa-clarita": [34.39, -118.54],
   lancaster: [34.7, -118.14], palmdale: [34.58, -118.12], "culver-city": [34.02, -118.4], "beverly-hills": [34.07, -118.4], "san-fernando": [34.28, -118.44],
+  // Los Angeles neighbourhoods: shops in the city proper name their zones by neighbourhood, not by city
+  arcadia: [34.14, -118.04], encino: [34.16, -118.5], "korea-town": [34.06, -118.3], koreatown: [34.06, -118.3], "mid-city": [34.05, -118.35],
+  northridge: [34.23, -118.54], "sherman-oaks": [34.15, -118.45], sylmar: [34.31, -118.45], "woodland-hills": [34.17, -118.61],
+  "studio-city": [34.14, -118.39], tarzana: [34.17, -118.55], reseda: [34.2, -118.54], "canoga-park": [34.2, -118.6], chatsworth: [34.26, -118.6],
+  "granada-hills": [34.27, -118.5], "panorama-city": [34.22, -118.45], pacoima: [34.26, -118.43], "sun-valley": [34.22, -118.37],
+  "mission-hills": [34.27, -118.46], tujunga: [34.25, -118.29], "toluca-lake": [34.15, -118.35], "silver-lake": [34.09, -118.27],
+  "echo-park": [34.08, -118.26], "highland-park": [34.11, -118.19], "eagle-rock": [34.14, -118.21], westwood: [34.06, -118.44],
+  "west-la": [34.04, -118.44], "mar-vista": [34.0, -118.43], calabasas: [34.14, -118.66], "agoura-hills": [34.15, -118.76],
+  "simi-valley": [34.27, -118.78], alhambra: [34.1, -118.13], monrovia: [34.15, -118.0], "san-gabriel": [34.1, -118.11],
+  "south-la": [33.99, -118.29], "el-segundo": [33.92, -118.42], "manhattan-beach": [33.88, -118.41], "redondo-beach": [33.85, -118.39],
   // San Diego
   "san-diego": [32.72, -117.16], escondido: [33.12, -117.09], oceanside: [33.2, -117.38], "chula-vista": [32.64, -117.08], carlsbad: [33.16, -117.35],
   "el-cajon": [32.79, -116.96], vista: [33.2, -117.24], "san-marcos": [33.14, -117.17], encinitas: [33.04, -117.29], "la-mesa": [32.77, -117.02],

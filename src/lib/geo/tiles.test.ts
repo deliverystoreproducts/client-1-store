@@ -47,5 +47,9 @@ describe("the gazetteer", () => {
       "Huntington Beach", "Irvine", "Jurupa Valley", "La Habra", "Newport Beach", "Ontario", "Orange", "Pomona", "Rancho Cucamonga", "Riverside", "Roseville",
       "Sacramento", "San Bernardino", "Santa Ana", "Upland", "Visalia", "Westminster", "Yorba Linda"];
     expect(yb.filter((c) => !CA_CITIES[citySlug(c)])).toEqual([]);
+    // HitsLA names its zones by Los Angeles neighbourhood: eight of its fifteen had no pin on the first deploy.
+    const hitsla = ["Arcadia", "Burbank", "Encino", "Glendale", "Korea Town", "Mid City", "North Hollywood", "Northridge", "Pasadena",
+      "Santa Clarita", "Sherman Oaks", "Sylmar", "Thousand Oaks", "Van Nuys", "Woodland Hills"];
+    expect(hitsla.filter((c) => !CA_CITIES[citySlug(c)])).toEqual([]);
   });
 });
