@@ -6943,15 +6943,36 @@ html[data-gated] body {
 .blog-meta { font-size: var(--t--2); color: var(--pine-3); letter-spacing: 0.04em; }
 .blog-cover { width: 100%; max-height: 28rem; object-fit: cover; border-radius: 16px; margin: 1rem 0 1.5rem; }
 
-/* ── MAP-01: the delivery map (components/ZoneMap, Leaflet + OpenStreetMap via /api/tiles) ── */
+/* ── MAP-01: the delivery map (components/ZoneMap, Leaflet + OpenStreetMap via /api/tiles) ──
+   A night map in both site themes: it is a picture, and it looks best dark with lit pins. */
 .zmap { margin: 1.25rem 0 1.75rem; }
-.zmap-canvas { height: min(62vh, 30rem); min-height: 20rem; border: 1px solid var(--rule); border-radius: .9rem; overflow: hidden; background: var(--ground-deep); z-index: 0; }
-.zmap figcaption { margin-top: .5rem; }
-/* The pin: a teardrop in the action green, drawn in CSS so there is no marker image to go missing. */
-.zmap-pin { display: block; width: 22px; height: 22px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); background: var(--fern, #16a34a); border: 2px solid #fff; box-shadow: 0 1px 4px rgb(0 0 0 / 35%); }
-.zmap-pin::after { content: ""; position: absolute; inset: 5px; border-radius: 50%; background: #fff; }
-.zmap-pin-local { background: var(--fern-lit, #15803d); }
-.leaflet-marker-icon:hover .zmap-pin, .leaflet-marker-icon:focus .zmap-pin { background: var(--price, #dc2626); }
-.zmap .leaflet-popup-content { margin: .7rem .9rem; font: inherit; font-size: .9rem; line-height: 1.45; color: #18181b; }
-.zmap .leaflet-popup-content a { color: #15803d; font-weight: 600; }
-.zmap .leaflet-container { font: inherit; }
+.zmap-canvas { height: min(64vh, 32rem); min-height: 21rem; border-radius: 1.1rem; overflow: hidden; background: #0e1417; z-index: 0;
+  box-shadow: 0 1px 0 rgb(255 255 255 / 6%) inset, 0 18px 40px -18px rgb(0 0 0 / 45%); }
+.zmap figcaption { margin-top: .6rem; }
+.zmap .leaflet-container { font: inherit; background: #0e1417; }
+/* Daylight OpenStreetMap → night: invert, swing the hues back so water stays blue and parks green, then calm it. */
+.zmap .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(.92) contrast(.88) saturate(.55); }
+
+/* Pins: a lit green dot with a soft halo. Dots, not teardrops: thirty cities in three clumps overlap, and
+   overlapping dots read as "lots here" where overlapping teardrops read as a mess. */
+.zmap-pin { position: relative; display: block; width: 18px; height: 18px; border-radius: 50%; background: #22c55e; border: 2.5px solid #fff;
+  box-shadow: 0 0 0 5px rgb(34 197 94 / 28%), 0 2px 8px rgb(0 0 0 / 55%); transition: transform .15s ease, box-shadow .15s ease; }
+.leaflet-marker-icon:hover .zmap-pin, .leaflet-marker-icon:focus .zmap-pin { transform: scale(1.25); box-shadow: 0 0 0 8px rgb(34 197 94 / 35%), 0 2px 10px rgb(0 0 0 / 60%); }
+.leaflet-marker-icon:focus { outline: none; }
+
+/* Popup */
+.zmap .zmap-pop .leaflet-popup-content-wrapper { background: #12181c; color: #fff; border-radius: .9rem; border: 1px solid rgb(255 255 255 / 10%); box-shadow: 0 14px 34px rgb(0 0 0 / 55%); }
+.zmap .zmap-pop .leaflet-popup-tip { background: #12181c; border: 1px solid rgb(255 255 255 / 10%); }
+.zmap .zmap-pop .leaflet-popup-content { margin: .8rem 1rem; font-size: .9rem; line-height: 1.4; display: flex; flex-direction: column; gap: .15rem; }
+.zmap-pop-city { font-weight: 700; font-size: 1rem; }
+.zmap-pop-meta { color: rgb(255 255 255 / 70%); }
+.zmap .zmap-pop a.zmap-pop-link { margin-top: .35rem; color: #4ade80; font-weight: 600; text-decoration: none; }
+.zmap .zmap-pop a.zmap-pop-link:hover { text-decoration: underline; }
+
+/* Controls and the credit, dark and quiet */
+.zmap .leaflet-bar { border: 0; border-radius: .7rem; overflow: hidden; box-shadow: 0 6px 18px rgb(0 0 0 / 45%); }
+.zmap .leaflet-bar a { background: #12181c; color: #fff; border-bottom: 1px solid rgb(255 255 255 / 10%); width: 34px; height: 34px; line-height: 34px; }
+.zmap .leaflet-bar a:hover { background: #1b242a; color: #4ade80; }
+.zmap .leaflet-bar a.leaflet-disabled { background: #12181c; color: rgb(255 255 255 / 30%); }
+.zmap .leaflet-control-attribution { background: rgb(14 20 23 / 70%); color: rgb(255 255 255 / 55%); font-size: 10px; padding: 1px 7px; border-radius: 0 .5rem 0 0; }
+.zmap .leaflet-control-attribution a { color: rgb(255 255 255 / 75%); }

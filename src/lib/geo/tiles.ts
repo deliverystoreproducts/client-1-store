@@ -8,11 +8,16 @@
  *
  * A relay that fetches any tile asked of it is a free tile server for the whole
  * internet, paid for by this shop and blamed on it by OpenStreetMap. So it only
- * serves the zooms a delivery map needs, and only tiles that touch California.
+ * serves the zooms a delivery map needs, and only the American West: California
+ * and enough ocean and desert around it to FILL THE FRAME. The first version
+ * allowed California's own box only, and on a wide screen the map had grey
+ * bands down both sides where the refused tiles would have been.
  */
-export const MIN_ZOOM = 5;
+export const MIN_ZOOM = 6;
 export const MAX_ZOOM = 13;
-const CA = { minLat: 32.0, maxLat: 42.5, minLng: -125.0, maxLng: -113.5 };
+/** The map cannot be panned outside this, so every tile it can ask for is inside it. */
+export const VIEW_BOX = { minLat: 25.0, maxLat: 48.0, minLng: -137.0, maxLng: -101.0 };
+const CA = VIEW_BOX;
 
 /** Standard slippy-map tile numbering (Web Mercator). */
 export function tileOf(lat: number, lng: number, z: number): { x: number; y: number } {

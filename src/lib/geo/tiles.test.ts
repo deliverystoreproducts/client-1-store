@@ -12,6 +12,12 @@ describe("tile relay allow-list", () => {
       }
     }
   });
+  it("fills a wide frame: the ocean and the desert either side of California are served too", () => {
+    for (const [lat, lng] of [[36, -130], [36, -108], [45, -120], [28, -115]] as const) {
+      const t = tileOf(lat, lng, 6);
+      expect(tileAllowed(6, t.x, t.y), `${lat},${lng}`).toBe(true);
+    }
+  });
   it("is not a tile server for the rest of the world", () => {
     const nyc = tileOf(40.71, -74.0, 10), london = tileOf(51.5, -0.12, 10), tokyo = tileOf(35.68, 139.69, 10);
     for (const t of [nyc, london, tokyo]) expect(tileAllowed(10, t.x, t.y)).toBe(false);
