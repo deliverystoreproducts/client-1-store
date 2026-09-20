@@ -24,7 +24,7 @@ import { MAX_ZOOM, MIN_ZOOM, VIEW_BOX } from "@/lib/geo/tiles";
  * The "Leaflet" prefix is removed from the corner credit (Leaflet allows that);
  * the OpenStreetMap credit stays, because their licence requires it.
  */
-export function ZoneMap({ pins }: { pins: Pin[] }) {
+export function ZoneMap({ pins, compact = false }: { pins: Pin[]; compact?: boolean }) {
   const box = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -69,11 +69,13 @@ export function ZoneMap({ pins }: { pins: Pin[] }) {
 
   if (pins.length === 0) return null;
   return (
-    <figure className="zmap">
+    <figure className={compact ? "zmap zmap-compact" : "zmap"}>
       <div ref={box} className="zmap-canvas" role="application" aria-label={`Map with a pin on each of the ${pins.length} cities we deliver to`} />
-      <figcaption className="small muted">
-        Tap a pin for that city&apos;s minimum order. Pins mark city centres; your exact address is confirmed at checkout.
-      </figcaption>
+      {compact ? null : (
+        <figcaption className="small muted">
+          Tap a pin for that city&apos;s minimum order. Pins mark city centres; your exact address is confirmed at checkout.
+        </figcaption>
+      )}
     </figure>
   );
 }

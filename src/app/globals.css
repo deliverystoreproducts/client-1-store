@@ -6949,6 +6949,9 @@ html[data-gated] body {
 .zmap-canvas { height: min(64vh, 32rem); min-height: 21rem; border-radius: 1.1rem; overflow: hidden; background: #0e1417; z-index: 0;
   box-shadow: 0 1px 0 rgb(255 255 255 / 6%) inset, 0 18px 40px -18px rgb(0 0 0 / 45%); }
 .zmap figcaption { margin-top: .6rem; }
+/* Home page: one more shelf under the category rail, so shorter than the /delivery one. */
+.zmap-compact { margin: .25rem 0 0; }
+.zmap-compact .zmap-canvas { height: min(46vh, 22rem); min-height: 16rem; }
 .zmap .leaflet-container { font: inherit; background: #0e1417; }
 /* Daylight OpenStreetMap → night: invert, swing the hues back so water stays blue and parks green, then calm it. */
 .zmap .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(.92) contrast(.88) saturate(.55); }

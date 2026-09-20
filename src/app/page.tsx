@@ -7,6 +7,7 @@ import { MediaSlot } from "@/components/MediaSlot";
 import { HeroVideo } from "@/components/HeroVideo";
 import { CategoryFeature } from "@/components/CategoryFeature";
 import { CategoryRow } from "@/components/CategoryRow";
+import { DeliveryMapSection } from "@/components/DeliveryMapSection";
 import { FeaturedCarousel } from "@/components/FeaturedCarousel";
 import { DealCard } from "@/components/DealCard";
 import {
@@ -17,6 +18,7 @@ import {
   getFeaturedProducts,
   getDeals,
   getStoreProfile,
+  getDeliveryZones,
 } from "@/lib/store";
 
 /**
@@ -60,7 +62,7 @@ export default async function HomePage({
   const page = Math.max(1, Number(param(sp, "page")) || 1);
   const browsing = !!(search || categoryId || sort || page > 1);
 
-  const [profile, categories, brands, deals, featured, results] = await Promise.all([
+  const [profile, categories, brands, deals, featured, results, zones] = await Promise.all([
     getStoreProfile(),
     getCategories(),
     // Only for the shop window — a customer mid-search has told us what they came for.
@@ -70,6 +72,8 @@ export default async function HomePage({
     browsing ? Promise.resolve([]) : getDeals(),
     browsing ? Promise.resolve([]) : getFeaturedProducts(8),
     getCatalogPage({ search, categoryId, sort: sort ?? "newest", page, limit: PAGE_SIZE }),
+    // MAP-01: the delivery map under the category rail. Shop window only, like the rails.
+    browsing ? Promise.resolve([]) : getDeliveryZones(),
   ]);
 
   // Needs `categories`, so it cannot join the Promise.all above. Skipped
@@ -209,6 +213,7 @@ export default async function HomePage({
           moment a customer starts filtering — at that point they are shopping,
           not browsing. */}
       {!browsing ? <CategoryFeature categories={categories} /> : null}
+      {!browsing ? <DeliveryMapSection zones={zones} /> : null}
       {!browsing ? <BrandRail brands={brands} /> : null}
 
       {deals.length > 0 ? (

@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ZoneMap } from "@/components/ZoneMap";
-import { CA_CITIES } from "@/lib/geo/ca-cities";
-import type { Pin } from "@/lib/geo/tiles";
+import { zonePins } from "@/components/DeliveryMapSection";
 import { getDeliveryZones, getStoreProfile } from "@/lib/store";
 
 /**
@@ -31,10 +30,7 @@ export default async function DeliveryIndexPage() {
   const far = zones.filter((z) => !z.isLocal);
   // MAP-01: a pin for every zone the gazetteer can place. One it cannot is still in the lists below, which are
   // the authoritative ones; the map is the picture of them.
-  const pins: Pin[] = zones.flatMap((z) => {
-    const at = CA_CITIES[z.slug];
-    return at ? [{ city: z.city, slug: z.slug, isLocal: z.isLocal, minimumOrder: z.minimumOrder, freeDelivery: z.freeDelivery, lat: at[0], lng: at[1] }] : [];
-  });
+  const pins = zonePins(zones);
 
   return (
     <section>
