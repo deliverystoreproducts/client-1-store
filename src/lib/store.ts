@@ -165,6 +165,26 @@ const EMPTY_PAGE: PublicProductPage = {
   unavailable: true,
 };
 
+/**
+ * An exact set of products, in the order asked for (`/picks`, the page an email
+ * campaign's button opens). One upstream request, the same by-id call the cart
+ * uses, so a tile here is priced by the same code as everywhere else. Products
+ * that have left the shelf are simply absent: a campaign can outlive its stock,
+ * and "5 of the 6 we emailed you" is a better page than an error.
+ */
+export async function getProductsByIds(ids: number[]): Promise<{ products: PublicProduct[]; unavailable: boolean }> {
+  if (ids.length === 0) return { products: [], unavailable: false };
+  try {
+    const res = await api.listProductsByIds(ids);
+    const byId = new Map((res.products ?? []).map((p) => [p.id, toPublicProduct(p)]));
+    const products = ids.map((id) => byId.get(id)).filter((p): p is PublicProduct => !!p && p.available);
+    return { products, unavailable: false };
+  } catch (e) {
+    logPageFailure("picks", e);
+    return { products: [], unavailable: true };
+  }
+}
+
 export async function getCatalogPage(q: CatalogQuery): Promise<PublicProductPage> {
   try {
     const res = await api.listProducts(q);
