@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { MARKETING_CONSENT_TEXT } from "@/lib/site";
+import { EMAIL_FIELD_NOTE, MARKETING_CONSENT_TEXT } from "@/lib/site";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, useRef } from "react";
 import { track } from "@/lib/track";
@@ -86,6 +86,8 @@ export function CheckoutView({
   const [lastAddressSource, setLastAddressSource] = useState<"order" | "saved" | null>(null);
   const [lookingUp, setLookingUp] = useState(true);
   const [notes, setNotes] = useState("");
+  // STORE-EMAIL-01: null = untouched, so the address on file shows until the customer types.
+  const [emailInput, setEmailInput] = useState<string | null>(null);
   const [coupon, setCoupon] = useState("");
   // REF-01: a friend's number, for people who came without the share link.
   const [referral, setReferral] = useState("");
@@ -288,6 +290,7 @@ export function CheckoutView({
           items,
           address,
           notes,
+          email: emailInput ?? session?.customer?.email ?? null,
           couponCode: appliedCoupon || null,
           referredBy: referral.trim() || null,
           marketingConsent,
@@ -557,6 +560,25 @@ export function CheckoutView({
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                 />
+              </div>
+
+              <div className="field">
+                <label className="label" htmlFor="email">
+                  Email (optional)
+                </label>
+                <input
+                  id="email"
+                  className="input"
+                  type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  placeholder="you@example.com"
+                  value={emailInput ?? session?.customer?.email ?? ""}
+                  onChange={(e) => setEmailInput(e.target.value)}
+                />
+                <p className="faint mt-1 mb-0">{EMAIL_FIELD_NOTE}</p>
               </div>
 
               <label className="check mb-2">

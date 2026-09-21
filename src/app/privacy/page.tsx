@@ -128,6 +128,11 @@ export default async function PrivacyPage() {
           matched to the ID the driver checks at the door.
         </li>
         <li>
+          <strong>Your email address, if you give us one.</strong> It is optional — you can order
+          without it. We use it to email you deals and news from the store; every email has an
+          unsubscribe link, and you can remove the address in your account at any time.
+        </li>
+        <li>
           <strong>Your delivery address</strong> and any delivery notes you write (gate codes,
           which entrance, where to meet). California requires deliveries to go to a physical
           address (4 CCR § 15416), so we cannot take an order without one.

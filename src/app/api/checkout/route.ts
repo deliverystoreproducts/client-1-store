@@ -1,5 +1,5 @@
 import { isSameOriginRequest } from "@/lib/csrf";
-import { MARKETING_CONSENT_TEXT } from "@/lib/site";
+import { cleanEmail, MARKETING_CONSENT_TEXT } from "@/lib/site";
 import * as api from "@/lib/kamui/client";
 import { UpstreamError } from "@/lib/kamui/errors";
 import { fail, failFromUpstream, json } from "@/lib/http";
@@ -24,6 +24,7 @@ interface Body {
   items?: unknown;
   address?: unknown;
   notes?: unknown;
+  email?: unknown;
   couponCode?: unknown;
   /** REF-01: a friend's phone typed at checkout (the share-link cookie is read server-side). */
   referredBy?: unknown;
@@ -163,6 +164,8 @@ export async function POST(req: Request): Promise<Response> {
       notes,
       couponCode,
       referredBy,
+      // STORE-EMAIL-01: optional. A bad value is dropped here rather than failing an order over it.
+      ...(cleanEmail(body.email) ? { email: cleanEmail(body.email) } : {}),
       // CONSENT-01: unchecked by default; sent only as a true tick, with the exact words shown.
       ...(body.marketingConsent === true ? { marketingConsent: true, consentText: MARKETING_CONSENT_TEXT } : {}),
       // Whether the address is remembered on the customer record.

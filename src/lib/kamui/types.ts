@@ -204,6 +204,8 @@ export interface CustomerProfileV1 {
   address: string | null;
   hasId: boolean;
   referredFrom: string | null;
+  /** STORE-EMAIL-01: optional; absent on a platform older than the field. */
+  email?: string | null;
   /** CONSENT-01: recorded marketing consent (platform Customer.marketing). */
   marketingConsent: boolean;
 }
@@ -249,6 +251,8 @@ export interface CheckoutRequestV1 {
   couponCode?: string | null;
   /** REF-01: the referrer's phone, recovered server-side from the share-link cookie or typed at checkout. */
   referredBy?: string | null;
+  /** STORE-EMAIL-01: optional, saved on the customer after a successful order. */
+  email?: string | null;
   /** CONSENT-01: the checkout checkbox + the exact words shown. */
   marketingConsent?: boolean;
   consentText?: string;

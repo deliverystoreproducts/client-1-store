@@ -209,6 +209,8 @@ export interface PublicCustomer {
   address: string | null;
   /** Whether a government-ID photo is on file. The photo itself never crosses. */
   hasId: boolean;
+  /** STORE-EMAIL-01: optional, the customer's own. */
+  email: string | null;
   /** CONSENT-01 */
   marketingConsent: boolean;
 }

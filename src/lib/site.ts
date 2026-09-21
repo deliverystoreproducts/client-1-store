@@ -125,5 +125,15 @@ export const MEDIA_HINTS = (process.env.NEXT_PUBLIC_MEDIA_HINTS || "").trim().to
  *
  * DRAFT wording — to be confirmed by counsel before the first campaign.
  */
+/** STORE-EMAIL-01: shown under the optional email field, at checkout and in the account. */
+export const EMAIL_FIELD_NOTE = `Optional. We'll email you deals and news from ${SITE_NAME}. Every email has an unsubscribe link.`;
+
+/** A trimmed, lower-cased address, or null. Optional field: a bad value is dropped at checkout, refused in the account. */
+export function cleanEmail(raw: unknown): string | null {
+  if (typeof raw !== "string") return null;
+  const e = raw.trim().toLowerCase();
+  return e && e.length <= 254 && !e.includes("..") && /^[^\s@<>(),;:"']+@[a-z0-9-]+(\.[a-z0-9-]+)+$/.test(e) ? e : null;
+}
+
 export const MARKETING_CONSENT_TEXT =
   `Yes, text me deals and updates from ${SITE_NAME}. Message frequency varies; message and data rates may apply. Reply STOP to opt out, HELP for help. I am 21 or older.`;

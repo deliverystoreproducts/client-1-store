@@ -8,6 +8,7 @@ import { CouponWallet } from "@/components/CouponWallet";
 import { ReferralPanel } from "@/components/ReferralPanel";
 import { PushPrompt } from "@/components/PushPrompt";
 import { ConsentToggle } from "@/components/ConsentToggle";
+import { EMAIL_FIELD_NOTE } from "@/lib/site";
 import { formatUsd } from "@/lib/money";
 import { formatPhone } from "@/lib/phone";
 import type { PublicOrderSummary, SessionState } from "@/lib/public-types";
@@ -51,6 +52,7 @@ export function AccountView() {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
+  const [email, setEmail] = useState("");
   const [saving, setSaving] = useState(false);
   const [profileMsg, setProfileMsg] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
 
@@ -66,6 +68,7 @@ export function AccountView() {
         setSession(s);
         setName(s.customer?.name ?? "");
         setAddress(s.customer?.address ?? "");
+        setEmail(s.customer?.email ?? "");
         if (!s.authenticated) router.replace("/signin");
       })
       .catch(() => setLoadFailed(true));
@@ -84,7 +87,7 @@ export function AccountView() {
     setSaving(true);
     setProfileMsg(null);
     try {
-      const s = await apiPatch<SessionState>("/api/auth/me", { name, address });
+      const s = await apiPatch<SessionState>("/api/auth/me", { name, address, email });
       setSession(s);
       setEditing(false);
       setProfileMsg({ kind: "ok", text: "Saved." });
@@ -189,6 +192,10 @@ export function AccountView() {
               <dt>Address</dt>
               <dd>{c?.address || <span className="faint">Not set</span>}</dd>
             </div>
+            <div>
+              <dt>Email</dt>
+              <dd>{c?.email || <span className="faint">Not set</span>}</dd>
+            </div>
           </dl>
         ) : (
           <form
@@ -229,6 +236,23 @@ export function AccountView() {
                 onChange={(e) => setAddress(e.target.value)}
               />
             </div>
+            <div className="field">
+              <label className="label" htmlFor="acc-email">
+                Email (optional)
+              </label>
+              <input
+                id="acc-email"
+                className="input"
+                type="email"
+                inputMode="email"
+                autoComplete="email"
+                autoCapitalize="none"
+                spellCheck={false}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              <p className="faint mt-1 mb-0">{EMAIL_FIELD_NOTE} Clear the box to remove it.</p>
+            </div>
             <div className="row" style={{ gap: "0.6rem" }}>
               <button className="btn" disabled={saving || !name.trim()}>
                 {saving ? "Saving…" : "Save"}
@@ -241,6 +265,7 @@ export function AccountView() {
                   setEditing(false);
                   setName(c?.name ?? "");
                   setAddress(c?.address ?? "");
+                  setEmail(c?.email ?? "");
                   setProfileMsg(null);
                 }}
               >

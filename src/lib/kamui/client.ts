@@ -431,7 +431,7 @@ export function getMe(customerToken: string): Promise<MeResponse> {
 
 export function updateMe(
   customerToken: string,
-  patch: { name?: string; address?: string; marketingConsent?: boolean; consentText?: string },
+  patch: { name?: string; address?: string; email?: string | null; marketingConsent?: boolean; consentText?: string },
 ): Promise<MeResponse> {
   return call<MeResponse>("PATCH", `${API_PREFIX}/auth/me`, { json: patch }, { customerToken });
 }
