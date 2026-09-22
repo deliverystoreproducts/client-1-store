@@ -1,14 +1,22 @@
 import Link from "next/link";
 import { ZoneMap } from "@/components/ZoneMap";
 import { CA_CITIES } from "@/lib/geo/ca-cities";
+import { citySlug } from "@/lib/city-slug";
 import type { Pin } from "@/lib/geo/tiles";
 import type { PublicDeliveryZone } from "@/lib/public-types";
 
-/** Zones → pins. A zone the gazetteer cannot place has no pin; /delivery still lists it. */
+/** Zones → pins. A zone the gazetteer cannot place has no pin; /delivery still lists it.
+ *  One zone may name several places ("Woodland Hills / Tarzana / Canoga Park"): each known place gets a pin. */
 export function zonePins(zones: PublicDeliveryZone[]): Pin[] {
+  const seen = new Set<string>();
   return zones.flatMap((z) => {
-    const at = CA_CITIES[z.slug];
-    return at ? [{ city: z.city, slug: z.slug, isLocal: z.isLocal, minimumOrder: z.minimumOrder, freeDelivery: z.freeDelivery, lat: at[0], lng: at[1] }] : [];
+    const places = CA_CITIES[z.slug] ? [{ name: z.city, slug: z.slug }] : z.city.split(/\s*(?:\/|&|\+|,|\band\b)\s*/i).map((name) => ({ name: name.trim(), slug: citySlug(name) })).filter((p) => CA_CITIES[p.slug]);
+    return places.flatMap((p) => {
+      if (seen.has(p.slug)) return [];
+      seen.add(p.slug);
+      const at = CA_CITIES[p.slug]!;
+      return [{ city: p.name, slug: p.slug, isLocal: z.isLocal, minimumOrder: z.minimumOrder, freeDelivery: z.freeDelivery, lat: at[0], lng: at[1], ...(p.slug !== z.slug ? { zoneSlug: z.slug } : {}) }];
+    });
   });
 }
 

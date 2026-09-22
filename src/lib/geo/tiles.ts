@@ -33,4 +33,9 @@ export function tileAllowed(z: number, x: number, y: number): boolean {
 }
 
 export interface ZoneIn { city: string; slug: string; isLocal: boolean; minimumOrder: number; freeDelivery: boolean }
-export interface Pin extends ZoneIn { lat: number; lng: number }
+export interface Pin extends ZoneIn {
+  lat: number;
+  lng: number;
+  /** The zone's own slug when one zone names several places (the page to link to); absent = `slug`. */
+  zoneSlug?: string;
+}

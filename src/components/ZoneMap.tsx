@@ -70,7 +70,7 @@ export function ZoneMap({ pins, compact = false }: { pins: Pin[]; compact?: bool
         marker
           .addTo(map)
           .bindPopup(
-            `<span class="zmap-pop-city">${esc(p.city)}</span><span class="zmap-pop-meta">${min}${p.freeDelivery ? " · free delivery" : ""}</span><a class="zmap-pop-link" href="/delivery/${encodeURIComponent(p.slug)}">See delivery details →</a>`,
+            `<span class="zmap-pop-city">${esc(p.city)}</span><span class="zmap-pop-meta">${min}${p.freeDelivery ? " · free delivery" : ""}</span><a class="zmap-pop-link" href="/delivery/${encodeURIComponent(p.zoneSlug ?? p.slug)}">See delivery details →</a>`,
             { closeButton: false, className: "zmap-pop", maxWidth: 240 },
           );
       }
