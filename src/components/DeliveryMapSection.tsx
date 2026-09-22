@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ZoneMap } from "@/components/ZoneMap";
+import { DotMap } from "@/components/DotMap";
 import { CA_CITIES } from "@/lib/geo/ca-cities";
 import { citySlug } from "@/lib/city-slug";
 import type { Pin } from "@/lib/geo/tiles";
@@ -21,9 +21,10 @@ export function zonePins(zones: PublicDeliveryZone[]): Pin[] {
 }
 
 /**
- * MAP-01: "Where we deliver" on the home page, under the category rail. The
- * same map as /delivery at a smaller height, headed like the rails around it
- * (title + arrow), so it reads as one more shelf rather than a widget.
+ * MAP-01/02: "Where we deliver" on the home page, under the category rail,
+ * headed like the rails around it (title + arrow). Since 2026-09-22 it is the
+ * interactive dot map (DotMap); /delivery keeps the street map for checking an
+ * exact area.
  *
  * The delivery-area LIST was taken off the home page at the owner's request on
  * 2026-08-27 (thirty city names is a wall of text). A map says the same thing in
@@ -45,7 +46,7 @@ export function DeliveryMapSection({ zones }: { zones: PublicDeliveryZone[] }) {
           →
         </Link>
       </div>
-      <ZoneMap pins={pins} compact />
+      <DotMap pins={pins} />
     </section>
   );
 }
